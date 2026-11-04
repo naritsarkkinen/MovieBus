@@ -1,0 +1,35 @@
+.navbar-brand {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #e69c60;
+  text-decoration: none;
+}
+
+nav ul {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  list-style: none;
+}
+
+header {
+  padding: 20px;
+  margin: 16px;
+  background-color: #16213e;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #1381c0;
+}

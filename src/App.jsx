@@ -1,8 +1,14 @@
 import Home from './pages/Home'
 import './App.css'
+import Navbar from './components/Navbar'
 
 function App() {
-  return <Home />
+  return (
+    <div className="App">
+      <Navbar />
+      <Home />
+    </div>
+  )
 }
 
 export default App
