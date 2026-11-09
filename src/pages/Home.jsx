@@ -1,24 +1,24 @@
 import MovieCard from '../components/MovieCard'
 
-// DEMO DATA: Temporary movies for frontend development.
-// Replace with movie data from the backend/TMDB API later.
 const movies = [
   {
+    id: 1,
+    title: 'Inception',
+    year: 2010,
+    poster: '/posters/Inception.jpg',
+  },
+  {
+    id: 2,
     title: 'Interstellar',
-    poster: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg'
+    year: 2014,
+    poster: '/posters/interstellar.jpg',
   },
   {
-    title: 'Dune: Part Two',
-    poster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg'
+    id: 3,
+    title: 'The Dark Knight',
+    year: 2008,
+    poster: '/posters/the dark knight.jpg',
   },
-  {
-    title: 'The Batman',
-    poster: 'https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg'
-  },
-  {
-    title: 'Oppenheimer',
-    poster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg'
-  }
 ]
 
 // eslint-disable-next-line max-lines-per-function
@@ -29,8 +29,8 @@ function Home() {
         <div className="content-wrap">
           <h1>Movies are better together.</h1>
           <p>
-            Find movies, share your thoughts, and build
-            your own movie community.
+            Find movies, share your thoughts, and build your own movie
+            community.
           </p>
 
           {/* TODO: Connect search input to movie search functionality. */}
@@ -61,7 +61,7 @@ function Home() {
               <h3>Movie Night Crew</h3>
               <p>Your friends' movie club</p>
             </article>
-            
+
             {/* TODO: Link to club discovery page when implemented. */}
             <article className="club-card">
               <span className="card-icon">⊕</span>
@@ -90,14 +90,15 @@ function Home() {
         </section>
 
         <section className="trending-section">
-          <h2>Trending Movies</h2>
+          <h2>Movies</h2>
 
           <div className="movie-grid">
             {movies.map((movie) => (
               <MovieCard
-                key={movie.title}
+                key={movie.id}
                 title={movie.title}
                 poster={movie.poster}
+                year={movie.year}
               />
             ))}
           </div>

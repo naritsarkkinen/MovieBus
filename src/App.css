@@ -179,3 +179,13 @@ body {
     font-size: 1.25rem;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .movie-grid .movie-card {
+    transition: transform 0.3s;
+  }
+
+  .movie-grid .movie-card:hover {
+    transform: translateY(-8px);
+  }
+}
