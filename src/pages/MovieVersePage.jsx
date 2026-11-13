@@ -20,6 +20,7 @@ import './MovieVersePage.css'
 import { initialMovies } from '../data/mockMovies'
 import { zones, friends } from '../data/movieVerseData'
 import MovieVerseMovieCard from '../components/MovieVerseMovieCard'
+import MovieVerseGenreFilter from '../components/MovieVerseGenreFilter'
 
 // eslint-disable-next-line max-lines-per-function
 export default function MovieVersePage() {
@@ -239,25 +240,10 @@ export default function MovieVersePage() {
             ◉ {activeGenre === 'All' ? 'Filters' : 'Sci-Fi active'}
           </button>
         </section>
-        <div className="genre-row">
-          {[
-            'All',
-            'Sci-Fi',
-            'Action',
-            'Animation',
-            'Horror',
-            'Comedy',
-            'Romance',
-          ].map((g) => (
-            <button
-              key={g}
-              onClick={() => setActiveGenre(g)}
-              className={activeGenre === g ? 'genre active-genre' : 'genre'}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
+        <MovieVerseGenreFilter
+          activeGenre={activeGenre}
+          onSelect={setActiveGenre}
+        />
 
         <section className="world-section">
           <div className="section-heading">
