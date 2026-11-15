@@ -45,6 +45,7 @@ export const initialMovies = [
     color: 'violet',
     emoji: '🪐',
     desc: 'A team travels beyond this galaxy to secure humanity’s future.',
+    poster: '/posters/interstellar.jpg',
     tag: 'TIMELESS',
   },
   {

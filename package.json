@@ -10,6 +10,7 @@
     "build": "vite build",
     "test": "vitest run tests/api",
     "test:integration": "vitest run tests/integration",
+    "test:frontend": "vitest run tests/frontend",
     "start": "node api/index.js",
     "lint": "eslint .",
     "preview": "vite preview",

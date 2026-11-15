@@ -31,3 +31,19 @@ export const friends = [
     color: 'peach',
   },
 ]
+
+// Same communities as the seed data in the database schema (server/schema.sql)
+export const communities = [
+  {
+    id: 1,
+    name: 'Friday Film Club',
+    description: 'Weekly movie picks and discussions.',
+    members: 2,
+  },
+  {
+    id: 2,
+    name: 'Sci-Fi Explorers',
+    description: 'For stories beyond our universe.',
+    members: 5,
+  },
+]
