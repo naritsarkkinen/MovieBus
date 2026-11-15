@@ -1,84 +1,90 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Search,
-  Users,
-  Compass,
-  Star,
-  UserRound,
-  Settings2,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Heart,
-  MessageCircle,
-  Sparkles,
-  Film,
-  Radio,
-  MoveUpRight,
-} from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import './MovieVersePage.css'
-import { initialMovies } from '../data/mockMovies'
-import { zones, friends } from '../data/movieVerseData'
+import { initialMovies } from '../data/MockMovies'
+import { loadMovies } from '../api/movies'
+import { zones, friends } from '../data/MovieVerseData'
+import useMovieVerseApi from '../hooks/useMovieVerseApi'
 import MovieVerseMovieCard from '../components/MovieVerseMovieCard'
-import MovieVerseGenreFilter from '../components/MovieVerseGenreFilter'
+import MovieVerseWorld from '../components/MovieVerseWorld'
+import MovieVerseHud from '../components/MovieVerseHud'
+import MovieVersePanel from '../components/MovieVersePanel'
+import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
+import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
+import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
 
+// The whole page is the walkable world. Everything else (catalogue, friends,
+// communities, watchlist, movie details) opens on top of it as an overlay.
 // eslint-disable-next-line max-lines-per-function
 export default function MovieVersePage() {
-  const [movies] = useState(initialMovies)
+  const [movies, setMovies] = useState(initialMovies)
+  const [dataSource, setDataSource] = useState('loading') // 'loading' | 'live' | 'sample'
   const [zone, setZone] = useState('trending')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState(null)
-  const [profileOpen, setProfileOpen] = useState(false)
+  const [activeGenre, setActiveGenre] = useState('All')
+
+  // profile / avatar
   const [name, setName] = useState('Hämi')
   const [skin, setSkin] = useState('violet')
   const [avatar, setAvatar] = useState('🧑🏽‍🚀')
-  const [position, setPosition] = useState({ x: 50, y: 78 })
+
+  // what is open on top of the world
+  const [selected, setSelected] = useState(null)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [friendOpen, setFriendOpen] = useState(null)
+  const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
+  const [friendsOpen, setFriendsOpen] = useState(false)
+
+  // demo data that will later come from the API
   const [myRatings, setMyRatings] = useState({})
   const [review, setReview] = useState('')
-  const [toast, setToast] = useState('')
-  const [friendsOpen, setFriendsOpen] = useState(true)
-  const [activeGenre, setActiveGenre] = useState('All')
+  const [watchlist, setWatchlist] = useState([])
   const [joined, setJoined] = useState(false)
+  const [memberships, setMemberships] = useState(() => new Set())
+  const [invited, setInvited] = useState(() => new Set())
+  const [toast, setToast] = useState('')
 
+  // saving / loading ratings, reviews, communities and the profile
+  const api = useMovieVerseApi({
+    name,
+    avatar,
+    skin,
+    selected,
+    notify: setToast,
+  })
+  const filmClub = api.communities.find((c) => c.name === 'Friday Film Club')
+
+  // movies come from the API (Azure PostgreSQL); sample data if it is not reachable
+  useEffect(() => {
+    let ignore = false // true if the page closes before the answer arrives
+    loadMovies().then((result) => {
+      if (ignore) return
+      setMovies(result.movies)
+      setDataSource(result.source)
+    })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  // Escape closes the top-most overlay
   useEffect(() => {
     const handle = (e) => {
-      const target = e.target
-
-      if (
-        target instanceof HTMLElement &&
-        (target.matches('input, textarea, select') || target.isContentEditable)
-      ) {
-        return
-      }
-      const key = e.key.toLowerCase()
-      const moves = {
-        w: [0, -3],
-        arrowup: [0, -3],
-        s: [0, 3],
-        arrowdown: [0, 3],
-        a: [-3, 0],
-        arrowleft: [-3, 0],
-        d: [3, 0],
-        arrowright: [3, 0],
-      }
-      if (moves[key]) {
-        e.preventDefault()
-        const [dx, dy] = moves[key]
-        setPosition((p) => ({
-          x: Math.max(8, Math.min(92, p.x + dx)),
-          y: Math.max(18, Math.min(88, p.y + dy)),
-        }))
-      }
-      if (key === 'escape') setSelected(null)
+      if (e.key !== 'Escape') return
+      if (selected) setSelected(null)
+      else if (friendOpen) setFriendOpen(null)
+      else if (profileOpen) setProfileOpen(false)
+      else if (overlay) setOverlay(null)
+      else setFriendsOpen(false)
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [])
+  }, [selected, friendOpen, profileOpen, overlay])
+
   useEffect(() => {
-    if (toast) {
-      const t = setTimeout(() => setToast(''), 2300)
-      return () => clearTimeout(t)
-    }
+    if (!toast) return undefined
+    const t = setTimeout(() => setToast(''), 2300)
+    return () => clearTimeout(t)
   }, [toast])
 
   const filtered = useMemo(
@@ -87,481 +93,277 @@ export default function MovieVersePage() {
         const matches = (m.title + ' ' + m.genre)
           .toLowerCase()
           .includes(search.toLowerCase())
-        const genre =
-          activeGenre === 'All' ||
-          activeGenre === 'Discover' ||
-          activeGenre === 'Community' ||
-          m.genre === activeGenre
+        const genre = activeGenre === 'All' || m.genre === activeGenre
         return matches && genre
       }),
     [movies, search, activeGenre],
   )
-  const visible =
-    zone === 'community'
-      ? [...filtered].sort((a, b) => b.rating - a.rating).slice(0, 6)
-      : zone === 'discover'
-        ? [...filtered].reverse().slice(0, 6)
-        : filtered.slice(0, 6)
-  const currentZone = zones.find((z) => z.id === zone)
+  const visibleIds = useMemo(
+    () => new Set(filtered.map((m) => m.id)),
+    [filtered],
+  )
+  const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
+  const paused = Boolean(selected || friendOpen || profileOpen || overlay)
 
-  function rate(id, value) {
-    setMyRatings((r) => ({ ...r, [id]: value }))
-    setToast('Your rating has been saved locally')
+  function rate(movie, value) {
+    setMyRatings((r) => ({ ...r, [movie.id]: value }))
+    api.sendRating(movie, value)
   }
   function saveReview() {
     if (!review.trim()) return
-    setToast('Review posted to the demo community')
+    api.sendReview(selected, review.trim(), myRatings[selected.id])
     setReview('')
+  }
+  function toggleWatchlist(id) {
+    const saved = watchlist.includes(id)
+    setWatchlist((list) =>
+      saved ? list.filter((x) => x !== id) : [...list, id],
+    )
+    setToast(saved ? 'Removed from your watchlist' : 'Saved to your watchlist')
   }
   function switchZone(id) {
     setZone(id)
     setActiveGenre('All')
-    setPosition({ x: 50, y: 78 })
+  }
+  // Friday Film Club is both a community and the friend room in the lobby
+  function toggleRoom() {
+    setJoined(!joined)
+    if (!joined && filmClub) api.sendJoin(filmClub)
+    else setToast(joined ? 'You left the room' : 'You joined Friday Film Club')
+  }
+  function toggleCommunity(community) {
+    if (community.name === 'Friday Film Club') {
+      toggleRoom()
+      return
+    }
+    const member = memberships.has(community.id)
+    setMemberships((set) => {
+      const next = new Set(set)
+      if (member) next.delete(community.id)
+      else next.add(community.id)
+      return next
+    })
+    // there is no "leave" endpoint in the plan yet, so leaving stays local
+    if (member) setToast('You left ' + community.name)
+    else api.sendJoin(community)
+  }
+  function inviteFriend(friend) {
+    setInvited((set) => new Set(set).add(friend.name))
+    setToast(friend.name + ' is heading to Friday Film Club')
+    setFriendOpen(null)
+  }
+  function openFromList(movie) {
+    setSelected(movie)
   }
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">
-            <Film size={20} />
-          </div>
-          <span>
-            MOVIE<span className="brand-accent">VERSE</span>
-          </span>
-        </div>
-        <div className="side-label">YOUR UNIVERSE</div>
-        <button className="side-link active">
-          <Compass size={17} /> Explore <span className="live-dot" />
-        </button>
-        <button className="side-link" onClick={() => setZone('community')}>
-          <Users size={17} /> Communities
-        </button>
-        <button
-          className="side-link"
-          onClick={() => setToast('Your watchlist is coming soon')}
-        >
-          <Heart size={17} /> Watchlist
-        </button>
-        <div className="side-label zone-label">DISCOVERY ZONES</div>
-        {zones.map((z) => (
-          <button
-            key={z.id}
-            className={'zone-link ' + (zone === z.id ? 'selected' : '')}
-            onClick={() => switchZone(z.id)}
-          >
-            <span>{z.icon}</span>
-            {z.name.replace(' Universe', '')}
-          </button>
-        ))}
-        <div className="sidebar-bottom">
-          <div className="mini-card">
-            <Sparkles size={16} />
-            <b>Your world, your rules.</b>
-            <p>Find people who love the same stories.</p>
-            <button onClick={() => setProfileOpen(true)}>
-              Personalize <MoveUpRight size={13} />
-            </button>
-          </div>
-          <button className="profile-mini" onClick={() => setProfileOpen(true)}>
-            <div className="avatar-small">{avatar}</div>
-            <span>
-              <b>{name}</b>
-              <small>Explorer · Level 01</small>
-            </span>
-            <Settings2 size={16} />
-          </button>
-        </div>
-      </aside>
+    <div className="mv-shell">
+      <MovieVerseWorld
+        movies={movies}
+        visibleIds={visibleIds}
+        zones={zones}
+        zone={zone}
+        onDistrictChange={setZone}
+        name={name}
+        avatar={avatar}
+        skin={skin}
+        friends={friends}
+        joined={joined}
+        invited={invited}
+        watchlistCount={watchlist.length}
+        paused={paused}
+        onOpenMovie={setSelected}
+        onOpenProfile={() => setProfileOpen(true)}
+        onToggleRoom={toggleRoom}
+        onOpenFriend={setFriendOpen}
+        onOpenCommunities={() => setOverlay('communities')}
+        onOpenWatchlist={() => setOverlay('watchlist')}
+      />
 
-      <main className="main-area">
-        <header className="topbar">
-          <div className="breadcrumb">
-            THE MULTIVERSE <span>/</span>{' '}
-            <b>{currentZone.name.toUpperCase()}</b>
-          </div>
-          <div className="top-actions">
-            <div className="online-pill">
-              <i /> 24 explorers online
-            </div>
-            <button
-              className="icon-button"
-              onClick={() => setFriendsOpen((v) => !v)}
-            >
-              <Users size={18} />
-              <span className="tiny-count">3</span>
-            </button>
-            <button className="user-chip" onClick={() => setProfileOpen(true)}>
-              <span>{avatar}</span>
-              {name}
-            </button>
-          </div>
-        </header>
+      <MovieVerseHud
+        zones={zones}
+        zone={zone}
+        onZone={switchZone}
+        search={search}
+        onSearch={setSearch}
+        activeGenre={activeGenre}
+        onGenre={setActiveGenre}
+        onCatalogue={() => setOverlay('catalogue')}
+        dataSource={dataSource}
+        onFriends={() => setFriendsOpen((v) => !v)}
+        friendCount={friends.length}
+        name={name}
+        avatar={avatar}
+        onProfile={() => setProfileOpen(true)}
+      />
 
-        <section className="welcome">
-          <div>
-            <div className="eyebrow">
-              <span className="eyebrow-line" /> YOUR PERSONAL CINEMA DIMENSION
-            </div>
-            <h1>
-              Explore beyond
-              <br />
-              <em>the screen.</em>
-            </h1>
-            <p>
-              Discover stories, meet your people, and find your next obsession.
-            </p>
-          </div>
-          <div className="welcome-orb">
-            <div className="orb-core">MV</div>
-            <span className="orbit orbit-one" />
-            <span className="orbit orbit-two" />
-            <span className="orb-star star-one">✦</span>
-            <span className="orb-star star-two">✧</span>
-          </div>
-        </section>
-
-        <section className="search-row">
-          <div className="search-box">
-            <Search size={18} />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search movies, genres, universes..."
-            />
-            <kbd>⌘ K</kbd>
-          </div>
-          <button
-            className="filter-button"
-            onClick={() =>
-              setActiveGenre(activeGenre === 'All' ? 'Sci-Fi' : 'All')
-            }
-          >
-            ◉ {activeGenre === 'All' ? 'Filters' : 'Sci-Fi active'}
-          </button>
-        </section>
-        <MovieVerseGenreFilter
-          activeGenre={activeGenre}
-          onSelect={setActiveGenre}
+      {friendsOpen && (
+        <MovieVerseFriendsPanel
+          friends={friends}
+          invited={invited}
+          joined={joined}
+          onClose={() => setFriendsOpen(false)}
+          onInviteLink={() => setToast('Invite link copied (demo)')}
+          onOpenFriend={setFriendOpen}
+          onToggleRoom={toggleRoom}
         />
+      )}
 
-        <section className="world-section">
-          <div className="section-heading">
-            <div>
-              <div className="eyebrow">
-                <span className="eyebrow-line" /> ZONE 0
-                {zones.findIndex((z) => z.id === zone) + 1}
-              </div>
-              <h2>{currentZone.name}</h2>
-              <p>{currentZone.sub}</p>
-            </div>
-            <div className="zone-arrows">
-              <button
-                onClick={() =>
-                  switchZone(
-                    zones[(zones.findIndex((z) => z.id === zone) + 2) % 3].id,
-                  )
-                }
-              >
-                <ChevronLeft size={17} />
-              </button>
-              <button
-                onClick={() =>
-                  switchZone(
-                    zones[(zones.findIndex((z) => z.id === zone) + 1) % 3].id,
-                  )
-                }
-              >
-                <ChevronRight size={17} />
-              </button>
-            </div>
-          </div>
-
-          <div className="world-stage">
-            <div className="stage-grid" />
-            <div className="stage-glow glow-a" />
-            <div className="stage-glow glow-b" />
-            <div className="stage-label">
-              <span className="pulse" /> LIVE WORLD <span>·</span>{' '}
-              {currentZone.name.toUpperCase()}
-            </div>
-            <div className="floating-cube cube-a" />
-            <div className="floating-cube cube-b" />
-            <div className="movie-platforms">
-              {visible.slice(0, 3).map((m, i) => (
-                <button
-                  className={'movie-pedestal pedestal-' + i}
-                  key={m.id}
-                  onClick={() => setSelected(m)}
-                >
-                  <div className={'poster poster-' + m.color}>
-                    <span className="poster-tag">{m.tag}</span>
-                    <span className="poster-emoji">{m.emoji}</span>
-                    <b>{m.title}</b>
-                    <small>
-                      {m.year} · {m.genre}
-                    </small>
-                    <span className="poster-rating">
-                      <Star size={12} fill="currentColor" />
-                      {m.rating}
-                    </span>
-                  </div>
-                  <div className="pedestal-base" />
-                  <span className="pedestal-hint">OPEN FILM ↗</span>
-                </button>
-              ))}
-            </div>
-            <div
-              className="player-character"
-              style={{ left: position.x + '%', top: position.y + '%' }}
-            >
-              <div className="player-bubble">{name}</div>
-              <div className={'player-avatar skin-' + skin}>{avatar}</div>
-              <span className="player-shadow" />
-            </div>
-            <div className="stage-controls">
-              <span>MOVE AROUND</span>
-              <kbd>W</kbd>
-              <div>
-                <kbd>A</kbd>
-                <kbd>S</kbd>
-                <kbd>D</kbd>
-              </div>
-              <small>or arrow keys</small>
-            </div>
-            <div className="stage-caption">A SOCIAL SPACE FOR MOVIE LOVERS</div>
-          </div>
-          <div className="stage-footer">
-            <span>
-              <i /> You are exploring as <b>{name}</b>
-            </span>
-            <span>
-              Click a movie to explore <MoveUpRight size={13} />
-            </span>
-          </div>
-        </section>
-
-        <section className="catalog-section">
-          <div className="section-heading compact">
-            <div>
-              <div className="eyebrow">
-                <span className="eyebrow-line" /> CURATED FOR YOU
-              </div>
-              <h2>More to explore</h2>
-            </div>
-            <button
-              className="text-link"
-              onClick={() => setToast('Full catalogue coming soon')}
-            >
-              View all <MoveUpRight size={14} />
-            </button>
-          </div>
+      {overlay === 'catalogue' && (
+        <MovieVersePanel
+          eyebrow={`CATALOGUE · ${filtered.length} MOVIES`}
+          title="All movies"
+          wide
+          onClose={() => setOverlay(null)}
+        >
+          <p className="mv-panel-sub">
+            The same movies you can walk to in the world. Search and genre
+            filters apply here too.
+          </p>
           <div className="movie-grid">
-            {visible.slice(0, 6).map((movie) => (
+            {filtered.map((movie) => (
               <MovieVerseMovieCard
                 key={movie.id}
                 movie={movie}
-                onSelect={setSelected}
+                onSelect={openFromList}
               />
             ))}
           </div>
-          {visible.length === 0 && (
+          {filtered.length === 0 && (
             <div className="empty-state">
-              No movies found in this universe. Try another search.
+              No movies found. Try another search or genre.
             </div>
           )}
-        </section>
-        <footer>
-          © 2026 MOVIEVERSE <span>BUILT FOR EXPLORERS, BY EXPLORERS</span>
-        </footer>
-      </main>
+        </MovieVersePanel>
+      )}
 
-      {friendsOpen && (
-        <aside className="friends-panel">
-          <div className="friends-head">
-            <div>
-              <div className="eyebrow">YOUR ORBIT</div>
-              <h3>
-                Friends <span>03</span>
-              </h3>
+      {overlay === 'watchlist' && (
+        <MovieVersePanel
+          eyebrow="YOUR WATCHLIST"
+          title={`Saved movies (${watchlistMovies.length})`}
+          wide
+          onClose={() => setOverlay(null)}
+        >
+          {watchlistMovies.length === 0 ? (
+            <div className="empty-state">
+              Nothing saved yet. Open a movie and press “Save to watchlist”.
             </div>
-            <button
-              className="icon-button"
-              onClick={() => setFriendsOpen(false)}
-            >
-              <X size={16} />
-            </button>
-          </div>
-          <button
-            className="invite-button"
-            onClick={() => setToast('Invite link copied (demo)')}
-          >
-            <span>＋</span> Invite friends
-          </button>
-          <div className="friend-list">
-            {friends.map((f) => (
-              <div className="friend" key={f.name}>
-                <div className={'friend-avatar ' + f.color}>{f.initial}</div>
-                <div>
-                  <b>{f.name}</b>
-                  <small>{f.status}</small>
+          ) : (
+            <div className="movie-grid">
+              {watchlistMovies.map((movie) => (
+                <MovieVerseMovieCard
+                  key={movie.id}
+                  movie={movie}
+                  onSelect={openFromList}
+                />
+              ))}
+            </div>
+          )}
+        </MovieVersePanel>
+      )}
+
+      {overlay === 'communities' && (
+        <MovieVersePanel
+          eyebrow="COMMUNITIES"
+          title="Find your people"
+          onClose={() => setOverlay(null)}
+        >
+          <div className="mv-community-list">
+            {api.communities.map((c) => {
+              const member =
+                c.name === 'Friday Film Club' ? joined : memberships.has(c.id)
+              return (
+                <div className="mv-community" key={c.id}>
+                  <div>
+                    <b>{c.name}</b>
+                    <small>{c.description}</small>
+                    <small>{c.members + (member ? 1 : 0)} members</small>
+                  </div>
+                  <button
+                    className={member ? 'joined' : ''}
+                    onClick={() => toggleCommunity(c)}
+                  >
+                    {member ? 'Leave' : 'Join'}
+                  </button>
                 </div>
-                <i />
-              </div>
-            ))}
+              )
+            })}
           </div>
-          <div className="room-card">
-            <div className="room-art">✦</div>
-            <div>
-              <span className="eyebrow">FRIEND ROOM</span>
-              <b>Friday Film Club</b>
-              <small>2 / 6 explorers inside</small>
+        </MovieVersePanel>
+      )}
+
+      {friendOpen && (
+        <MovieVersePanel
+          eyebrow="FRIEND"
+          title={friendOpen.name}
+          onClose={() => setFriendOpen(null)}
+        >
+          <div className="mv-friend-card">
+            <div className={'friend-avatar ' + friendOpen.color}>
+              {friendOpen.initial}
             </div>
+            <p>
+              {invited.has(friendOpen.name)
+                ? 'Hanging out in Friday Film Club'
+                : friendOpen.status}
+            </p>
+          </div>
+          <div className="mv-panel-actions">
             <button
+              className="primary-button"
+              disabled={invited.has(friendOpen.name)}
+              onClick={() => inviteFriend(friendOpen)}
+            >
+              {invited.has(friendOpen.name)
+                ? 'Already in Friday Film Club'
+                : 'Invite to Friday Film Club'}
+            </button>
+            <button
+              className="mv-secondary-button"
               onClick={() => {
-                setJoined(!joined)
-                setToast(
-                  joined ? 'You left the room' : 'You joined Friday Film Club',
-                )
+                setToast('You waved at ' + friendOpen.name + ' 👋')
+                setFriendOpen(null)
               }}
             >
-              {joined ? 'Leave' : 'Join'} <MoveUpRight size={12} />
+              Say hi 👋
             </button>
           </div>
-          <div className="activity">
-            <div className="eyebrow">RECENT ACTIVITY</div>
-            <p>
-              <span className="activity-dot" /> <b>Mila</b> rated{' '}
-              <b>Dune: Part Two</b>
-            </p>
-            <small>12 minutes ago</small>
-            <p>
-              <span className="activity-dot purple" /> <b>Alex</b> joined the
-              universe
-            </p>
-            <small>34 minutes ago</small>
-          </div>
-          <div className="friends-note">
-            <Radio size={14} /> Friends presence is simulated in this demo.
-          </div>
-        </aside>
+        </MovieVersePanel>
       )}
 
       {selected && (
-        <div className="modal-backdrop" onClick={() => setSelected(null)}>
-          <div className="movie-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSelected(null)}>
-              <X size={18} />
-            </button>
-            <div className={'modal-art poster-' + selected.color}>
-              <span>{selected.emoji}</span>
-              <small>{selected.tag}</small>
-            </div>
-            <div className="modal-content">
-              <div className="eyebrow">
-                MOVIE DETAIL · {selected.genre.toUpperCase()}
-              </div>
-              <h2>{selected.title}</h2>
-              <p className="modal-meta">
-                {selected.year} <span>·</span> {selected.genre} <span>·</span>{' '}
-                <Star size={14} fill="currentColor" /> {selected.rating}{' '}
-                <small>({selected.votes})</small>
-              </p>
-              <p className="movie-desc">{selected.desc}</p>
-              <div className="rate-block">
-                <b>YOUR RATING</b>
-                <div className="stars">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => rate(selected.id, n)}
-                      className={
-                        n <= (myRatings[selected.id] || 0) ? 'rated' : ''
-                      }
-                    >
-                      <Star size={24} fill="currentColor" />
-                    </button>
-                  ))}
-                </div>
-                <small>
-                  {myRatings[selected.id]
-                    ? `You rated this ${myRatings[selected.id]} / 5`
-                    : 'Tap a star to rate this movie'}
-                </small>
-              </div>
-              <div className="review-block">
-                <label>ADD TO THE CONVERSATION</label>
-                <textarea
-                  value={review}
-                  onChange={(e) => setReview(e.target.value)}
-                  placeholder="What did you think of this movie?"
-                />
-                <button className="primary-button" onClick={saveReview}>
-                  Post review <MessageCircle size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MovieVerseMovieModal
+          movie={selected}
+          myRating={myRatings[selected.id]}
+          inWatchlist={watchlist.includes(selected.id)}
+          review={review}
+          onReviewChange={setReview}
+          onRate={(n) => rate(selected, n)}
+          onToggleWatchlist={() => toggleWatchlist(selected.id)}
+          onSaveReview={saveReview}
+          reviews={api.reviewsFor(selected.id)}
+          onClose={() => setSelected(null)}
+        />
       )}
 
       {profileOpen && (
-        <div className="modal-backdrop" onClick={() => setProfileOpen(false)}>
-          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="modal-close"
-              onClick={() => setProfileOpen(false)}
-            >
-              <X size={18} />
-            </button>
-            <div className="eyebrow">YOUR IDENTITY</div>
-            <h2>Make it yours.</h2>
-            <div className="avatar-preview">
-              <div className={'player-avatar skin-' + skin}>{avatar}</div>
-              <span>{name}</span>
-            </div>
-            <label>DISPLAY NAME</label>
-            <input
-              className="profile-input"
-              value={name}
-              onChange={(e) => setName(e.target.value.slice(0, 18))}
-            />
-            <label>CHOOSE YOUR AVATAR</label>
-            <div className="avatar-options">
-              {['🧑🏽‍🚀', '👩🏻‍🚀', '🧑🏿‍🎤', '🧑🏼‍🎨', '🦊', '🤖'].map((a) => (
-                <button
-                  className={avatar === a ? 'chosen' : ''}
-                  onClick={() => setAvatar(a)}
-                >
-                  {a}
-                </button>
-              ))}
-            </div>
-            <label>SKIN / GLOW</label>
-            <div className="skin-options">
-              {['violet', 'blue', 'mint', 'rose', 'gold'].map((s) => (
-                <button
-                  className={
-                    'skin-dot skin-' + s + (skin === s ? ' chosen' : '')
-                  }
-                  onClick={() => setSkin(s)}
-                />
-              ))}
-            </div>
-            <button
-              className="primary-button save-profile"
-              onClick={() => {
-                setProfileOpen(false)
-                setToast('Your explorer profile was updated')
-              }}
-            >
-              Save appearance <Sparkles size={15} />
-            </button>
-          </div>
-        </div>
+        <MovieVerseProfileModal
+          name={name}
+          avatar={avatar}
+          skin={skin}
+          onName={setName}
+          onAvatar={setAvatar}
+          onSkin={setSkin}
+          onSave={() => {
+            setProfileOpen(false)
+            api.sendProfile()
+          }}
+          onClose={() => setProfileOpen(false)}
+        />
       )}
+
       {toast && (
-        <div className="toast">
+        <div className="toast" role="status">
           <Sparkles size={15} />
           {toast}
         </div>

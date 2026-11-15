@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 :root {
-  font-family: "DM Sans", sans-serif;
+  font-family: 'DM Sans', sans-serif;
   color: #f4f1ff;
   background: #090914;
   font-synthesis: none;
@@ -44,7 +44,7 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  font: 700 15px "Space Grotesk";
+  font: 700 15px 'Space Grotesk';
   letter-spacing: 1.5px;
   margin: 2px 0 50px 5px;
 }
@@ -62,7 +62,7 @@ button {
 }
 .side-label,
 .eyebrow {
-  font: 500 9px "DM Mono";
+  font: 500 9px 'DM Mono';
   letter-spacing: 1.6px;
   color: #827d9c;
 }
@@ -189,7 +189,7 @@ button {
   justify-content: space-between;
 }
 .breadcrumb {
-  font: 10px "DM Mono";
+  font: 10px 'DM Mono';
   letter-spacing: 1px;
   color: #827d99;
 }
@@ -262,7 +262,7 @@ button {
   min-height: 190px;
 }
 .welcome h1 {
-  font: 600 clamp(34px, 4vw, 48px)/0.99 "Space Grotesk";
+  font: 600 clamp(34px, 4vw, 48px)/0.99 'Space Grotesk';
   letter-spacing: -2px;
   margin: 15px 0 11px;
 }
@@ -301,7 +301,7 @@ button {
   box-shadow:
     0 0 40px #8b5cf677,
     0 0 80px #8b5cf633;
-  font: 700 19px "Space Grotesk";
+  font: 700 19px 'Space Grotesk';
 }
 .orbit {
   position: absolute;
@@ -358,7 +358,7 @@ button {
 }
 .search-box kbd,
 .stage-controls kbd {
-  font: 9px "DM Mono";
+  font: 9px 'DM Mono';
   padding: 4px 6px;
   border: 1px solid #ffffff20;
   border-radius: 4px;
@@ -398,7 +398,7 @@ button {
   margin-bottom: 16px;
 }
 .section-heading h2 {
-  font: 600 20px "Space Grotesk";
+  font: 600 20px 'Space Grotesk';
   margin: 6px 0 4px;
   letter-spacing: -0.5px;
 }
@@ -470,7 +470,7 @@ button {
   position: absolute;
   top: 15px;
   left: 17px;
-  font: 9px "DM Mono";
+  font: 9px 'DM Mono';
   letter-spacing: 1.2px;
   color: #b5a9db;
 }
@@ -554,7 +554,7 @@ button {
 .poster:after,
 .catalog-art:after,
 .modal-art:after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, transparent 30%, #080713d9 100%);
@@ -590,7 +590,7 @@ button {
   position: absolute;
   top: 8px;
   left: 7px;
-  font: 6px "DM Mono";
+  font: 6px 'DM Mono';
   letter-spacing: 0.7px;
   background: #09091488;
   padding: 4px 5px;
@@ -605,7 +605,7 @@ button {
 }
 .poster > b {
   z-index: 1;
-  font: 600 9px "Space Grotesk";
+  font: 600 9px 'Space Grotesk';
   text-align: center;
   padding: 0 5px;
   margin-top: 5px;
@@ -621,7 +621,7 @@ button {
   bottom: 7px;
   right: 7px;
   z-index: 1;
-  font: 8px "DM Mono";
+  font: 8px 'DM Mono';
   display: flex;
   align-items: center;
   gap: 3px;
@@ -637,7 +637,7 @@ button {
   margin-top: 4px;
 }
 .pedestal-hint {
-  font: 7px "DM Mono";
+  font: 7px 'DM Mono';
   letter-spacing: 1px;
   color: #a69bc9;
   margin-top: 8px;
@@ -689,7 +689,7 @@ button {
   margin-top: -1px;
 }
 .player-bubble {
-  font: 8px "DM Mono";
+  font: 8px 'DM Mono';
   background: #171329;
   border: 1px solid #a78bfa66;
   padding: 3px 7px;
@@ -706,7 +706,7 @@ button {
   grid-template-columns: auto auto auto;
   gap: 4px;
   align-items: center;
-  font: 7px "DM Mono";
+  font: 7px 'DM Mono';
   color: #a29ab8;
 }
 .stage-controls > span {
@@ -726,7 +726,7 @@ button {
   position: absolute;
   right: 14px;
   bottom: 16px;
-  font: 7px "DM Mono";
+  font: 7px 'DM Mono';
   letter-spacing: 1px;
   color: #807995;
 }
@@ -800,7 +800,7 @@ button {
   bottom: 5px;
   left: 4px;
   z-index: 1;
-  font: 5px "DM Mono";
+  font: 5px 'DM Mono';
 }
 .catalog-info {
   min-width: 0;
@@ -808,7 +808,7 @@ button {
   gap: 5px;
 }
 .catalog-info b {
-  font: 600 10px "Space Grotesk";
+  font: 600 10px 'Space Grotesk';
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -821,7 +821,7 @@ button {
   display: flex;
   align-items: center;
   gap: 4px;
-  font: 9px "DM Mono";
+  font: 9px 'DM Mono';
   color: #f5c978;
 }
 .catalog-info i {
@@ -841,7 +841,7 @@ footer {
   margin-top: 35px;
   padding-top: 13px;
   border-top: 1px solid #ffffff0d;
-  font: 8px "DM Mono";
+  font: 8px 'DM Mono';
   letter-spacing: 1px;
   color: #625d76;
   display: flex;
@@ -864,11 +864,11 @@ footer span {
   align-items: center;
 }
 .friends-head h3 {
-  font: 600 17px "Space Grotesk";
+  font: 600 17px 'Space Grotesk';
   margin: 5px 0 0;
 }
 .friends-head h3 span {
-  font: 9px "DM Mono";
+  font: 9px 'DM Mono';
   color: #9d8af0;
   margin-left: 4px;
 }
@@ -901,7 +901,7 @@ footer span {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font: 600 12px "Space Grotesk";
+  font: 600 12px 'Space Grotesk';
 }
 .lavender {
   background: #493b6d;
@@ -958,7 +958,7 @@ footer span {
   gap: 4px;
 }
 .room-card b {
-  font: 600 10px "Space Grotesk";
+  font: 600 10px 'Space Grotesk';
 }
 .room-card small {
   font-size: 8px;
@@ -1065,7 +1065,7 @@ footer span {
   top: 20px;
   left: 18px;
   z-index: 1;
-  font: 8px "DM Mono";
+  font: 8px 'DM Mono';
   letter-spacing: 1px;
 }
 .modal-content {
@@ -1073,14 +1073,14 @@ footer span {
 }
 .modal-content h2,
 .profile-modal h2 {
-  font: 600 27px "Space Grotesk";
+  font: 600 27px 'Space Grotesk';
   margin: 10px 0;
 }
 .modal-meta {
   display: flex;
   align-items: center;
   gap: 7px;
-  font: 10px "DM Mono";
+  font: 10px 'DM Mono';
   color: #b2a9c8;
 }
 .modal-meta svg {
@@ -1102,7 +1102,7 @@ footer span {
 .rate-block > b,
 .review-block label,
 .profile-modal > label {
-  font: 9px "DM Mono";
+  font: 9px 'DM Mono';
   letter-spacing: 1.2px;
   color: #a9a1bd;
 }
@@ -1357,4 +1357,368 @@ footer span {
     transform: scale(0.85);
     transform-origin: bottom left;
   }
+}
+
+/* ---------- full-page world: HUD and overlays ---------- */
+.mv-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #090914;
+}
+.mv-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px 26px;
+  background: linear-gradient(#090914f0, #090914c0 60%, #09091400);
+  pointer-events: none;
+}
+.mv-hud > * {
+  pointer-events: auto;
+}
+.mv-hud .brand {
+  margin: 0 0 10px;
+}
+.mv-hud-zones {
+  display: flex;
+  gap: 6px;
+}
+.mv-hud-zones button,
+.mv-hud-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ffffff18;
+  background: #15112bcc;
+  color: #bcb5d0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+.mv-hud-zones button.selected {
+  border-color: #a78bfa;
+  color: #fff;
+  background: #8b5cf644;
+}
+.mv-hud-button {
+  height: 36px;
+  padding: 0 12px;
+}
+.mv-hud-button:hover {
+  border-color: #a78bfa88;
+  color: #fff;
+}
+.mv-hud-center {
+  flex: 1;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mv-hud-center .search-box {
+  background: #15112bdd;
+  height: 38px;
+}
+.mv-hud-center .genre-row {
+  margin: 0;
+}
+.mv-hud .genre {
+  background: #15112bcc;
+}
+.mv-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mv-shell .friends-panel {
+  position: absolute;
+  top: 120px;
+  right: 16px;
+  z-index: 12;
+  width: 270px;
+  height: auto;
+  min-height: 0;
+  max-height: calc(100vh - 140px);
+  overflow: auto;
+  border: 1px solid #ffffff14;
+  border-radius: 14px;
+  background: #0e0b1ef0;
+  backdrop-filter: blur(10px);
+  padding: 18px 15px;
+}
+.mv-shell .friends-note {
+  position: static;
+  margin-top: 14px;
+}
+.friend-list .friend {
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  border-radius: 10px;
+}
+.friend-list .friend:hover {
+  background: #ffffff0a;
+}
+/* overlay panel (catalogue, communities, watchlist, friend) */
+.mv-panel {
+  position: relative;
+  width: min(440px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  background: #120f24;
+  border: 1px solid #ffffff1a;
+  border-radius: 16px;
+  padding: 26px;
+  box-shadow: 0 30px 80px #000a;
+}
+.mv-panel.wide {
+  width: min(860px, 100%);
+}
+.mv-panel h2 {
+  font: 600 24px 'Space Grotesk';
+  margin: 6px 0 14px;
+}
+.mv-panel-sub {
+  font-size: 12px;
+  color: #8c87a2;
+  margin: -6px 0 16px;
+}
+.mv-community-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mv-community {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #ffffff14;
+  border-radius: 12px;
+  background: #ffffff06;
+}
+.mv-community b {
+  display: block;
+  font: 600 15px 'Space Grotesk';
+}
+.mv-community small {
+  display: block;
+  font-size: 11px;
+  color: #8c87a2;
+  margin-top: 3px;
+}
+.mv-community button,
+.mv-secondary-button {
+  border: 1px solid #a78bfa77;
+  background: #8b5cf622;
+  color: #ede6ff;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+.mv-community button.joined {
+  border-color: #6ee7b7;
+  background: #10b98122;
+}
+.mv-friend-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.mv-friend-card .friend-avatar {
+  width: 54px;
+  height: 54px;
+  font-size: 20px;
+}
+.mv-friend-card p {
+  margin: 0;
+  color: #cfc6ea;
+  font-size: 13px;
+}
+.mv-panel-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mv-panel-actions .primary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.watchlist-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #fda4af66;
+  background: #e11d4818;
+  color: #fecdd3;
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 12px;
+  margin: 2px 0 16px;
+}
+.watchlist-button.saved {
+  background: #e11d4840;
+  border-color: #fda4af;
+}
+
+/* catalogue cards get a subtle 3D lift */
+.catalog-card:hover {
+  transform: perspective(600px) rotateX(4deg) translateY(-3px);
+  box-shadow: 0 14px 26px #0007;
+}
+
+@media (max-width: 1100px) {
+  .mv-hud {
+    flex-wrap: wrap;
+  }
+  .mv-hud-center {
+    order: 3;
+    max-width: none;
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 720px) {
+  .mv-hud {
+    padding: 10px 12px 18px;
+    gap: 8px;
+  }
+  .mv-hud .brand span,
+  .mv-hud-zones span,
+  .mv-hud .user-chip,
+  .mv-hud-button {
+    display: none;
+  }
+  .mv-hud-zones button {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+  .mv-hud-center .genre-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .mv-shell .friends-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    top: 150px;
+  }
+}
+
+/* keep the HUD inside small screens */
+.mv-hud-center {
+  min-width: 0;
+}
+.mv-hud .search-box,
+.mv-hud .search-box input {
+  min-width: 0;
+  width: 100%;
+}
+.mv-hud .genre {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---------- real poster images ---------- */
+.poster-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+/* the image replaces the emoji (and on the world posters, the printed title) */
+.poster-img ~ .poster-emoji,
+.poster-img ~ .art-emoji,
+.walk-stand .poster-img ~ b,
+.walk-stand .poster-img ~ small {
+  display: none;
+}
+.modal-art {
+  position: relative;
+  overflow: hidden;
+}
+
+/* "Live data" / "Sample data" badge in the top bar */
+.mv-data-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 15px;
+  border: 1px solid #ffffff18;
+  background: #15112bcc;
+  font: 10px 'DM Mono';
+  letter-spacing: 0.5px;
+  color: #a69bc9;
+  white-space: nowrap;
+}
+.mv-data-badge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8c87a2;
+}
+.mv-data-badge.live {
+  color: #a7f3d0;
+}
+.mv-data-badge.live i {
+  background: #6ee7b7;
+  box-shadow: 0 0 8px #6ee7b7;
+}
+@media (max-width: 720px) {
+  .mv-data-badge {
+    display: none;
+  }
+}
+
+/* community reviews in the movie popup */
+.mv-reviews {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mv-reviews > b {
+  font: 9px 'DM Mono';
+  letter-spacing: 1.3px;
+  color: #a69bc9;
+}
+.mv-reviews > small {
+  font-size: 11px;
+  color: #8c87a2;
+}
+.mv-review {
+  border: 1px solid #ffffff12;
+  background: #ffffff06;
+  border-radius: 10px;
+  padding: 9px 11px;
+}
+.mv-review > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+.mv-review span {
+  color: #fbd38d;
+  letter-spacing: 1px;
+}
+.mv-review p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #cfc6ea;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
