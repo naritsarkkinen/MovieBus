@@ -1,10 +1,13 @@
 import { Star } from 'lucide-react'
+import MoviePosterImage from './MoviePosterImage'
+import { formatRating } from '../api/movies'
 
 export default function MovieVerseMovieCard({ movie, onSelect }) {
   return (
     <button className="catalog-card" onClick={() => onSelect(movie)}>
       <div className={'catalog-art poster-' + movie.color}>
-        <span>{movie.emoji}</span>
+        <MoviePosterImage src={movie.poster} title={movie.title} />
+        <span className="art-emoji">{movie.emoji}</span>
         <small>{movie.tag}</small>
       </div>
 
@@ -15,7 +18,7 @@ export default function MovieVerseMovieCard({ movie, onSelect }) {
         </small>
         <span>
           <Star size={12} fill="currentColor" />
-          {movie.rating} <i>· {movie.votes} ratings</i>
+          {formatRating(movie.rating)} <i>· {movie.votes} ratings</i>
         </span>
       </div>
     </button>
