@@ -5,7 +5,13 @@ const { Pool } = require('pg')
 
 const app = express()
 const port = process.env.PORT || 4000
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+})
+
+
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }))
 app.use(express.json({ limit: '1mb' }))
 
@@ -99,4 +105,56 @@ app.patch('/api/users/:id/avatar', async (req,res) => {
   } catch(e) { res.status(500).json({error:'Could not update profile'}) }
 })
 
-app.listen(port, () => console.log(`MovieVerse API listening on ${port}`))
+
+app.get('/api/movies/:id/reviews', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT r.id, r.user_id, r.movie_id, r.body, r.created_at,
+       u.display_name
+       FROM reviews r
+       JOIN users u ON u.id = r.user_id
+       WHERE r.movie_id = $1
+       ORDER BY r.created_at DESC`,
+      [req.params.id]
+    )
+    res.json(result.rows)
+  } catch (e) {
+    res.status(500).json({ error: 'Could not load reviews' })
+  }
+})
+
+app.post('/api/movies/:id/reviews', async (req, res) => {
+  const userId = Number(req.body.user_id)
+  const body = (req.body.body || '').trim()
+
+  if (!Number.isInteger(userId) || userId < 1) {
+    return res.status(400).json({ error: 'Valid user_id is required' })
+  }
+
+  if (body.length < 1 || body.length > 1500) {
+    return res.status(400).json({ error: 'Review must be 1–1500 characters' })
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO reviews(user_id, movie_id, body)
+       VALUES($1, $2, $3)
+       RETURNING *`,
+      [userId, req.params.id, body]
+    )
+    res.status(201).json(result.rows[0])
+  } catch (e) {
+    res.status(400).json({ error: 'Could not save review. Check that user and movie exist.' })
+  }
+})
+
+
+app.listen(port, async () => {
+  console.log(`MovieVerse API listening on ${port}`)
+  try {
+    await pool.query('SELECT 1')
+    console.log('Database connected')
+  } catch (err) {
+    console.error('Database connection failed:', err.message)
+  }
+})
