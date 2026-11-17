@@ -13,6 +13,7 @@ import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
 import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
 import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
 import MovieVerseCardStack from '../components/MovieVerseCardStack'
+import MovieVerseClubsMenu from '../components/MovieVerseClubsMenu'
 import { splitMovies } from '../data/MovieVerseWorldLayout'
 
 // The whole page is the walkable world. Everything else (catalogue, friends,
@@ -43,7 +44,8 @@ export default function MovieVersePage() {
   const [profilePending, setProfilePending] = useState(false)
   const [friendOpen, setFriendOpen] = useState(null)
   const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
-  const [stackOpen, setStackOpen] = useState(false) // movie cards of a place
+  // the overlay of the place you stand on: movie cards, or the Clubs & you menu
+  const [placeOpen, setPlaceOpen] = useState(false)
   const [friendsOpen, setFriendsOpen] = useState(false)
 
   const [myRatings, setMyRatings] = useState({})
@@ -108,12 +110,12 @@ export default function MovieVersePage() {
         if (!profilePending) setProfileDraft(null)
       }
       else if (overlay) setOverlay(null)
-      else if (stackOpen) setStackOpen(false)
+      else if (placeOpen) setPlaceOpen(false)
       else setFriendsOpen(false)
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [selectedId, friendOpen, profileDraft, profilePending, overlay, stackOpen])
+  }, [selectedId, friendOpen, profileDraft, profilePending, overlay, placeOpen])
 
   useEffect(() => {
     if (!toast) return undefined
@@ -141,9 +143,9 @@ export default function MovieVersePage() {
   // the movies of the place you are in, with search + genre filter applied
   const stackMovies = (groups[zone] || []).filter((m) => visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
-  const paused = Boolean(
-    selected || friendOpen || profileDraft || overlay || stackOpen,
-  )
+  // a popup on top of the place overlay (movie, friend, profile, panel)
+  const popupOpen = Boolean(selected || friendOpen || profileDraft || overlay)
+  const paused = popupOpen || placeOpen
   const review = reviewDrafts[selectedId] || ''
 
   async function rate(movie, value) {
@@ -196,15 +198,22 @@ export default function MovieVersePage() {
   function enterPlace(id) {
     if (!id) return
     setZone(id)
-    setStackOpen(id !== 'clubs') // clubs has booths, not movies
+    setPlaceOpen(true)
   }
   // you clicked a zone in the top bar
   function switchZone(id) {
     setZone(id)
     setActiveGenre('All')
-    setStackOpen(id !== 'clubs')
+    setPlaceOpen(true)
   }
-  // Friday Film Club is both a community and the friend room in the lobby
+  // a tile in the Clubs & you menu was picked (the menu stays open behind it)
+  function chooseClub(id) {
+    if (id === 'watchlist') setOverlay('watchlist')
+    if (id === 'communities') setOverlay('communities')
+    if (id === 'studio') setProfileDraft(profile)
+    if (id === 'room') toggleRoom()
+  }
+  // Friday Film Club is both a community and the friend room
   function toggleRoom() {
     setJoined(!joined)
     setToast(joined ? 'You left the room (demo)' : 'You joined Friday Film Club (demo)')
@@ -242,15 +251,9 @@ export default function MovieVersePage() {
         avatar={avatar}
         skin={skin}
         friends={friends}
-        joined={joined}
         invited={invited}
-        watchlistCount={watchlist.length}
         paused={paused}
-        onOpenProfile={() => setProfileDraft(profile)}
-        onToggleRoom={toggleRoom}
         onOpenFriend={setFriendOpen}
-        onOpenCommunities={() => setOverlay('communities')}
-        onOpenWatchlist={() => setOverlay('watchlist')}
       />
 
       <MovieVerseHud
@@ -282,14 +285,23 @@ export default function MovieVersePage() {
         />
       )}
 
-      {stackOpen && (
+      {placeOpen && zone === 'clubs' && (
+        <MovieVerseClubsMenu
+          joined={joined}
+          watchlistCount={watchlist.length}
+          active={!popupOpen}
+          onChoose={chooseClub}
+          onClose={() => setPlaceOpen(false)}
+        />
+      )}
+      {placeOpen && zone !== 'clubs' && (
         <MovieVerseCardStack
           key={zone}
           title={zones.find((z) => z.id === zone).name}
           movies={stackMovies}
-          active={selectedId === null}
+          active={!popupOpen}
           onOpen={openFromList}
-          onClose={() => setStackOpen(false)}
+          onClose={() => setPlaceOpen(false)}
         />
       )}
 

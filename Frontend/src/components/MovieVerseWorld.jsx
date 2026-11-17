@@ -6,7 +6,6 @@ import {
   SPAWN,
   SIGN,
   places,
-  clubSpots,
   friendSpots,
   roomFriendSpots,
   placeAt,
@@ -39,7 +38,7 @@ function isTyping(target) {
   )
 }
 
-// eslint-disable-next-line max-lines-per-function, complexity
+// eslint-disable-next-line max-lines-per-function
 export default function MovieVerseWorld({
   zones,
   zone,
@@ -48,15 +47,9 @@ export default function MovieVerseWorld({
   avatar,
   skin,
   friends,
-  joined,
   invited,
-  watchlistCount,
   paused,
-  onOpenProfile,
-  onToggleRoom,
   onOpenFriend,
-  onOpenCommunities,
-  onOpenWatchlist,
 }) {
   const viewportRef = useRef(null)
   const planeRef = useRef(null)
@@ -64,67 +57,18 @@ export default function MovieVerseWorld({
   const minimapDotRef = useRef(null)
   const [nearest, setNearest] = useState(null)
 
-  // the four booths in "Clubs & you": what they show and what they do
-  const booths = [
-    {
-      id: 'studio',
-      icon: '✦',
-      title: 'Avatar studio',
-      sub: 'Change your look',
-      verb: 'Customize',
-      use: onOpenProfile,
-    },
-    {
-      id: 'room',
-      className: joined ? 'room joined' : 'room',
-      icon: '◎',
-      title: 'Friday Film Club',
-      sub: joined ? 'You are inside' : 'Friend room · join',
-      verb: joined ? 'Leave room' : 'Join room',
-      use: onToggleRoom,
-    },
-    {
-      id: 'shelf',
-      className: 'shelf',
-      icon: '♥',
-      title: 'Watchlist',
-      sub: watchlistCount + ' saved',
-      verb: 'Open',
-      use: onOpenWatchlist,
-    },
-    {
-      id: 'board',
-      className: 'board',
-      icon: '☰',
-      title: 'Communities',
-      sub: 'Find your people',
-      verb: 'Browse',
-      use: onOpenCommunities,
-    },
-  ]
-
-  // "spots" = booths and friends: things you can bump into or use.
-  // radius = how big it is, enabled = can you open it.
-  const spots = [
-    ...booths.map((b) => ({
-      ...clubSpots[b.id],
-      id: b.id,
-      radius: 70,
-      label: b.title,
-      verb: b.verb,
-      enabled: true,
-      use: b.use,
-    })),
-    ...friends.map((f, i) => ({
-      id: 'friend-' + f.name,
-      ...friendPosition(i, invited.has(f.name)),
-      radius: 28,
-      label: f.name,
-      verb: 'Talk to',
-      enabled: true,
-      use: () => onOpenFriend(f),
-    })),
-  ]
+  // "spots" = things you can walk up to and use (now only friends).
+  // Nothing is solid: you walk through people, so a crowd can never
+  // block anyone. radius = how big it is, enabled = can you use it.
+  const spots = friends.map((f, i) => ({
+    id: 'friend-' + f.name,
+    ...friendPosition(i, invited.has(f.name)),
+    radius: 28,
+    label: f.name,
+    verb: 'Talk to',
+    enabled: true,
+    use: () => onOpenFriend(f),
+  }))
 
   // all mutable game state lives in a ref so moving does not re-render React
   const game = useRef({
@@ -242,8 +186,8 @@ export default function MovieVerseWorld({
       g.moving = direction.x !== 0 || direction.y !== 0
       if (g.moving) movePlayer(g, direction, dt)
 
-      // 2. do not walk through things or out of the world
-      pushOutOfSpots(g, spots)
+      // 2. do not walk out of the world
+      stayInsideWorld(g)
 
       // 3. tell the page when we step onto a place (or off it)
       const here = placeAt(g.x, g.y)
@@ -308,6 +252,7 @@ export default function MovieVerseWorld({
             className={'walk-place' + (zone === p.id ? ' current' : '')}
             style={{ left: p.x, top: p.y }}
           >
+            <span className="walk-place-ring" />
             <span className="walk-place-icon">{zoneOf(p.id).icon}</span>
             <b>{zoneOf(p.id).name}</b>
           </div>
@@ -325,17 +270,8 @@ export default function MovieVerseWorld({
           <small>Walk onto a glowing place to browse movies</small>
         </div>
 
-        {/* booths in "Clubs & you" */}
-        {booths.map((b) => (
-          <Booth
-            key={b.id}
-            booth={b}
-            spot={clubSpots[b.id]}
-            near={current?.id === b.id}
-          />
-        ))}
-
-        {/* friends (simulated): walk up and talk, invited friends go to the room */}
+        {/* friends (simulated): walk up and talk, invited friends wait at
+            the "Clubs & you" portal */}
         {friends.map((f, i) => {
           const spot = friendPosition(i, invited.has(f.name))
           const isNear = current?.id === 'friend-' + f.name
@@ -417,20 +353,8 @@ function movePlayer(g, direction, dt) {
   if (direction.x !== 0) g.facingLeft = direction.x < 0
 }
 
-// Circle collision: if the player is inside a spot's circle, push them
-// to its edge. Then keep the player inside the world.
-function pushOutOfSpots(g, spots) {
-  for (const s of spots) {
-    const dx = g.x - s.x
-    const dy = g.y - s.y
-    const distance = Math.hypot(dx, dy)
-    const minDistance = s.radius + 20
-    if (distance < minDistance && distance > 0) {
-      g.x = s.x + (dx / distance) * minDistance
-      g.y = s.y + (dy / distance) * minDistance
-      g.target = null // walked into something: stop here
-    }
-  }
+// Keeps the player inside the world (40 px away from the edges).
+function stayInsideWorld(g) {
   g.x = Math.max(40, Math.min(WORLD.width - 40, g.x))
   g.y = Math.max(60, Math.min(WORLD.height - 40, g.y))
 }
@@ -451,33 +375,8 @@ function nearestSpot(g, spots) {
   return best
 }
 
-// invited friends stand in the Friday Film Club room, others walk around
+// invited friends wait at the "Clubs & you" portal, others stand in the hub
 function friendPosition(index, inRoom) {
   const list = inRoom ? roomFriendSpots : friendSpots
   return list[index % list.length]
-}
-
-// one booth in "Clubs & you": a glowing floor pad + the booth itself
-function Booth({ booth, spot, near }) {
-  return (
-    <>
-      <div
-        className={'walk-pad big' + (near ? ' near' : '')}
-        style={{ left: spot.x, top: spot.y }}
-      />
-      <button
-        className={
-          'billboard walk-booth ' +
-          (booth.className || '') +
-          (near ? ' near' : '')
-        }
-        style={{ left: spot.x, top: spot.y, zIndex: spot.y }}
-        onClick={booth.use}
-      >
-        <span className="booth-icon">{booth.icon}</span>
-        <b>{booth.title}</b>
-        <small>{booth.sub}</small>
-      </button>
-    </>
-  )
 }

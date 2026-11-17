@@ -32,6 +32,11 @@ describe('placeAt', () => {
     expect(placeAt(800, 640)).toBeNull()
   })
 
+  it('uses the oval shape: wide to the sides, narrow up and down', () => {
+    expect(placeAt(800 + 120, 260).id).toBe('discover') // 120 px to the side: on it
+    expect(placeAt(800, 260 + 80)).toBeNull() // 80 px down: off it
+  })
+
   it('placeSpawn returns the middle of the place', () => {
     expect(placeSpawn('clubs')).toEqual({ x: 800, y: 960 })
   })

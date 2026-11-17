@@ -1,10 +1,11 @@
 # MovieVerse frontend
 
 React + Vite frontend for MovieBus. The page is a small 2D hub you walk
-around in. Four glowing places surround it: Trending, Discover and Community
-open a stack of movie cards you can scroll through (like the phone app
-switcher), and "Clubs & you" has the booths for communities, the friend room,
-your watchlist and your avatar.
+around in. Four glowing oval portals surround it: Trending, Discover and
+Community open a stack of movie cards you can scroll through (like the phone
+app switcher), and "Clubs & you" opens a menu for your watchlist,
+communities, the Friday Film Club room and your avatar. You can walk through
+other people, so a crowd never blocks anyone.
 
 The backend (Express + PostgreSQL) is in the `Backend/` folder next to this one.
 

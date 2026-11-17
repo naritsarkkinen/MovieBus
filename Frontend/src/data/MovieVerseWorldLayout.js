@@ -12,16 +12,9 @@ export const places = [
   { id: 'clubs', x: 800, y: 960 },
 ]
 
-// how close (in pixels) you must be to stand "on" a place
-export const PLACE_RADIUS = 90
-
-// booths in the "Clubs + you" place
-export const clubSpots = {
-  studio: { x: 600, y: 1060 },
-  room: { x: 1000, y: 1060 },
-  shelf: { x: 620, y: 880 },
-  board: { x: 980, y: 880 },
-}
+// Every place is an oval "portal" on the floor:
+// 130 px from the middle to the left/right edge, 65 px to the top/bottom.
+export const PLACE_SIZE = { rx: 130, ry: 65 }
 
 // the welcome sign floats above the spawn point
 export const SIGN = { x: 800, y: 560 }
@@ -33,15 +26,24 @@ export const friendSpots = [
 ]
 
 // where friends go after you invite them to Friday Film Club
+// (around the "Clubs & you" portal)
 export const roomFriendSpots = [
-  { x: 1130, y: 1110 },
-  { x: 1190, y: 1050 },
-  { x: 1080, y: 1150 },
+  { x: 640, y: 1070 },
+  { x: 960, y: 1070 },
+  { x: 800, y: 1110 },
 ]
+
+// Is the point (x, y) inside the oval of place p?
+// Oval formula: (dx / rx)² + (dy / ry)² < 1
+export function isOnPlace(p, x, y) {
+  const dx = (x - p.x) / PLACE_SIZE.rx
+  const dy = (y - p.y) / PLACE_SIZE.ry
+  return dx * dx + dy * dy < 1
+}
 
 // the place you are standing on, or null
 export function placeAt(x, y) {
-  return places.find((p) => Math.hypot(x - p.x, y - p.y) < PLACE_RADIUS) || null
+  return places.find((p) => isOnPlace(p, x, y)) || null
 }
 
 // where you land when you jump to a place from the top bar

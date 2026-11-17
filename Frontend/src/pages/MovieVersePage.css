@@ -276,27 +276,6 @@
     0 0 0 2px #8b5cf633,
     0 0 120px #8b5cf622;
 }
-.walk-pad {
-  position: absolute;
-  width: 150px;
-  height: 70px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, #a78bfa55, transparent 70%);
-  border: 2px solid #a78bfa44;
-  transition:
-    background 0.2s,
-    border-color 0.2s;
-}
-.walk-pad.big {
-  width: 220px;
-  height: 100px;
-}
-.walk-pad.near {
-  background: radial-gradient(ellipse, #c4b5fdaa, transparent 70%);
-  border-color: #e9ddff;
-}
-
 /* the hub: a big glowing circle in the middle */
 .walk-hub {
   position: absolute;
@@ -308,20 +287,21 @@
   border: 2px solid #a78bfa33;
 }
 
-/* a place you can walk onto */
+/* a place you can walk onto: an oval "portal" on the floor
+   (260 × 130 px = PLACE_SIZE in MovieVerseWorldLayout.js, times 2) */
 .walk-place {
   position: absolute;
-  width: 180px;
-  height: 180px;
+  width: 260px;
+  height: 130px;
   transform: translate(-50%, -50%);
-  border-radius: 50%;
+  border-radius: 50%; /* 50% on a wide box = an oval */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 2px;
   text-align: center;
-  background: radial-gradient(circle, #a78bfa44, transparent 70%);
+  background: radial-gradient(ellipse, #a78bfa55, #8b5cf611 70%);
   border: 2px solid #a78bfa66;
   box-shadow: 0 0 60px #8b5cf644;
   animation: place-glow 3s ease-in-out infinite;
@@ -329,15 +309,38 @@
 .walk-place.current {
   border-color: #e9ddff;
 }
+/* The spinning ring: a dashed circle that turns around, squeezed flat
+   with scaleY(0.5) so it looks like it lies on the floor.
+   (Turning a circle, then squeezing it, keeps the oval shape still while
+   the dashes move around it.) */
+.walk-place-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 290px;
+  height: 290px;
+  border: 3px dashed #c4b5fd88;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ring-spin 8s linear infinite;
+}
 .walk-place-icon {
-  font-size: 34px;
+  font-size: 26px;
 }
 .walk-place b {
-  font: 600 18px 'Space Grotesk';
+  font: 600 17px 'Space Grotesk';
 }
 @keyframes place-glow {
   50% {
     box-shadow: 0 0 90px #8b5cf688;
+  }
+}
+@keyframes ring-spin {
+  from {
+    transform: translate(-50%, -50%) scaleY(0.5) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) scaleY(0.5) rotate(360deg);
   }
 }
 
@@ -370,55 +373,6 @@
 .walk-sign small {
   font-size: 11px;
   color: #a69bc9;
-}
-
-/* booths (catalogue, watchlist, avatar studio, rooms) */
-.walk-booth {
-  width: 170px;
-  padding: 16px 12px;
-  border-radius: 14px;
-  border: 1px solid #ffffff22;
-  background: linear-gradient(160deg, #2a1f50f2, #141028f2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 0 16px 30px #0008;
-  transition: box-shadow 0.2s;
-}
-.walk-booth b {
-  font: 600 14px 'Space Grotesk';
-}
-.walk-booth small {
-  font-size: 10px;
-  color: #a69bc9;
-}
-.walk-booth.joined {
-  border-color: #6ee7b7;
-}
-.walk-booth:hover,
-.walk-booth.near {
-  box-shadow:
-    0 0 0 2px #e9ddff,
-    0 0 34px #a78bfacc;
-}
-.booth-icon {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #a78bfa, #6554d9);
-  font-size: 20px;
-}
-.walk-booth.room .booth-icon {
-  background: linear-gradient(135deg, #f9a8d4, #be185d);
-}
-.walk-booth.shelf .booth-icon {
-  background: linear-gradient(135deg, #fda4af, #e11d48);
-}
-.walk-booth.board .booth-icon {
-  background: linear-gradient(135deg, #67e8f9, #0e7490);
 }
 
 /* the player */
@@ -1159,6 +1113,57 @@
   font: 12px 'DM Mono';
   color: #8c87a2;
 }
+/* "Clubs & you" menu: 4 tiles in a 2 × 2 grid */
+.clubs-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 200px));
+  gap: 14px;
+}
+.menu-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 14px;
+  border: 1px solid #ffffff22;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #2a1f50f2, #141028f2);
+  box-shadow: 0 16px 30px #0008;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+.menu-tile.selected {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 2px #e9ddff,
+    0 0 34px #a78bfacc;
+}
+.menu-tile b {
+  font: 600 16px 'Space Grotesk';
+}
+.menu-tile small {
+  font-size: 12px;
+  color: #a69bc9;
+}
+.menu-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #a78bfa, #6554d9);
+  font-size: 22px;
+}
+.menu-icon.watchlist {
+  background: linear-gradient(135deg, #fda4af, #e11d48);
+}
+.menu-icon.communities {
+  background: linear-gradient(135deg, #67e8f9, #0e7490);
+}
+.menu-icon.room {
+  background: linear-gradient(135deg, #f9a8d4, #be185d);
+}
 @keyframes stack-in {
   from {
     opacity: 0;
@@ -1582,7 +1587,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .walk-player.walking .player-avatar,
-  .walk-friend .friend-avatar {
+  .walk-friend .friend-avatar,
+  .walk-place,
+  .walk-place-ring {
     animation: none;
   }
 }
