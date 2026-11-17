@@ -12,6 +12,7 @@ export default function MovieVerseProfileModal({
   onAvatar,
   onSkin,
   onSave,
+  pending,
   onClose,
 }) {
   return (
@@ -37,6 +38,7 @@ export default function MovieVerseProfileModal({
           id="mv-display-name"
           className="profile-input"
           value={name}
+          disabled={pending}
           onChange={(e) => onName(e.target.value.slice(0, 18))}
         />
         <label>CHOOSE YOUR AVATAR</label>
@@ -46,6 +48,7 @@ export default function MovieVerseProfileModal({
               key={a}
               className={avatar === a ? 'chosen' : ''}
               onClick={() => onAvatar(a)}
+              disabled={pending}
             >
               {a}
             </button>
@@ -59,10 +62,11 @@ export default function MovieVerseProfileModal({
               aria-label={s}
               className={'skin-dot skin-' + s + (skin === s ? ' chosen' : '')}
               onClick={() => onSkin(s)}
+              disabled={pending}
             />
           ))}
         </div>
-        <button className="primary-button save-profile" onClick={onSave}>
+        <button className="primary-button save-profile" onClick={onSave} disabled={pending}>
           Save appearance <Sparkles size={15} />
         </button>
       </div>

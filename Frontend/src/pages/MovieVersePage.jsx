@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import './MovieVersePage.css'
-import { initialMovies } from '../data/MockMovies'
-import { loadMovies } from '../api/movies'
-import { zones, friends } from '../data/MovieVerseData'
+import { fetchMovie, loadMovies } from '../api/movies'
+import { savedUser } from '../api/users'
+import { zones, friends, communities } from '../data/MovieVerseData'
 import useMovieVerseApi from '../hooks/useMovieVerseApi'
 import MovieVerseMovieCard from '../components/MovieVerseMovieCard'
 import MovieVerseWorld from '../components/MovieVerseWorld'
@@ -17,44 +17,72 @@ import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
 // communities, watchlist, movie details) opens on top of it as an overlay.
 // eslint-disable-next-line max-lines-per-function
 export default function MovieVersePage() {
-  const [movies, setMovies] = useState(initialMovies)
+  const [movies, setMovies] = useState([])
   const [dataSource, setDataSource] = useState('loading') // 'loading' | 'live' | 'sample'
   const [zone, setZone] = useState('trending')
   const [search, setSearch] = useState('')
   const [activeGenre, setActiveGenre] = useState('All')
 
   // profile / avatar
-  const [name, setName] = useState('Hämi')
-  const [skin, setSkin] = useState('violet')
-  const [avatar, setAvatar] = useState('🧑🏽‍🚀')
+  const [profile, setProfile] = useState(() => {
+    const guest = savedUser()
+    return {
+      name: guest?.name || 'Hämi',
+      skin: guest?.skin || 'violet',
+      avatar: guest?.avatar || '🧑🏽‍🚀',
+    }
+  })
+  const { name, avatar, skin } = profile
 
   // what is open on top of the world
-  const [selected, setSelected] = useState(null)
-  const [profileOpen, setProfileOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState(null)
+  const selected = movies.find((movie) => movie.id === selectedId)
+  const [profileDraft, setProfileDraft] = useState(null)
+  const [profilePending, setProfilePending] = useState(false)
   const [friendOpen, setFriendOpen] = useState(null)
   const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
   const [friendsOpen, setFriendsOpen] = useState(false)
 
-  // demo data that will later come from the API
   const [myRatings, setMyRatings] = useState({})
-  const [review, setReview] = useState('')
+  const [ratingPending, setRatingPending] = useState(false)
+  const [reviewDrafts, setReviewDrafts] = useState({})
+  const [reviewPending, setReviewPending] = useState(false)
   const [watchlist, setWatchlist] = useState([])
   const [joined, setJoined] = useState(false)
   const [memberships, setMemberships] = useState(() => new Set())
   const [invited, setInvited] = useState(() => new Set())
   const [toast, setToast] = useState('')
 
-  // saving / loading ratings, reviews, communities and the profile
+  const live = dataSource === 'live'
   const api = useMovieVerseApi({
     name,
-    avatar,
-    skin,
-    selected,
+    selectedId: live ? selectedId : null,
     notify: setToast,
   })
-  const filmClub = api.communities.find((c) => c.name === 'Friday Film Club')
 
-  // movies come from the backend API; sample movies if it is not reachable
+  const detailRequests = useRef(new Map())
+  const refreshMovie = useCallback(async (id) => {
+    const request = Symbol()
+    detailRequests.current.set(id, request)
+    try {
+      const latest = await fetchMovie(id)
+      if (detailRequests.current.get(id) === request) {
+        setMovies((list) => list.map((movie) => movie.id === id ? latest : movie))
+      }
+    } catch (error) {
+      if (detailRequests.current.get(id) === request) {
+        setToast('Could not refresh movie details: ' + error.message)
+      }
+    } finally {
+      if (detailRequests.current.get(id) === request) detailRequests.current.delete(id)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (live && selectedId !== null) refreshMovie(selectedId)
+  }, [live, selectedId, refreshMovie])
+
+  // movies come from the API (Azure PostgreSQL); sample data if it is not reachable
   useEffect(() => {
     let ignore = false // true if the page closes before the answer arrives
     loadMovies().then((result) => {
@@ -71,15 +99,17 @@ export default function MovieVersePage() {
   useEffect(() => {
     const handle = (e) => {
       if (e.key !== 'Escape') return
-      if (selected) setSelected(null)
+      if (selectedId !== null) setSelectedId(null)
       else if (friendOpen) setFriendOpen(null)
-      else if (profileOpen) setProfileOpen(false)
+      else if (profileDraft) {
+        if (!profilePending) setProfileDraft(null)
+      }
       else if (overlay) setOverlay(null)
       else setFriendsOpen(false)
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [selected, friendOpen, profileOpen, overlay])
+  }, [selectedId, friendOpen, profileDraft, profilePending, overlay])
 
   useEffect(() => {
     if (!toast) return undefined
@@ -103,16 +133,47 @@ export default function MovieVersePage() {
     [filtered],
   )
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
-  const paused = Boolean(selected || friendOpen || profileOpen || overlay)
+  const paused = Boolean(selected || friendOpen || profileDraft || overlay)
+  const review = reviewDrafts[selectedId] || ''
 
-  function rate(movie, value) {
-    setMyRatings((r) => ({ ...r, [movie.id]: value }))
-    api.sendRating(movie, value)
+  async function rate(movie, value) {
+    if (ratingPending) return
+    setRatingPending(true)
+    try {
+      const score = await api.sendRating(movie, value, live)
+      if (score === null) return
+      setMyRatings((ratings) => ({ ...ratings, [movie.id]: score }))
+      if (live) await refreshMovie(movie.id)
+    } finally {
+      setRatingPending(false)
+    }
   }
-  function saveReview() {
-    if (!review.trim()) return
-    api.sendReview(selected, review.trim())
-    setReview('')
+  async function saveReview() {
+    const body = review.trim()
+    if (!body || reviewPending) return
+    const id = selected.id
+    setReviewPending(true)
+    try {
+      const posted = await api.sendReview(selected, body, live, myRatings[id])
+      if (posted) {
+        setReviewDrafts((drafts) => drafts[id] === review ? { ...drafts, [id]: '' } : drafts)
+      }
+    } finally {
+      setReviewPending(false)
+    }
+  }
+  async function saveProfile() {
+    if (profilePending) return
+    setProfilePending(true)
+    try {
+      const saved = await api.sendProfile(profileDraft)
+      if (saved) {
+        setProfile(saved)
+        setProfileDraft(null)
+      }
+    } finally {
+      setProfilePending(false)
+    }
   }
   function toggleWatchlist(id) {
     const saved = watchlist.includes(id)
@@ -128,8 +189,7 @@ export default function MovieVersePage() {
   // Friday Film Club is both a community and the friend room in the lobby
   function toggleRoom() {
     setJoined(!joined)
-    if (!joined && filmClub) api.sendJoin(filmClub)
-    else setToast(joined ? 'You left the room' : 'You joined Friday Film Club')
+    setToast(joined ? 'You left the room (demo)' : 'You joined Friday Film Club (demo)')
   }
   function toggleCommunity(community) {
     if (community.name === 'Friday Film Club') {
@@ -143,9 +203,7 @@ export default function MovieVersePage() {
       else next.add(community.id)
       return next
     })
-    // there is no "leave" endpoint in the plan yet, so leaving stays local
-    if (member) setToast('You left ' + community.name)
-    else api.sendJoin(community)
+    setToast((member ? 'You left ' : 'You joined ') + community.name + ' (demo)')
   }
   function inviteFriend(friend) {
     setInvited((set) => new Set(set).add(friend.name))
@@ -153,7 +211,7 @@ export default function MovieVersePage() {
     setFriendOpen(null)
   }
   function openFromList(movie) {
-    setSelected(movie)
+    setSelectedId(movie.id)
   }
 
   return (
@@ -172,8 +230,8 @@ export default function MovieVersePage() {
         invited={invited}
         watchlistCount={watchlist.length}
         paused={paused}
-        onOpenMovie={setSelected}
-        onOpenProfile={() => setProfileOpen(true)}
+        onOpenMovie={openFromList}
+        onOpenProfile={() => setProfileDraft(profile)}
         onToggleRoom={toggleRoom}
         onOpenFriend={setFriendOpen}
         onOpenCommunities={() => setOverlay('communities')}
@@ -194,7 +252,7 @@ export default function MovieVersePage() {
         friendCount={friends.length}
         name={name}
         avatar={avatar}
-        onProfile={() => setProfileOpen(true)}
+        onProfile={() => setProfileDraft(profile)}
       />
 
       {friendsOpen && (
@@ -269,7 +327,7 @@ export default function MovieVersePage() {
           onClose={() => setOverlay(null)}
         >
           <div className="mv-community-list">
-            {api.communities.map((c) => {
+            {communities.map((c) => {
               const member =
                 c.name === 'Friday Film Club' ? joined : memberships.has(c.id)
               return (
@@ -337,28 +395,31 @@ export default function MovieVersePage() {
           myRating={myRatings[selected.id]}
           inWatchlist={watchlist.includes(selected.id)}
           review={review}
-          onReviewChange={setReview}
+          onReviewChange={(value) => setReviewDrafts((drafts) => ({
+            ...drafts,
+            [selected.id]: value,
+          }))}
           onRate={(n) => rate(selected, n)}
           onToggleWatchlist={() => toggleWatchlist(selected.id)}
           onSaveReview={saveReview}
+          ratingPending={ratingPending}
+          reviewPending={reviewPending}
           reviews={api.reviewsFor(selected.id)}
-          onClose={() => setSelected(null)}
+          onClose={() => setSelectedId(null)}
         />
       )}
 
-      {profileOpen && (
+      {profileDraft && (
         <MovieVerseProfileModal
-          name={name}
-          avatar={avatar}
-          skin={skin}
-          onName={setName}
-          onAvatar={setAvatar}
-          onSkin={setSkin}
-          onSave={() => {
-            setProfileOpen(false)
-            api.sendProfile()
+          {...profileDraft}
+          onName={(value) => setProfileDraft((draft) => ({ ...draft, name: value }))}
+          onAvatar={(value) => setProfileDraft((draft) => ({ ...draft, avatar: value }))}
+          onSkin={(value) => setProfileDraft((draft) => ({ ...draft, skin: value }))}
+          onSave={saveProfile}
+          pending={profilePending}
+          onClose={() => {
+            if (!profilePending) setProfileDraft(null)
           }}
-          onClose={() => setProfileOpen(false)}
         />
       )}
 

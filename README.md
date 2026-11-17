@@ -1,61 +1,67 @@
-# MovieVerse frontend
+# MovieVerse — browser-based social movie world (MVP demo)
 
-React + Vite frontend for MovieBus. The whole page is a small 2D world:
-you walk around with your avatar, open movies, rate and review them and
-join communities.
+A deliberately low-end, 2D/2.5D browser demo for a four-person, five-week student project.
+It is **not real VR**: movement is a lightweight CSS/React simulation. The demo works without
+a backend using sample data. An Express + PostgreSQL starter API is included.
 
-The backend (Express + PostgreSQL) is in `Backend/` on the `main` branch.
-
-## Run it
+## Run the frontend
 
 ```bash
+cd client
 npm install
-cp .env.example .env
 npm run dev
 ```
+Open http://localhost:5173
 
-Open http://localhost:5173.
+## Run the API + PostgreSQL with Docker
 
-If `VITE_API_URL` is empty or the backend is not running, the page uses
-sample movies and nothing is saved to the database.
+From the project root:
 
-## Scripts
-
-| Command         | What it does                    |
-| --------------- | ------------------------------- |
-| `npm run dev`   | start the dev server            |
-| `npm run build` | build the site into `dist/`     |
-| `npm test`      | run the frontend tests (Vitest) |
-| `npm run lint`  | check the code style (ESLint)   |
-
-## Folders
-
-```text
-src/
-  main.jsx            starts React
-  App.jsx             shows the MovieVerse page
-  index.css           global styles (fonts, colours, resets)
-  pages/
-    MovieVersePage.jsx   the page: state and overlays
-    MovieVersePage.css   all styles for the page
-  components/         parts of the page (world, top bar, popups...)
-  api/                calls to the backend API
-  hooks/
-    useMovieVerseApi.js  saving and loading data for the page
-  data/               sample movies, friends and the world layout
-tests/frontend/       tests for the api/ code
-docs/                 project documentation
+```bash
+docker compose up --build
 ```
 
-## API used
+API: http://localhost:4000/api/health
+Frontend is still run separately with `cd client && npm install && npm run dev`.
 
-| Method | Path                        | Used for                                  |
-| ------ | --------------------------- | ----------------------------------------- |
-| GET    | `/api/movies`               | movies in the world                       |
-| GET    | `/api/movies/:id/reviews`   | reviews in the movie popup                |
-| POST   | `/api/movies/:id/ratings`   | save a star rating                        |
-| POST   | `/api/movies/:id/reviews`   | save a review                             |
-| GET    | `/api/communities`          | communities list                          |
-| POST   | `/api/communities/:id/join` | join a community (not in the backend yet) |
-| POST   | `/api/users`                | create a guest user                       |
-| PATCH  | `/api/users/:id/avatar`     | save name, avatar, skin                   |
+To point the frontend at the API, create `client/.env`:
+```
+VITE_API_URL=http://localhost:4000/api
+```
+The demo currently uses local sample data for a reliable presentation; connect the API in
+the integration week.
+
+## Controls
+- WASD / arrow keys: move your explorer around the lobby
+- Search: filter movies
+- Zone buttons: jump between the three discovery areas
+- Click a movie: open details, rate it, and add a review
+- Avatar: edit display name, skin, and avatar style
+- Friends panel: invite/join a simulated friend session
+
+## MVP scope (keep this scope!)
+1. Login/register (or demo guest mode)
+2. Profile + avatar customization
+3. Three movie zones and searchable movie catalogue
+4. Movie details, rating and reviews
+5. Communities / friend rooms
+6. Persist users, movies, ratings, reviews, memberships in PostgreSQL
+7. Deploy frontend + API to Azure
+
+Do not attempt voice chat, full 3D, real-time multiplayer physics, video streaming, or WebXR
+in this five-week version. Presence can be simulated or implemented with Socket.IO only if
+the core features are finished.
+
+## Suggested API routes
+- `GET /api/movies?search=&genre=`
+- `GET /api/movies/:id`
+- `POST /api/movies/:id/ratings`
+- `GET /api/communities`
+- `POST /api/communities`
+- `GET /api/users/:id`
+- `PATCH /api/users/:id/avatar`
+- `POST /api/rooms/:id/join`
+
+## Team delivery definition
+A feature is done only when it works in the browser, has validation/error states, is tested by
+another teammate, and is merged to the shared main branch.

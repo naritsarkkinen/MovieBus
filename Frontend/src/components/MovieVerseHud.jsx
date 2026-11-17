@@ -60,8 +60,10 @@ export default function MovieVerseHud({
           className={'mv-data-badge ' + dataSource}
           title={
             dataSource === 'live'
-              ? 'Movies are loaded from the MovieBus API'
-              : 'API not reachable: showing sample movies'
+              ? 'Movies are loaded from the MovieVerse API'
+              : dataSource === 'loading'
+                ? 'Loading movies'
+                : 'Showing sample movies'
           }
         >
           <i />

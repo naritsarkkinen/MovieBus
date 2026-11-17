@@ -12,6 +12,8 @@ export default function MovieVerseMovieModal({
   onRate,
   onToggleWatchlist,
   onSaveReview,
+  ratingPending,
+  reviewPending,
   reviews = [],
   onClose,
 }) {
@@ -57,6 +59,7 @@ export default function MovieVerseMovieModal({
                 <button
                   key={n}
                   onClick={() => onRate(n)}
+                  disabled={ratingPending}
                   className={n <= (myRating || 0) ? 'rated' : ''}
                   aria-label={`Rate ${n} out of 5`}
                 >
@@ -76,9 +79,10 @@ export default function MovieVerseMovieModal({
               id="mv-review"
               value={review}
               onChange={(e) => onReviewChange(e.target.value)}
+              maxLength={1500}
               placeholder="What did you think of this movie?"
             />
-            <button className="primary-button" onClick={onSaveReview}>
+            <button className="primary-button" onClick={onSaveReview} disabled={reviewPending || !review.trim()}>
               Post review <MessageCircle size={14} />
             </button>
           </div>
@@ -89,7 +93,15 @@ export default function MovieVerseMovieModal({
             )}
             {reviews.map((r) => (
               <div className="mv-review" key={r.id}>
-                <b>{r.author}</b>
+                <div>
+                  <b>{r.author}</b>
+                  {r.stars && (
+                    <span>
+                      {'★'.repeat(r.stars)}
+                      {'☆'.repeat(Math.max(0, 5 - r.stars))}
+                    </span>
+                  )}
+                </div>
                 <p>{r.text}</p>
               </div>
             ))}

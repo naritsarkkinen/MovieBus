@@ -1,10 +1,8 @@
-// Shared helper for every call to the MovieBus API.
+// Shared helper for every call to the MovieVerse API.
 
-// Base address, e.g. http://localhost:4000/api (set VITE_API_URL in .env).
-// Not a secret: Vite puts it in the public JavaScript.
-export const API_URL = import.meta.env.VITE_API_URL
+// Use Vite's proxy locally, or set VITE_API_URL to a public API base.
+export const API_URL = import.meta.env.VITE_API_URL ?? '/api'
 
-// true when an API address is configured
 export function hasApi(baseUrl = API_URL) {
   return Boolean(baseUrl)
 }
@@ -24,13 +22,10 @@ export async function apiRequest(
     body: body ? JSON.stringify(body) : undefined,
     signal: AbortSignal.timeout(5000),
   })
-  if (!res.ok) throw new Error('API answered ' + res.status)
+  if (!res.ok) {
+    const problem = await res.json().catch(() => null)
+    throw new Error(problem?.error || 'API answered ' + res.status)
+  }
   if (res.status === 204) return null // "No Content"
   return res.json()
-}
-
-// Lists can come as [ ... ] or wrapped like { results: [ ... ] }
-export function listFrom(body, key) {
-  if (Array.isArray(body)) return body
-  return body?.[key] || body?.results || []
 }
