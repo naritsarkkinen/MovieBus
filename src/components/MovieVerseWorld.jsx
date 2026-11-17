@@ -2,7 +2,6 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Star } from 'lucide-react'
 import MoviePosterImage from './MoviePosterImage'
 import { formatRating } from '../api/movies'
-import './MovieVerseWorld.css'
 import {
   WORLD,
   SPAWN,
