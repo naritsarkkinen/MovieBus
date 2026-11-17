@@ -2,12 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import MovieVerseMinimap from './MovieVerseMinimap'
 import MovieVerseControls from './MovieVerseControls'
 import MovieVersePortal from './MovieVersePortal'
-import {
-  maps,
-  placeAt,
-  placeSpawn,
-  pathTo,
-} from '../data/MovieVerseWorldLayout'
+import { maps, placeAt, placeSpawn } from '../data/MovieVerseWorldLayout'
 
 const SPEED = 330
 const RUN_SPEED = 560
@@ -199,8 +194,8 @@ export default function MovieVerseWorld({
 
       // parallax: the stars move slower than the floor, so they look far
       // away (far stars 10 % of your speed, near stars 25 %)
-      starsFarRef.current.style.backgroundPosition = `${-g.x * 0.1}px ${-g.y * 0.1}px`
-      starsNearRef.current.style.backgroundPosition = `${-g.x * 0.25}px ${-g.y * 0.25}px`
+      starsFarRef.current.style.transform = starShift(g, 0.1, 200)
+      starsNearRef.current.style.transform = starShift(g, 0.25, 320)
     }
 
     let frame
@@ -277,12 +272,7 @@ export default function MovieVerseWorld({
         className="walk-plane"
         style={{ width: map.width, height: map.height }}
       >
-        {/* floor: spacetime grid, paths, the spawn platform and the places */}
-        <div className="walk-ground" />
-        {map.paths &&
-          map.places.map((p) => (
-            <div key={p.id} className="walk-path" style={pathTo(map, p)} />
-          ))}
+        {/* floor: the spawn platform and the places */}
         <div
           className="walk-hub"
           style={{ left: map.spawn.x, top: map.spawn.y }}
@@ -392,6 +382,16 @@ function movePlayer(g, direction, dt) {
   g.x += (direction.x / length) * speed * dt
   g.y += (direction.y / length) * speed * dt
   if (direction.x !== 0) g.facingLeft = direction.x < 0
+}
+
+// How far to move a star layer. speed = part of your speed (0.1 = 10 %).
+// The star pattern repeats every `tile` px, so moving it by a whole tile
+// looks exactly the same: % tile keeps the number small and the stars endless.
+// (transform is done by the graphics card, so this is cheap every frame)
+function starShift(g, speed, tile) {
+  const x = -(g.x * speed) % tile
+  const y = -(g.y * speed) % tile
+  return `translate(${x}px, ${y}px)`
 }
 
 // Keeps the player inside the map (40 px away from the edges).

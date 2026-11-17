@@ -14,7 +14,6 @@ export const maps = {
     height: 2000,
     spawn: { x: 1400, y: 1000 }, // the middle
     returnSpawn: { x: 1400, y: 1420 }, // coming back from your dimension
-    paths: true, // glowing paths from the spawn point to the portals
     sign: {
       x: 1400,
       y: 860,
@@ -68,7 +67,6 @@ export const maps = {
     width: 1800,
     height: 1400,
     spawn: { x: 900, y: 660 },
-    paths: false,
     sign: {
       x: 900,
       y: 540,
@@ -121,21 +119,6 @@ export function placeAt(map, x, y) {
 export function placeSpawn(map, id) {
   const place = map.places.find((p) => p.id === id)
   return place ? { x: place.x, y: place.y } : null
-}
-
-// The glowing path from the spawn point to a place, as a rectangle.
-// The hub portals are straight north / west / east / south of the spawn
-// point, so every path is either a vertical or a horizontal strip.
-export const PATH_WIDTH = 110
-export function pathTo(map, place) {
-  const { spawn } = map
-  const vertical = place.x === spawn.x
-  return {
-    left: vertical ? spawn.x - PATH_WIDTH / 2 : Math.min(spawn.x, place.x),
-    top: vertical ? Math.min(spawn.y, place.y) : spawn.y - PATH_WIDTH / 2,
-    width: vertical ? PATH_WIDTH : Math.abs(spawn.x - place.x),
-    height: vertical ? Math.abs(spawn.y - place.y) : PATH_WIDTH,
-  }
 }
 
 // Every movie goes to one of the 3 movie dimensions:

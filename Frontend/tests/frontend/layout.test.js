@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   maps,
-  pathTo,
   placeAt,
   placeSpawn,
   splitMovies,
@@ -59,28 +58,6 @@ describe('placeSpawn', () => {
   it('returns the middle of a place, or null if the map does not have it', () => {
     expect(placeSpawn(maps.hub, 'clubs')).toEqual({ x: 1400, y: 1620 })
     expect(placeSpawn(maps.clubs, 'trending')).toBeNull()
-  })
-})
-
-describe('pathTo', () => {
-  it('makes a vertical strip to a place straight north', () => {
-    const discover = { id: 'discover', x: 1400, y: 380 }
-    expect(pathTo(maps.hub, discover)).toEqual({
-      left: 1400 - 55,
-      top: 380,
-      width: 110,
-      height: 1000 - 380,
-    })
-  })
-
-  it('makes a horizontal strip to a place straight west', () => {
-    const trending = { id: 'trending', x: 760, y: 1000 }
-    expect(pathTo(maps.hub, trending)).toEqual({
-      left: 760,
-      top: 1000 - 55,
-      width: 1400 - 760,
-      height: 110,
-    })
   })
 })
 

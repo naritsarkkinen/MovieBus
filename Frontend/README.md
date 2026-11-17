@@ -3,12 +3,12 @@
 React + Vite frontend for MovieBus, in "2.5D": flat 2D characters walk
 around a space hub, and everything you browse is shown as 3D cards.
 
-- **The hub** is the shared space where everyone spawns. 4 glowing paths lead
-  to 4 dimension portals (Trending, Discover, Community, Clubs & you), each
+- **The hub** is the shared space where everyone spawns. Around it are 4
+  dimension portals (Trending, Discover, Community, Clubs & you), each
   with its own animated look (plain CSS, no images).
-- **Movie portals:** step in, warp, and the 3D "cover flow" cards of that
-  dimension appear. Swipe through them and click to open a movie.
-- **Clubs & you:** warps you into your own dimension, with your watchlist,
+- **Movie portals:** step in and the 3D "cover flow" cards of that
+  dimension appear right away. Swipe through them and click to open a movie.
+- **Clubs & you:** takes you into your own dimension, with your watchlist,
   communities, avatar studio and the Friday Film Club room, plus a portal
   back to the hub.
 - You can walk through other people, so a crowd never blocks anyone.

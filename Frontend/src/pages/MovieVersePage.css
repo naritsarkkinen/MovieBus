@@ -248,12 +248,13 @@
 }
 
 /* Stars: a small tile of dots, repeated over the whole screen.
-   The game loop moves background-position slower than you walk
-   (parallax), so the stars look very far away. */
+   The game loop moves the layers slower than you walk (parallax),
+   so the stars look very far away. */
 .walk-stars {
   position: absolute;
-  inset: 0;
+  inset: -400px; /* bigger than the screen, so moving it shows no edges */
   pointer-events: none;
+  will-change: transform; /* moved every frame: give it its own GPU layer */
 }
 .walk-stars.far {
   background-image:
@@ -284,32 +285,6 @@
   top: 62%;
   transform-origin: 0 0;
   will-change: transform;
-}
-
-/* floor: a glowing "spacetime" grid that fades away into space */
-.walk-ground {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(#67e8f91c 1px, transparent 1px),
-    linear-gradient(90deg, #67e8f91c 1px, transparent 1px);
-  background-size: 80px 80px;
-  /* mask: only the middle of the grid is visible, the edges fade out */
-  mask-image: radial-gradient(ellipse at center, #000 35%, transparent 72%);
-}
-.map-clubs .walk-ground {
-  background-image:
-    linear-gradient(#f9a8d41c 1px, transparent 1px),
-    linear-gradient(90deg, #f9a8d41c 1px, transparent 1px);
-}
-
-/* glowing paths from the spawn point to the portals */
-.walk-path {
-  position: absolute;
-  border-radius: 55px;
-  background: linear-gradient(90deg, #8b5cf618, #22d3ee14, #8b5cf618);
-  border: 1px solid #a78bfa33;
-  box-shadow: inset 0 0 40px #8b5cf622;
 }
 
 /* the spawn platform: a glowing oval disc in the middle */
@@ -348,7 +323,6 @@
   background: radial-gradient(ellipse, #a78bfa55, #8b5cf611 70%);
   border: 2px solid #a78bfa66;
   box-shadow: 0 0 60px #8b5cf644;
-  animation: place-glow 3s ease-in-out infinite;
 }
 .walk-place.current {
   border-color: #e9ddff;
@@ -374,11 +348,6 @@
 .walk-place b {
   font: 600 20px 'Space Grotesk';
 }
-@keyframes place-glow {
-  50% {
-    box-shadow: 0 0 90px #8b5cf688;
-  }
-}
 @keyframes ring-spin {
   from {
     transform: translate(-50%, -50%) scaleY(0.5) rotate(0deg);
@@ -390,23 +359,19 @@
 
 /* ---------- dimension portals ---------- */
 /* every look has its own colour: --portal (strong) and --portal-soft */
-.portal-hex,
-.warp-hex {
+.portal-hex {
   --portal: #fb923c;
   --portal-soft: #fb923c44;
 }
-.portal-glitch,
-.warp-glitch {
+.portal-glitch {
   --portal: #2dd4bf;
   --portal-soft: #2dd4bf44;
 }
-.portal-galaxy,
-.warp-galaxy {
+.portal-galaxy {
   --portal: #60a5fa;
   --portal-soft: #60a5fa44;
 }
-.portal-rings,
-.warp-rings {
+.portal-rings {
   --portal: #f472b6;
   --portal-soft: #f472b644;
 }
@@ -530,9 +495,7 @@
   box-shadow:
     0 0 60px #2dd4bf88,
     inset 0 0 40px #2dd4bf66;
-  animation:
-    portal-float 4s ease-in-out infinite,
-    glitch 3s infinite;
+  animation: portal-float 4s ease-in-out infinite;
 }
 /* halftone dots in a ring around the hole: a dot pattern, with a mask
    that only shows a ring of it */
@@ -583,21 +546,6 @@
     transform: translate(5px, -2px);
   }
 }
-/* for a moment the colours split into pink and cyan, like a misprint */
-@keyframes glitch {
-  0%,
-  90%,
-  100% {
-    filter: none;
-  }
-  93% {
-    filter: drop-shadow(5px 0 #ff00d4) drop-shadow(-5px 0 #00e5ff);
-  }
-  96% {
-    filter: drop-shadow(-4px 0 #ff00d4) drop-shadow(4px 0 #00e5ff);
-  }
-}
-
 /* Community (and the way back to the hub): a spinning blue galaxy.
    conic-gradient = colours going around the middle like a clock;
    spinning it makes a swirl. */
@@ -685,56 +633,6 @@
   }
 }
 
-/* ---------- warp: travelling through a portal ---------- */
-/* a flash in the portal's colour that rushes towards you */
-.warp {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  pointer-events: none;
-  background: radial-gradient(circle, #fff 0, var(--portal) 18%, #05040b 65%);
-  animation: warp-in 0.7s ease-in forwards;
-}
-/* star streaks: thin lines going out from the middle (repeating cone),
-   growing bigger = flying past them */
-.warp::before {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  background: repeating-conic-gradient(
-    #ffffffaa 0deg 0.6deg,
-    transparent 0.6deg 9deg
-  );
-  mask-image: radial-gradient(
-    circle,
-    transparent 8%,
-    #000 30%,
-    transparent 60%
-  );
-  animation: warp-streaks 0.7s ease-in forwards;
-}
-@keyframes warp-in {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  40% {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.6);
-  }
-}
-@keyframes warp-streaks {
-  from {
-    transform: scale(0.3) rotate(0deg);
-  }
-  to {
-    transform: scale(2.2) rotate(25deg);
-  }
-}
-
 /* things that stand up: (left, top) is where their feet touch the floor */
 .billboard {
   position: absolute;
@@ -764,6 +662,15 @@
 .walk-sign small {
   font-size: 11px;
   color: #a69bc9;
+}
+
+/* while cards or a popup cover the world, its animations pause
+   (nobody can see them, so the computer does not have to draw them) */
+.mv-shell.covered .walk-world *,
+/* (the portal layers need a stronger selector: their own rules like
+   .portal-glitch .portal-door span:nth-child(1) are more specific) */
+.mv-shell.covered .walk-world .portal-door span:nth-child(n) {
+  animation-play-state: paused;
 }
 
 /* the player */
@@ -1092,7 +999,6 @@
   border: 1px solid #ffffff14;
   border-radius: 14px;
   background: #0e0b1ef0;
-  backdrop-filter: blur(10px);
   padding: 18px 15px;
 }
 .friends-head {
@@ -1440,8 +1346,7 @@
   justify-content: center;
   gap: 18px;
   padding: 150px 16px 40px;
-  background: #05040b99;
-  backdrop-filter: blur(10px); /* the world is blurred behind the cards */
+  background: #05040be6; /* dark, no blur: blurring the moving world is slow */
   animation: stack-in 0.25s ease-out;
 }
 /* every dimension tints the space behind its cards */
@@ -1955,17 +1860,10 @@
 @media (prefers-reduced-motion: reduce) {
   .walk-player.walking .player-avatar,
   .walk-friend .friend-avatar,
-  .walk-place,
   .walk-place-ring,
   .walk-stars.near,
   .portal-door,
-  .portal-door span,
-  .warp,
-  .warp::before {
+  .portal-door span {
     animation: none;
-  }
-  /* the warp is just a soft coloured screen instead of a rush */
-  .warp {
-    opacity: 0.85;
   }
 }

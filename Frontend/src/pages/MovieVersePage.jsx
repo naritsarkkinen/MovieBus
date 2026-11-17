@@ -13,12 +13,8 @@ import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
 import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
 import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
 import MovieVerseCardStack from '../components/MovieVerseCardStack'
-import { maps, splitMovies } from '../data/MovieVerseWorldLayout'
+import { splitMovies } from '../data/MovieVerseWorldLayout'
 import { communityCard, movieCard } from '../data/MovieVerseCards'
-
-// how long the warp effect lasts when you travel through a portal
-// (same as the warp animation in MovieVersePage.css)
-const WARP_MS = 700
 
 // titles of the card stacks
 const STACK_TITLES = {
@@ -59,8 +55,6 @@ export default function MovieVersePage() {
   const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
   // which map ("dimension") you are in: 'hub' or 'clubs' (your dimension)
   const [mapId, setMapId] = useState('hub')
-  // the portal look while the warp effect plays ('hex', 'glitch'...), or null
-  const [warp, setWarp] = useState(null)
   // the cards of the place you stand on are open
   const [placeOpen, setPlaceOpen] = useState(false)
   const [friendsOpen, setFriendsOpen] = useState(false)
@@ -164,8 +158,8 @@ export default function MovieVersePage() {
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
   // a popup on top of the cards (movie, friend, profile, panel)
   const popupOpen = Boolean(selected || friendOpen || profileDraft || overlay)
-  // no walking while something is open or while travelling
-  const paused = popupOpen || placeOpen || Boolean(warp)
+  // no walking (and no world animations) while something covers the world
+  const paused = popupOpen || placeOpen
 
   // the cards of the place you are on
   const isMember = (c) =>
@@ -225,16 +219,6 @@ export default function MovieVersePage() {
     )
     setToast(saved ? 'Removed from your watchlist' : 'Saved to your watchlist')
   }
-  // Travel through a portal: show the warp effect, and when it is over,
-  // run arrive() (open the cards, or change the map).
-  // look = the portal's look ('hex', 'glitch'...), it colours the warp.
-  function travel(look, arrive) {
-    setWarp(look)
-    setTimeout(() => {
-      arrive()
-      setWarp(null)
-    }, WARP_MS)
-  }
   function goToMap(id) {
     setMapId(id)
     setZone(id) // 'clubs' lights up "Clubs & you" in the top bar
@@ -243,36 +227,29 @@ export default function MovieVersePage() {
   // you walked onto a place (id is null when you walk off it)
   function enterPlace(id) {
     if (!id) return
-    const place = maps[mapId].places.find((p) => p.id === id)
     if (id === 'clubs' || id === 'hub') {
-      travel(place.portal, () => goToMap(id)) // another map
+      goToMap(id) // another map
     } else if (id === 'studio') {
       setProfileDraft(profile)
     } else if (id === 'room') {
       setFriendsOpen(true) // the Friday Film Club room and your friends
-    } else if (place.portal) {
-      setZone(id)
-      travel(place.portal, () => setPlaceOpen(true)) // a movie dimension
     } else {
       setZone(id)
-      setPlaceOpen(true) // watchlist or communities in your dimension
+      setPlaceOpen(true) // a movie dimension, or watchlist / communities
     }
   }
   // you clicked a zone in the top bar (Trending, Discover, Community, Clubs)
   function switchZone(id) {
     setActiveGenre('All')
     setPlaceOpen(false)
-    const look = maps.hub.places.find((p) => p.id === id).portal
     if (id === 'clubs') {
-      if (mapId !== 'clubs') travel(look, () => goToMap('clubs'))
+      goToMap('clubs')
       return
     }
-    // a movie dimension: go back to the hub first if needed, then open it
-    travel(look, () => {
-      setMapId('hub')
-      setZone(id)
-      setPlaceOpen(true)
-    })
+    // a movie dimension: go back to the hub if needed, then open it
+    setMapId('hub')
+    setZone(id)
+    setPlaceOpen(true)
   }
   // a card was opened: a community card joins / leaves, a movie card opens
   function openCard(card) {
@@ -314,7 +291,7 @@ export default function MovieVersePage() {
   }
 
   return (
-    <div className="mv-shell">
+    <div className={'mv-shell' + (paused ? ' covered' : '')}>
       <MovieVerseWorld
         mapId={mapId}
         zone={zone}
@@ -373,9 +350,6 @@ export default function MovieVersePage() {
           onClose={() => setPlaceOpen(false)}
         />
       )}
-
-      {/* travelling through a portal */}
-      {warp && <div className={'warp warp-' + warp} aria-hidden="true" />}
 
       {overlay === 'catalogue' && (
         <MovieVersePanel
