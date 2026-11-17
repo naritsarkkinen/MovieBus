@@ -1,0 +1,107 @@
+body {
+  background: #0d0d0d;
+  color: white;
+}
+
+.details-container {
+  width: 95%;
+  margin: auto;
+  padding: 30px;
+}
+
+.hero {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 50px;
+}
+
+.big-poster {
+  width: 320px;
+  border-radius: 12px;
+}
+
+.info-section {
+  flex: 1;
+}
+
+.info-section h1 {
+  font-size: 56px;
+  margin-bottom: 15px;
+}
+
+.movie-meta {
+  color: #a0a0a0;
+  margin-bottom: 20px;
+}
+
+.genres {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.genres span {
+  border: 1px solid #333;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+.rating-box {
+  color: #f5c518;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.description {
+  line-height: 1.8;
+  max-width: 900px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.action-buttons button {
+  background: #1d1d1d;
+  color: white;
+  border: 1px solid #303030;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.action-buttons button:hover {
+  background: #2a2a2a;
+}
+
+.section {
+  margin-top: 50px;
+}
+
+.review-card {
+  background: #171717;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.similar-movies {
+  display: flex;
+  gap: 20px;
+}
+
+.similar-card {
+  width: 150px;
+}
+
+.similar-card img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.similar-card p {
+  text-align: center;
+}

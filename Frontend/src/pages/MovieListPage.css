@@ -1,0 +1,163 @@
+.movie-list-page {
+  margin: 0;
+  background: #0d0d0d;
+  color: #f5f5f5;
+  font-family: Segoe UI, Arial, sans-serif;
+}
+
+.movie-list-page .container {
+  width: 96%;
+  margin: auto;
+  padding: 25px;
+}
+
+.movie-list-page h1 {
+  font-size: 64px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.movie-list-page .subtitle {
+  color: #9a9a9a;
+  margin-bottom: 25px;
+  font-size: 18px;
+}
+
+.movie-list-page .search {
+  width: 100%;
+  max-width: 700px;
+  padding: 16px;
+  background: #171717;
+  border: 1px solid #242424;
+  border-radius: 10px;
+  color: white;
+  margin-bottom: 35px;
+  font-size: 16px;
+}
+
+.movie-list-page .search:focus {
+  outline: none;
+  border-color: #f5c518;
+}
+
+.movie-list-page .layout {
+  display: grid;
+  grid-template-columns: 5fr 1.3fr;
+  gap: 70px;
+}
+
+.movie-list-page .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.movie-list-page .section-header span {
+  color: #8a8a8a;
+}
+
+.movie-list-page .movie-row {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #232323;
+  transition: 0.2s;
+}
+
+.movie-list-page .movie-row:hover {
+  background: #131313;
+}
+
+.movie-list-page .poster {
+  width: 110px;
+  height: 165px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.movie-list-page .movie-info {
+  flex: 1;
+}
+
+.movie-list-page .movie-info h3 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.movie-list-page .meta {
+  color: #9a9a9a;
+  margin-top: 10px;
+}
+
+.movie-list-page .description {
+  margin-top: 14px;
+  margin-bottom: 18px;
+  color: #d0d0d0;
+  line-height: 1.7;
+}
+
+.movie-list-page .movie-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.movie-list-page .rating {
+  color: #f5c518;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.movie-list-page .movie-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.movie-list-page .movie-actions button {
+  background: #181818;
+  color: white;
+  border: 1px solid #303030;
+  padding: 9px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.movie-list-page .movie-actions button:hover {
+  background: #242424;
+}
+
+.movie-list-page .sidebar {
+  background: #171717;
+  border-radius: 12px;
+  padding: 22px;
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.movie-list-page .sidebar h2 {
+  margin-top: 0;
+}
+
+.movie-list-page .section-title {
+  margin-top: 35px;
+}
+
+.movie-list-page .mini-movie {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.movie-list-page .mini-movie img {
+  width: 50px;
+  height: 75px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.movie-list-page .mini-movie span {
+  font-size: 15px;
+}
