@@ -28,7 +28,7 @@ jobs:
       - name: Build frontend
         working-directory: Frontend
         env:
-          VITE_API_URL: moviebus-api-bdddc9aqcwfjf4dt.swedencentral-01.azurewebsites.net/api
+          VITE_API_URL: "https://moviebus-api-bdddc9aqcwfjf4dt.swedencentral-01.azurewebsites.net/api"
         run: npm run build
 
       - name: Deploy frontend to Azure
