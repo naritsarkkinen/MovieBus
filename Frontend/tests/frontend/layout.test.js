@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  pathTo,
   placeAt,
   placeSpawn,
   splitMovies,
@@ -28,17 +29,39 @@ describe('splitMovies', () => {
 
 describe('placeAt', () => {
   it('finds the place you stand on, or null in the hub', () => {
-    expect(placeAt(800, 270).id).toBe('discover')
-    expect(placeAt(800, 640)).toBeNull()
+    expect(placeAt(1400, 390).id).toBe('discover')
+    expect(placeAt(1400, 1000)).toBeNull()
   })
 
   it('uses the oval shape: wide to the sides, narrow up and down', () => {
-    expect(placeAt(800 + 120, 260).id).toBe('discover') // 120 px to the side: on it
-    expect(placeAt(800, 260 + 80)).toBeNull() // 80 px down: off it
+    expect(placeAt(1400 + 160, 380).id).toBe('discover') // 160 px to the side: on it
+    expect(placeAt(1400, 380 + 95)).toBeNull() // 95 px down: off it
   })
 
   it('placeSpawn returns the middle of the place', () => {
-    expect(placeSpawn('clubs')).toEqual({ x: 800, y: 960 })
+    expect(placeSpawn('clubs')).toEqual({ x: 1400, y: 1620 })
+  })
+})
+
+describe('pathTo', () => {
+  it('makes a vertical strip to a place straight north', () => {
+    const discover = { id: 'discover', x: 1400, y: 380 }
+    expect(pathTo(discover)).toEqual({
+      left: 1400 - 55,
+      top: 380,
+      width: 110,
+      height: 1000 - 380,
+    })
+  })
+
+  it('makes a horizontal strip to a place straight west', () => {
+    const trending = { id: 'trending', x: 760, y: 1000 }
+    expect(pathTo(trending)).toEqual({
+      left: 760,
+      top: 1000 - 55,
+      width: 1400 - 760,
+      height: 110,
+    })
   })
 })
 

@@ -276,11 +276,20 @@
     0 0 0 2px #8b5cf633,
     0 0 120px #8b5cf622;
 }
+/* glowing paths from the spawn point to the 4 portals */
+.walk-path {
+  position: absolute;
+  border-radius: 55px;
+  background: #8b5cf614;
+  border: 1px solid #a78bfa33;
+  box-shadow: inset 0 0 40px #8b5cf622;
+}
+
 /* the hub: a big glowing circle in the middle */
 .walk-hub {
   position: absolute;
-  width: 560px;
-  height: 560px;
+  width: 720px;
+  height: 720px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle, #3b2a7a55, #1a143522 70%);
@@ -288,11 +297,11 @@
 }
 
 /* a place you can walk onto: an oval "portal" on the floor
-   (260 × 130 px = PLACE_SIZE in MovieVerseWorldLayout.js, times 2) */
+   (340 × 170 px = PLACE_SIZE in MovieVerseWorldLayout.js, times 2) */
 .walk-place {
   position: absolute;
-  width: 260px;
-  height: 130px;
+  width: 340px;
+  height: 170px;
   transform: translate(-50%, -50%);
   border-radius: 50%; /* 50% on a wide box = an oval */
   display: flex;
@@ -317,18 +326,18 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 290px;
-  height: 290px;
+  width: 380px;
+  height: 380px;
   border: 3px dashed #c4b5fd88;
   border-radius: 50%;
   pointer-events: none;
   animation: ring-spin 8s linear infinite;
 }
 .walk-place-icon {
-  font-size: 26px;
+  font-size: 30px;
 }
 .walk-place b {
-  font: 600 17px 'Space Grotesk';
+  font: 600 20px 'Space Grotesk';
 }
 @keyframes place-glow {
   50% {
@@ -1071,8 +1080,11 @@
 }
 .card-stack-track {
   position: relative;
-  width: min(300px, 70vw);
-  height: min(440px, 55vh);
+  width: min(280px, 62vw);
+  height: min(420px, 52vh);
+  /* 3D: how far away the "camera" is. Smaller = stronger 3D effect */
+  perspective: 1100px;
+  transform-style: preserve-3d;
 }
 .stack-card {
   position: absolute;
@@ -1086,12 +1098,18 @@
   background: #151326;
   text-align: left;
   box-shadow: 0 20px 50px #000a;
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
+  transition: transform 0.4s ease;
+  backface-visibility: hidden;
 }
 .stack-card.center {
   border-color: #a78bfa;
+  box-shadow:
+    0 0 40px #8b5cf666,
+    0 30px 60px #000c;
+}
+/* a light shine on the side cards, so the 3D turn is easy to see */
+.stack-card:not(.center) {
+  filter: brightness(0.75);
 }
 .stack-poster {
   position: relative;
@@ -1112,57 +1130,6 @@
   margin: 0;
   font: 12px 'DM Mono';
   color: #8c87a2;
-}
-/* "Clubs & you" menu: 4 tiles in a 2 × 2 grid */
-.clubs-menu {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 200px));
-  gap: 14px;
-}
-.menu-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 24px 14px;
-  border: 1px solid #ffffff22;
-  border-radius: 18px;
-  background: linear-gradient(160deg, #2a1f50f2, #141028f2);
-  box-shadow: 0 16px 30px #0008;
-  transition:
-    box-shadow 0.2s,
-    transform 0.2s;
-}
-.menu-tile.selected {
-  transform: translateY(-4px);
-  box-shadow:
-    0 0 0 2px #e9ddff,
-    0 0 34px #a78bfacc;
-}
-.menu-tile b {
-  font: 600 16px 'Space Grotesk';
-}
-.menu-tile small {
-  font-size: 12px;
-  color: #a69bc9;
-}
-.menu-icon {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #a78bfa, #6554d9);
-  font-size: 22px;
-}
-.menu-icon.watchlist {
-  background: linear-gradient(135deg, #fda4af, #e11d48);
-}
-.menu-icon.communities {
-  background: linear-gradient(135deg, #67e8f9, #0e7490);
-}
-.menu-icon.room {
-  background: linear-gradient(135deg, #f9a8d4, #be185d);
 }
 @keyframes stack-in {
   from {

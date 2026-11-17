@@ -1,27 +1,47 @@
 import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import MoviePosterImage from './MoviePosterImage'
-import { formatRating } from '../api/movies'
 import { clampIndex } from '../utils/clampIndex'
 
 // how many cards are visible on each side of the middle card
-const SIDE_CARDS = 2
+const SIDE_CARDS = 3
 
-// Movies as overlapping cards, like the phone app switcher.
-// The middle card is big, the others are smaller and further to the side.
+// Where a card is drawn in 3D ("cover flow", like old iTunes):
+// offset = how far the card is from the middle card (0 = middle,
+// -1 = first on the left, 2 = second on the right...).
+// - the middle card faces you
+// - side cards move to the side, go back into the screen (translateZ) and
+//   turn 50° toward the middle (rotateY), like pages of an open book
+function coverFlow(offset) {
+  if (offset === 0) return 'translateX(0) translateZ(0) rotateY(0deg)'
+  const side = offset < 0 ? -1 : 1 // -1 = left, 1 = right
+  const distance = Math.abs(offset)
+  const x = side * (60 + (distance - 1) * 22) // in % of the card width
+  const z = -150 - (distance - 1) * 60 // in px, negative = further away
+  const turn = -side * 50 // left cards turn right, right cards turn left
+  return `translateX(${x}%) translateZ(${z}px) rotateY(${turn}deg)`
+}
+
+// Cards in 3D "cover flow": the middle card faces you, the others turn
+// toward it. Used for movies and for the Clubs & you choices (same card shape,
+// see data/MovieVerseCards.js).
 // active = false while a popup is open on top (then the keys do nothing).
 export default function MovieVerseCardStack({
   title,
-  movies,
+  cards,
+  emptyText,
   active,
   onOpen,
   onClose,
 }) {
   const [index, setIndex] = useState(0)
-  const current = clampIndex(index, movies.length)
+  const current = clampIndex(index, cards.length)
 
+  // move step cards (-1 = left, 1 = right).
+  // setIndex((old) => ...) uses the newest index, so two fast key presses
+  // really move two cards (not the same card twice).
   function go(step) {
-    setIndex(clampIndex(current + step, movies.length))
+    setIndex((old) => clampIndex(old + step, cards.length))
   }
 
   // ← → (or A / D) on the keyboard
@@ -74,43 +94,35 @@ export default function MovieVerseCardStack({
       <div className="card-stack-head">
         <h2>{title}</h2>
         <span>
-          {movies.length === 0 ? 0 : current + 1} / {movies.length}
+          {cards.length === 0 ? 0 : current + 1} / {cards.length}
         </span>
         <button className="modal-close" onClick={onClose} aria-label="Close">
           <X size={18} />
         </button>
       </div>
 
-      {movies.length === 0 && (
-        <div className="empty-state">
-          No movies here. Try another search or genre.
-        </div>
-      )}
+      {cards.length === 0 && <div className="empty-state">{emptyText}</div>}
 
       <div className="card-stack-track">
-        {movies.map((movie, i) => {
-          const offset = i - current // 0 = middle, -1 = left, 1 = right...
+        {cards.map((card, i) => {
+          const offset = i - current
           if (Math.abs(offset) > SIDE_CARDS) return null
-          const distance = Math.abs(offset)
           return (
             <button
-              key={movie.id}
+              key={card.id}
               className={'stack-card' + (offset === 0 ? ' center' : '')}
               style={{
-                transform: `translateX(${offset * 55}%) scale(${1 - distance * 0.12})`,
-                zIndex: 10 - distance,
-                opacity: 1 - distance * 0.3,
+                transform: coverFlow(offset),
+                zIndex: 10 - Math.abs(offset), // the middle card is on top
               }}
-              onClick={() => (offset === 0 ? onOpen(movie) : setIndex(i))}
+              onClick={() => (offset === 0 ? onOpen(card) : setIndex(i))}
             >
-              <div className={'stack-poster poster-' + movie.color}>
-                <MoviePosterImage src={movie.poster} title={movie.title} />
-                <span className="poster-emoji">{movie.emoji}</span>
+              <div className={'stack-poster poster-' + card.color}>
+                <MoviePosterImage src={card.poster} title={card.title} />
+                <span className="poster-emoji">{card.emoji}</span>
               </div>
-              <b>{movie.title}</b>
-              <small>
-                {movie.year} · {movie.genre} · ★ {formatRating(movie.rating)}
-              </small>
+              <b>{card.title}</b>
+              <small>{card.sub}</small>
             </button>
           )
         })}

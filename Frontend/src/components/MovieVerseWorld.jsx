@@ -10,6 +10,7 @@ import {
   roomFriendSpots,
   placeAt,
   placeSpawn,
+  pathTo,
 } from '../data/MovieVerseWorldLayout'
 
 const SPEED = 330
@@ -243,8 +244,11 @@ export default function MovieVerseWorld({
         className="walk-plane"
         style={{ width: WORLD.width, height: WORLD.height }}
       >
-        {/* floor: the hub circle and the 4 places */}
+        {/* floor: the paths, the hub circle and the 4 places */}
         <div className="walk-ground" />
+        {places.map((p) => (
+          <div key={p.id} className="walk-path" style={pathTo(p)} />
+        ))}
         <div className="walk-hub" style={{ left: SPAWN.x, top: SPAWN.y }} />
         {places.map((p) => (
           <div

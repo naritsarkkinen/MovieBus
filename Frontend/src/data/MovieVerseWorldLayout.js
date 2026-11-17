@@ -1,37 +1,53 @@
 // Layout of the MovieVerse hub, in world pixels.
-export const WORLD = { width: 1600, height: 1200 }
+// Like a game lobby: you spawn in the middle, and 4 straight paths lead to
+// the 4 portals (north, west, east, south). About 2 s walking, 1 s running.
+export const WORLD = { width: 2800, height: 2000 }
 
 // you start in the middle of the hub
-export const SPAWN = { x: 800, y: 640 }
+export const SPAWN = { x: 1400, y: 1000 }
 
-// the 4 places around the hub (x, y = middle of the place)
+// the 4 places around the hub (x, y = middle of the portal)
 export const places = [
-  { id: 'trending', x: 420, y: 420 },
-  { id: 'discover', x: 800, y: 260 },
-  { id: 'community', x: 1180, y: 420 },
-  { id: 'clubs', x: 800, y: 960 },
+  { id: 'discover', x: 1400, y: 380 }, // north
+  { id: 'trending', x: 760, y: 1000 }, // west
+  { id: 'community', x: 2040, y: 1000 }, // east
+  { id: 'clubs', x: 1400, y: 1620 }, // south
 ]
 
 // Every place is an oval "portal" on the floor:
-// 130 px from the middle to the left/right edge, 65 px to the top/bottom.
-export const PLACE_SIZE = { rx: 130, ry: 65 }
+// 170 px from the middle to the left/right edge, 85 px to the top/bottom.
+export const PLACE_SIZE = { rx: 170, ry: 85 }
 
 // the welcome sign floats above the spawn point
-export const SIGN = { x: 800, y: 560 }
+export const SIGN = { x: 1400, y: 880 }
 
 export const friendSpots = [
-  { x: 560, y: 700 },
-  { x: 1040, y: 700 },
-  { x: 700, y: 780 },
+  { x: 1180, y: 1180 },
+  { x: 1630, y: 1180 },
+  { x: 1220, y: 800 },
 ]
 
 // where friends go after you invite them to Friday Film Club
 // (around the "Clubs & you" portal)
 export const roomFriendSpots = [
-  { x: 640, y: 1070 },
-  { x: 960, y: 1070 },
-  { x: 800, y: 1110 },
+  { x: 1180, y: 1740 },
+  { x: 1620, y: 1740 },
+  { x: 1400, y: 1800 },
 ]
+
+// The glowing path from the spawn point to a place, as a rectangle.
+// The places are straight north / west / east / south of the spawn point,
+// so every path is either a vertical or a horizontal strip.
+export const PATH_WIDTH = 110
+export function pathTo(place) {
+  const vertical = place.x === SPAWN.x
+  return {
+    left: vertical ? SPAWN.x - PATH_WIDTH / 2 : Math.min(SPAWN.x, place.x),
+    top: vertical ? Math.min(SPAWN.y, place.y) : SPAWN.y - PATH_WIDTH / 2,
+    width: vertical ? PATH_WIDTH : Math.abs(SPAWN.x - place.x),
+    height: vertical ? Math.abs(SPAWN.y - place.y) : PATH_WIDTH,
+  }
+}
 
 // Is the point (x, y) inside the oval of place p?
 // Oval formula: (dx / rx)² + (dy / ry)² < 1
