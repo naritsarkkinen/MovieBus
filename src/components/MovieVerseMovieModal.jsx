@@ -89,15 +89,7 @@ export default function MovieVerseMovieModal({
             )}
             {reviews.map((r) => (
               <div className="mv-review" key={r.id}>
-                <div>
-                  <b>{r.author}</b>
-                  {r.stars && (
-                    <span>
-                      {'★'.repeat(r.stars)}
-                      {'☆'.repeat(Math.max(0, 5 - r.stars))}
-                    </span>
-                  )}
-                </div>
+                <b>{r.author}</b>
                 <p>{r.text}</p>
               </div>
             ))}

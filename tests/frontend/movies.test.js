@@ -34,6 +34,29 @@ describe('toMovie', () => {
     })
   })
 
+  it('turns a movie from our own database into our movie shape', () => {
+    const movie = toMovie({
+      id: 7,
+      title: 'Inception',
+      release_year: 2010,
+      genre: 'Sci-Fi',
+      description: 'Dreams inside dreams.',
+      poster_emoji: '🌀',
+      average_rating: '4.5', // PostgreSQL sends ROUND() results as text
+      rating_count: 2,
+    })
+    expect(movie).toMatchObject({
+      id: 7,
+      year: 2010,
+      genre: 'Sci-Fi',
+      desc: 'Dreams inside dreams.',
+      emoji: '🌀',
+      rating: 4.5,
+      votes: '2',
+      poster: null,
+    })
+  })
+
   it('handles a new movie without votes, poster or genre', () => {
     const movie = toMovie({
       id: 1,

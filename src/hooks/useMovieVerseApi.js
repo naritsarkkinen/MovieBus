@@ -75,13 +75,12 @@ export default function useMovieVerseApi({
     )
   }
 
-  function sendReview(movie, comment, stars) {
+  function sendReview(movie, text) {
     // show it right away, then save it
     const mine = {
       id: 'local-' + Date.now(),
       author: name,
-      stars: stars || null,
-      text: comment,
+      text,
       date: new Date().toISOString(),
     }
     setReviewsByMovie((all) => ({
@@ -89,7 +88,7 @@ export default function useMovieVerseApi({
       [movie.id]: [mine, ...(all[movie.id] || [])],
     }))
     return save(
-      (userId) => postReview(movie.id, userId, { stars, comment }),
+      (userId) => postReview(movie.id, userId, text),
       'Review posted',
       'Review posted to the demo community',
     )
@@ -102,7 +101,7 @@ export default function useMovieVerseApi({
 
   function sendProfile() {
     return save(
-      (userId) => saveAvatar(userId, { nickname: name, avatar, skin }),
+      (userId) => saveAvatar(userId, { name, avatar, skin }),
       'Your explorer profile was saved',
       'Your explorer profile was updated',
     )

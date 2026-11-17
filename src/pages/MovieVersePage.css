@@ -1340,15 +1340,8 @@
   border-radius: 10px;
   padding: 9px 11px;
 }
-.mv-review > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
+.mv-review > b {
   font-size: 12px;
-}
-.mv-review span {
-  color: #fbd38d;
-  letter-spacing: 1px;
 }
 .mv-review p {
   margin: 5px 0 0;

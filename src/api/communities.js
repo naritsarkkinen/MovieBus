@@ -1,16 +1,12 @@
 import { apiRequest, listFrom } from './client'
 
-// Azure "clubs" table: club_id, name, is_public (+ member count from club_members)
+// Backend answer (communities table): { id, name, description, member_count }
 export function toCommunity(row) {
-  let description = row.description
-  if (!description) {
-    description = row.is_public === false ? 'Private club' : 'Public club'
-  }
   return {
-    id: row.id ?? row.club_id,
+    id: row.id,
     name: row.name,
-    description,
-    members: Number(row.member_count ?? row.members ?? 0),
+    description: row.description || '',
+    members: Number(row.member_count || 0),
   }
 }
 
@@ -21,6 +17,7 @@ export async function fetchCommunities(options) {
 }
 
 // POST /api/communities/:id/join   { user_id }
+// Not in the backend yet: until it is, joining is only saved on this device.
 export function joinCommunity(communityId, userId, options) {
   return apiRequest(`/communities/${communityId}/join`, {
     method: 'POST',

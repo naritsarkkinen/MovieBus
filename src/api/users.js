@@ -1,15 +1,12 @@
 import { apiRequest } from './client'
 
-// The explorer's account in the database (guest mode until login exists).
-// Saved in the browser so the same user is reused after a page reload.
+// The explorer's account in the database (guest user until login exists).
+// Saved in the browser so the same user is used again after a page reload.
 const STORAGE_KEY = 'mv-user'
 
-// Database rows use user_id + nickname (Azure "users" table)
+// Backend answer (users table): { id, display_name, avatar_emoji, skin }
 export function toUser(row) {
-  return {
-    id: row.id ?? row.user_id,
-    name: row.nickname ?? row.display_name ?? row.name,
-  }
+  return { id: row.id, name: row.display_name }
 }
 
 export function savedUser() {
@@ -24,17 +21,19 @@ function rememberUser(user) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
   } catch {
-    // storage unavailable: the user is created again next time
+    // storage is blocked: the user is created again next time
   }
 }
 
-// Returns the saved user, or creates a guest user once: POST /api/users
-export async function ensureUser(nickname, options) {
+// Returns the saved user, or creates a guest user once.
+// POST /api/users   { display_name }
+export async function ensureUser(name, options) {
   const existing = savedUser()
   if (existing?.id) return existing
+
   const row = await apiRequest('/users', {
     method: 'POST',
-    body: { nickname },
+    body: { display_name: name },
     ...options,
   })
   const user = toUser(row)
@@ -43,11 +42,11 @@ export async function ensureUser(nickname, options) {
   return user
 }
 
-// PATCH /api/users/:id/avatar
-export function saveAvatar(userId, { nickname, avatar, skin }, options) {
+// PATCH /api/users/:id/avatar   { display_name, avatar_emoji, skin }
+export function saveAvatar(userId, { name, avatar, skin }, options) {
   return apiRequest(`/users/${userId}/avatar`, {
     method: 'PATCH',
-    body: { nickname, avatar, skin },
+    body: { display_name: name, avatar_emoji: avatar, skin },
     ...options,
   })
 }

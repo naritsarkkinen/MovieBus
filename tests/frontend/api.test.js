@@ -67,21 +67,21 @@ describe('apiRequest', () => {
 })
 
 describe('users', () => {
-  it('maps database users', () => {
-    expect(toUser({ user_id: 5, nickname: 'Mila' })).toEqual({
+  it('maps a user from the backend', () => {
+    expect(toUser({ id: 5, display_name: 'Mila' })).toEqual({
       id: 5,
       name: 'Mila',
     })
   })
 
   it('creates a guest user with POST /users', async () => {
-    const fetchMock = answer({ user_id: 9, nickname: 'Explorer' })
+    const fetchMock = answer({ id: 9, display_name: 'Explorer' })
     const user = await ensureUser('Explorer', { baseUrl: API })
     expect(user).toEqual({ id: 9, name: 'Explorer' })
     expect(sent(fetchMock)).toEqual({
       url: API + '/users',
       method: 'POST',
-      body: { nickname: 'Explorer' },
+      body: { display_name: 'Explorer' },
     })
   })
 
@@ -89,78 +89,74 @@ describe('users', () => {
     const fetchMock = answer({})
     await saveAvatar(
       9,
-      { nickname: 'E', avatar: '🦊', skin: 'mint' },
-      {
-        baseUrl: API,
-      },
+      { name: 'E', avatar: '🦊', skin: 'mint' },
+      { baseUrl: API },
     )
     expect(sent(fetchMock)).toEqual({
       url: API + '/users/9/avatar',
       method: 'PATCH',
-      body: { nickname: 'E', avatar: '🦊', skin: 'mint' },
+      body: { display_name: 'E', avatar_emoji: '🦊', skin: 'mint' },
     })
   })
 })
 
 describe('reviews', () => {
-  it('maps rows from the reviews table', () => {
+  it('maps a review from the backend', () => {
     expect(
       toReview({
-        review_id: 1,
-        nickname: 'Alex',
-        stars: 4,
-        comment: 'Great',
+        id: 1,
+        user_id: 2,
+        movie_id: 3,
+        body: 'Great',
         created_at: '2026-11-15',
+        display_name: 'Alex',
       }),
     ).toEqual({
       id: 1,
       author: 'Alex',
-      stars: 4,
       text: 'Great',
       date: '2026-11-15',
     })
   })
 
   it('loads reviews for a movie', async () => {
-    const fetchMock = answer([{ review_id: 1, stars: 5, comment: 'Wow' }])
-    const list = await fetchReviews(157336, { baseUrl: API })
-    expect(list[0]).toMatchObject({ author: 'Explorer', stars: 5, text: 'Wow' })
-    expect(sent(fetchMock).url).toBe(API + '/movies/157336/reviews')
+    const fetchMock = answer([{ id: 1, body: 'Wow' }])
+    const list = await fetchReviews(3, { baseUrl: API })
+    expect(list[0]).toMatchObject({ author: 'Explorer', text: 'Wow' })
+    expect(sent(fetchMock).url).toBe(API + '/movies/3/reviews')
   })
 
-  it('posts a rating and a review in the agreed format', async () => {
+  it('posts a rating and a review in the format the backend expects', async () => {
     const fetchMock = answer({})
-    await postRating(157336, 9, 4, { baseUrl: API })
-    await postReview(
-      157336,
-      9,
-      { stars: 4, comment: 'Nice' },
-      {
-        baseUrl: API,
-      },
-    )
+    await postRating(3, 9, 4, { baseUrl: API })
+    await postReview(3, 9, 'Nice', { baseUrl: API })
     expect(sent(fetchMock, 0)).toEqual({
-      url: API + '/movies/157336/ratings',
+      url: API + '/movies/3/ratings',
       method: 'POST',
-      body: { user_id: 9, stars: 4 },
+      body: { user_id: 9, score: 4 },
     })
     expect(sent(fetchMock, 1)).toEqual({
-      url: API + '/movies/157336/reviews',
+      url: API + '/movies/3/reviews',
       method: 'POST',
-      body: { user_id: 9, stars: 4, comment: 'Nice' },
+      body: { user_id: 9, body: 'Nice' },
     })
   })
 })
 
 describe('communities', () => {
-  it('maps clubs from the database', () => {
+  it('maps a community from the backend', () => {
     expect(
-      toCommunity({ club_id: 3, name: 'Horror Night', is_public: false }),
+      toCommunity({
+        id: 3,
+        name: 'Horror Night',
+        description: null,
+        member_count: 2,
+      }),
     ).toEqual({
       id: 3,
       name: 'Horror Night',
-      description: 'Private club',
-      members: 0,
+      description: '',
+      members: 2,
     })
   })
 

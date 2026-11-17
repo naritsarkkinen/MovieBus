@@ -38,24 +38,31 @@ function tagFor(rating, genre) {
   return genre.toUpperCase()
 }
 
-// Turns one TMDB movie into the shape our components use:
-// TMDB: id, title, release_date, genre_ids, overview, poster_path,
-//       vote_average (0-10), vote_count
+// Turns one movie from the API into the shape our components use.
+// The backend can send two kinds of movie:
+//   our own movies table: id, title, release_year, genre, description,
+//                         poster_emoji, average_rating (1-5), rating_count
+//   a TMDB movie:         id, title, release_date, genre_ids, overview,
+//                         poster_path, vote_average (0-10), vote_count
 export function toMovie(row) {
-  const genre = genreNames[row.genre_ids?.[0]] || 'Other'
-  const rating =
-    row.vote_count > 0 ? Math.round(row.vote_average * 10) / 10 : null
+  const genre = row.genre || genreNames[row.genre_ids?.[0]] || 'Other'
+  const votes = Number(row.rating_count ?? row.vote_count ?? 0)
+  const average = Number(row.average_rating ?? row.vote_average)
+  const rating = votes > 0 ? Math.round(average * 10) / 10 : null
+
+  let year = row.release_year || ''
+  if (row.release_date) year = Number(row.release_date.slice(0, 4))
 
   return {
-    id: row.id, // TMDB id, also used as tmdb_movie_id in our database
+    id: row.id,
     title: row.title,
-    year: row.release_date ? Number(row.release_date.slice(0, 4)) : '',
+    year,
     genre,
-    desc: row.overview || 'No description yet.',
-    emoji: '🎬',
+    desc: row.description || row.overview || 'No description yet.',
+    emoji: row.poster_emoji || '🎬',
     poster: row.poster_path ? TMDB_IMAGE_URL + row.poster_path : null,
     rating,
-    votes: String(row.vote_count ?? 0),
+    votes: String(votes),
     color: genreColors[genre] || 'violet',
     tag: tagFor(rating, genre),
   }

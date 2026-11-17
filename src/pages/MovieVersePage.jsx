@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import './MovieVersePage.css'
 import { initialMovies } from '../data/MockMovies'
@@ -54,7 +54,7 @@ export default function MovieVersePage() {
   })
   const filmClub = api.communities.find((c) => c.name === 'Friday Film Club')
 
-  // movies come from the API (Azure PostgreSQL); sample data if it is not reachable
+  // movies come from the backend API; sample movies if it is not reachable
   useEffect(() => {
     let ignore = false // true if the page closes before the answer arrives
     loadMovies().then((result) => {
@@ -111,7 +111,7 @@ export default function MovieVersePage() {
   }
   function saveReview() {
     if (!review.trim()) return
-    api.sendReview(selected, review.trim(), myRatings[selected.id])
+    api.sendReview(selected, review.trim())
     setReview('')
   }
   function toggleWatchlist(id) {

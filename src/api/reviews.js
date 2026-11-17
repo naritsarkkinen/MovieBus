@@ -1,13 +1,13 @@
 import { apiRequest, listFrom } from './client'
 
-// Azure "reviews" table: review_id, user_id, tmdb_movie_id, stars, comment, created_at
+// Backend answer (reviews + users tables):
+// { id, user_id, movie_id, body, created_at, display_name }
 export function toReview(row) {
   return {
-    id: row.id ?? row.review_id,
-    author: row.nickname ?? row.display_name ?? row.user_name ?? 'Explorer',
-    stars: Number(row.stars ?? row.score ?? 0) || null,
-    text: row.comment ?? row.body ?? '',
-    date: row.created_at ?? null,
+    id: row.id,
+    author: row.display_name || 'Explorer',
+    text: row.body || '',
+    date: row.created_at || null,
   }
 }
 
@@ -17,21 +17,21 @@ export async function fetchReviews(movieId, options) {
   return listFrom(body, 'reviews').map(toReview)
 }
 
-// POST /api/movies/:id/ratings   { user_id, stars }
-// The backend should update the existing rating instead of adding a second one.
-export function postRating(movieId, userId, stars, options) {
+// POST /api/movies/:id/ratings   { user_id, score }   (score 1-5)
+// The backend updates the old rating if the user rates the same movie again.
+export function postRating(movieId, userId, score, options) {
   return apiRequest(`/movies/${movieId}/ratings`, {
     method: 'POST',
-    body: { user_id: userId, stars },
+    body: { user_id: userId, score },
     ...options,
   })
 }
 
-// POST /api/movies/:id/reviews   { user_id, stars, comment }
-export function postReview(movieId, userId, { stars, comment }, options) {
+// POST /api/movies/:id/reviews   { user_id, body }
+export function postReview(movieId, userId, text, options) {
   return apiRequest(`/movies/${movieId}/reviews`, {
     method: 'POST',
-    body: { user_id: userId, stars: stars ?? null, comment },
+    body: { user_id: userId, body: text },
     ...options,
   })
 }

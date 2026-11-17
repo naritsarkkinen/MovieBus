@@ -32,7 +32,7 @@ export const friends = [
   },
 ]
 
-// Same communities as the seed data in the database schema (server/schema.sql)
+// Sample communities, shown when the backend is not reachable
 export const communities = [
   {
     id: 1,
