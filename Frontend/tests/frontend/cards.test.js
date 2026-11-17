@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clubCards, movieCard } from '../../src/data/MovieVerseCards.js'
+import { communityCard, movieCard } from '../../src/data/MovieVerseCards.js'
 
 describe('movieCard', () => {
   it('turns a movie into a card and keeps the movie for opening it', () => {
@@ -25,15 +25,20 @@ describe('movieCard', () => {
   })
 })
 
-describe('clubCards', () => {
-  it('has the 4 choices of Clubs & you', () => {
-    const ids = clubCards({ joined: false, watchlistCount: 0 }).map((c) => c.id)
-    expect(ids).toEqual(['watchlist', 'communities', 'studio', 'room'])
+describe('communityCard', () => {
+  const club = { id: 2, name: 'Sci-Fi Explorers', members: 5 }
+
+  it('shows the member count and "Join" when you are not a member', () => {
+    const card = communityCard(club, false)
+    expect(card).toMatchObject({
+      id: 2,
+      title: 'Sci-Fi Explorers',
+      sub: '5 members · Join',
+    })
+    expect(card.community).toBe(club)
   })
 
-  it('shows the watchlist count and whether you are in the room', () => {
-    const [watchlist, , , room] = clubCards({ joined: true, watchlistCount: 3 })
-    expect(watchlist.sub).toBe('3 saved')
-    expect(room.sub).toBe('You are inside · leave')
+  it('counts you and shows "Leave" when you are a member', () => {
+    expect(communityCard(club, true).sub).toBe('6 members · Leave')
   })
 })

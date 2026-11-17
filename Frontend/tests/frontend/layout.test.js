@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  maps,
   pathTo,
   placeAt,
   placeSpawn,
@@ -28,25 +29,43 @@ describe('splitMovies', () => {
 })
 
 describe('placeAt', () => {
-  it('finds the place you stand on, or null in the hub', () => {
-    expect(placeAt(1400, 390).id).toBe('discover')
-    expect(placeAt(1400, 1000)).toBeNull()
+  it('finds the place you stand on, or null in the middle of the hub', () => {
+    expect(placeAt(maps.hub, 1400, 390).id).toBe('discover')
+    expect(placeAt(maps.hub, 1400, 1000)).toBeNull()
   })
 
   it('uses the oval shape: wide to the sides, narrow up and down', () => {
-    expect(placeAt(1400 + 160, 380).id).toBe('discover') // 160 px to the side: on it
-    expect(placeAt(1400, 380 + 95)).toBeNull() // 95 px down: off it
+    expect(placeAt(maps.hub, 1400 + 160, 380).id).toBe('discover') // 160 px to the side: on it
+    expect(placeAt(maps.hub, 1400, 380 + 95)).toBeNull() // 95 px down: off it
   })
 
-  it('placeSpawn returns the middle of the place', () => {
-    expect(placeSpawn('clubs')).toEqual({ x: 1400, y: 1620 })
+  it('looks only at the places of the given map', () => {
+    expect(placeAt(maps.clubs, 480, 420).id).toBe('watchlist')
+    expect(placeAt(maps.hub, 480, 420)).toBeNull()
+  })
+
+  it('nobody arrives standing on a place (that would open it at once)', () => {
+    expect(placeAt(maps.hub, maps.hub.spawn.x, maps.hub.spawn.y)).toBeNull()
+    expect(
+      placeAt(maps.hub, maps.hub.returnSpawn.x, maps.hub.returnSpawn.y),
+    ).toBeNull()
+    expect(
+      placeAt(maps.clubs, maps.clubs.spawn.x, maps.clubs.spawn.y),
+    ).toBeNull()
+  })
+})
+
+describe('placeSpawn', () => {
+  it('returns the middle of a place, or null if the map does not have it', () => {
+    expect(placeSpawn(maps.hub, 'clubs')).toEqual({ x: 1400, y: 1620 })
+    expect(placeSpawn(maps.clubs, 'trending')).toBeNull()
   })
 })
 
 describe('pathTo', () => {
   it('makes a vertical strip to a place straight north', () => {
     const discover = { id: 'discover', x: 1400, y: 380 }
-    expect(pathTo(discover)).toEqual({
+    expect(pathTo(maps.hub, discover)).toEqual({
       left: 1400 - 55,
       top: 380,
       width: 110,
@@ -56,7 +75,7 @@ describe('pathTo', () => {
 
   it('makes a horizontal strip to a place straight west', () => {
     const trending = { id: 'trending', x: 760, y: 1000 }
-    expect(pathTo(trending)).toEqual({
+    expect(pathTo(maps.hub, trending)).toEqual({
       left: 760,
       top: 1000 - 55,
       width: 1400 - 760,

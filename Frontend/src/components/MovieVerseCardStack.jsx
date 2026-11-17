@@ -23,11 +23,12 @@ function coverFlow(offset) {
 }
 
 // Cards in 3D "cover flow": the middle card faces you, the others turn
-// toward it. Used for movies and for the Clubs & you choices (same card shape,
-// see data/MovieVerseCards.js).
+// toward it. Used for movies and communities (same card shape, see
+// data/MovieVerseCards.js). theme = which dimension, for the colours.
 // active = false while a popup is open on top (then the keys do nothing).
 export default function MovieVerseCardStack({
   title,
+  theme,
   cards,
   emptyText,
   active,
@@ -85,7 +86,7 @@ export default function MovieVerseCardStack({
 
   return (
     <div
-      className="card-stack"
+      className={'card-stack theme-' + theme} // colours of the dimension
       onWheel={handleWheel}
       onPointerDown={(e) => (dragStart.current = e.clientX)}
       onPointerUp={handlePointerUp}

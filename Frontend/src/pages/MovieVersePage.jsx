@@ -13,8 +13,21 @@ import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
 import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
 import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
 import MovieVerseCardStack from '../components/MovieVerseCardStack'
-import { splitMovies } from '../data/MovieVerseWorldLayout'
-import { clubCards, movieCard } from '../data/MovieVerseCards'
+import { maps, splitMovies } from '../data/MovieVerseWorldLayout'
+import { communityCard, movieCard } from '../data/MovieVerseCards'
+
+// how long the warp effect lasts when you travel through a portal
+// (same as the warp animation in MovieVersePage.css)
+const WARP_MS = 700
+
+// titles of the card stacks
+const STACK_TITLES = {
+  trending: 'Trending dimension',
+  discover: 'Discover dimension',
+  community: 'Community dimension',
+  watchlist: 'Your watchlist',
+  communities: 'Communities',
+}
 
 // The whole page is the walkable world. Everything else (catalogue, friends,
 // communities, watchlist, movie details) opens on top of it as an overlay.
@@ -44,7 +57,11 @@ export default function MovieVersePage() {
   const [profilePending, setProfilePending] = useState(false)
   const [friendOpen, setFriendOpen] = useState(null)
   const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
-  // the overlay of the place you stand on: movie cards, or the Clubs & you menu
+  // which map ("dimension") you are in: 'hub' or 'clubs' (your dimension)
+  const [mapId, setMapId] = useState('hub')
+  // the portal look while the warp effect plays ('hex', 'glitch'...), or null
+  const [warp, setWarp] = useState(null)
+  // the cards of the place you stand on are open
   const [placeOpen, setPlaceOpen] = useState(false)
   const [friendsOpen, setFriendsOpen] = useState(false)
 
@@ -145,9 +162,19 @@ export default function MovieVersePage() {
   // the movies of the place you are in, with search + genre filter applied
   const stackMovies = (groups[zone] || []).filter((m) => visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
-  // a popup on top of the place overlay (movie, friend, profile, panel)
+  // a popup on top of the cards (movie, friend, profile, panel)
   const popupOpen = Boolean(selected || friendOpen || profileDraft || overlay)
-  const paused = popupOpen || placeOpen
+  // no walking while something is open or while travelling
+  const paused = popupOpen || placeOpen || Boolean(warp)
+
+  // the cards of the place you are on
+  const isMember = (c) =>
+    c.name === 'Friday Film Club' ? joined : memberships.has(c.id)
+  let placeCards = stackMovies.map(movieCard) // a movie dimension
+  if (zone === 'watchlist') placeCards = watchlistMovies.map(movieCard)
+  if (zone === 'communities') {
+    placeCards = communities.map((c) => communityCard(c, isMember(c)))
+  }
   const review = reviewDrafts[selectedId] || ''
 
   async function rate(movie, value) {
@@ -198,24 +225,59 @@ export default function MovieVersePage() {
     )
     setToast(saved ? 'Removed from your watchlist' : 'Saved to your watchlist')
   }
+  // Travel through a portal: show the warp effect, and when it is over,
+  // run arrive() (open the cards, or change the map).
+  // look = the portal's look ('hex', 'glitch'...), it colours the warp.
+  function travel(look, arrive) {
+    setWarp(look)
+    setTimeout(() => {
+      arrive()
+      setWarp(null)
+    }, WARP_MS)
+  }
+  function goToMap(id) {
+    setMapId(id)
+    setZone(id) // 'clubs' lights up "Clubs & you" in the top bar
+  }
+
   // you walked onto a place (id is null when you walk off it)
   function enterPlace(id) {
     if (!id) return
-    setZone(id)
-    setPlaceOpen(true)
+    const place = maps[mapId].places.find((p) => p.id === id)
+    if (id === 'clubs' || id === 'hub') {
+      travel(place.portal, () => goToMap(id)) // another map
+    } else if (id === 'studio') {
+      setProfileDraft(profile)
+    } else if (id === 'room') {
+      setFriendsOpen(true) // the Friday Film Club room and your friends
+    } else if (place.portal) {
+      setZone(id)
+      travel(place.portal, () => setPlaceOpen(true)) // a movie dimension
+    } else {
+      setZone(id)
+      setPlaceOpen(true) // watchlist or communities in your dimension
+    }
   }
-  // you clicked a zone in the top bar
+  // you clicked a zone in the top bar (Trending, Discover, Community, Clubs)
   function switchZone(id) {
-    setZone(id)
     setActiveGenre('All')
-    setPlaceOpen(true)
+    setPlaceOpen(false)
+    const look = maps.hub.places.find((p) => p.id === id).portal
+    if (id === 'clubs') {
+      if (mapId !== 'clubs') travel(look, () => goToMap('clubs'))
+      return
+    }
+    // a movie dimension: go back to the hub first if needed, then open it
+    travel(look, () => {
+      setMapId('hub')
+      setZone(id)
+      setPlaceOpen(true)
+    })
   }
-  // a card in Clubs & you was opened (the cards stay open behind it)
-  function chooseClub(id) {
-    if (id === 'watchlist') setOverlay('watchlist')
-    if (id === 'communities') setOverlay('communities')
-    if (id === 'studio') setProfileDraft(profile)
-    if (id === 'room') toggleRoom()
+  // a card was opened: a community card joins / leaves, a movie card opens
+  function openCard(card) {
+    if (card.community) toggleCommunity(card.community)
+    else openFromList(card.movie)
   }
   // Friday Film Club is both a community and the friend room
   function toggleRoom() {
@@ -254,7 +316,7 @@ export default function MovieVersePage() {
   return (
     <div className="mv-shell">
       <MovieVerseWorld
-        zones={zones}
+        mapId={mapId}
         zone={zone}
         onPlaceChange={enterPlace}
         name={name}
@@ -295,27 +357,25 @@ export default function MovieVersePage() {
         />
       )}
 
-      {placeOpen && zone === 'clubs' && (
-        <MovieVerseCardStack
-          key="clubs"
-          title="Clubs & you"
-          cards={clubCards({ joined, watchlistCount: watchlist.length })}
-          active={!popupOpen}
-          onOpen={(card) => chooseClub(card.id)}
-          onClose={() => setPlaceOpen(false)}
-        />
-      )}
-      {placeOpen && zone !== 'clubs' && (
+      {placeOpen && (
         <MovieVerseCardStack
           key={zone}
-          title={zones.find((z) => z.id === zone).name}
-          cards={stackMovies.map(movieCard)}
-          emptyText="No movies here. Try another search or genre."
+          title={STACK_TITLES[zone]}
+          theme={zone}
+          cards={placeCards}
+          emptyText={
+            zone === 'watchlist'
+              ? 'Nothing saved yet. Open a movie and press “Save to watchlist”.'
+              : 'No movies here. Try another search or genre.'
+          }
           active={!popupOpen}
-          onOpen={(card) => openFromList(card.movie)}
+          onOpen={openCard}
           onClose={() => setPlaceOpen(false)}
         />
       )}
+
+      {/* travelling through a portal */}
+      {warp && <div className={'warp warp-' + warp} aria-hidden="true" />}
 
       {overlay === 'catalogue' && (
         <MovieVersePanel

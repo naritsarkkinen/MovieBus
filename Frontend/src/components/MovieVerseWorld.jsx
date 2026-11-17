@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import MovieVerseMinimap from './MovieVerseMinimap'
 import MovieVerseControls from './MovieVerseControls'
+import MovieVersePortal from './MovieVersePortal'
 import {
-  WORLD,
-  SPAWN,
-  SIGN,
-  places,
-  friendSpots,
-  roomFriendSpots,
+  maps,
   placeAt,
   placeSpawn,
   pathTo,
@@ -39,9 +35,11 @@ function isTyping(target) {
   )
 }
 
+// The walkable world. mapId says which map ("dimension") you are in:
+// 'hub' or 'clubs' (see data/MovieVerseWorldLayout.js).
 // eslint-disable-next-line max-lines-per-function
 export default function MovieVerseWorld({
-  zones,
+  mapId,
   zone,
   onPlaceChange,
   name,
@@ -56,14 +54,26 @@ export default function MovieVerseWorld({
   const planeRef = useRef(null)
   const playerRef = useRef(null)
   const minimapDotRef = useRef(null)
+  const starsFarRef = useRef(null)
+  const starsNearRef = useRef(null)
   const [nearest, setNearest] = useState(null)
+  const map = maps[mapId]
 
-  // "spots" = things you can walk up to and use (now only friends).
+  // Which friends are in this map: in the hub the friends you have not
+  // invited yet, in your dimension the ones you invited to Friday Film Club.
+  const friendsHere = friends
+    .filter((f) => invited.has(f.name) === (mapId === 'clubs'))
+    .map((f, i) => ({
+      ...f,
+      spot: map.friendSpots[i % map.friendSpots.length],
+    }))
+
+  // "spots" = things you can walk up to and use (the friends here).
   // Nothing is solid: you walk through people, so a crowd can never
   // block anyone. radius = how big it is, enabled = can you use it.
-  const spots = friends.map((f, i) => ({
+  const spots = friendsHere.map((f) => ({
     id: 'friend-' + f.name,
-    ...friendPosition(i, invited.has(f.name)),
+    ...f.spot,
     radius: 28,
     label: f.name,
     verb: 'Talk to',
@@ -73,35 +83,51 @@ export default function MovieVerseWorld({
 
   // all mutable game state lives in a ref so moving does not re-render React
   const game = useRef({
-    x: SPAWN.x,
-    y: SPAWN.y,
+    x: maps.hub.spawn.x,
+    y: maps.hub.spawn.y,
     zoom: 1,
     keys: new Set(),
     target: null, // where a click / tap asked us to walk
     facingLeft: false,
     moving: false,
-    place: null, // id of the place we stand on, or null in the hub
+    place: null, // id of the place we stand on, or null
     nearestId: null,
     drawn: '', // last position written to the screen
   })
   // re-read the spot every render so its action is never stale
   const current = nearest && spots.find((s) => s.id === nearest.id)
   const latest = useRef({})
-  latest.current = { spots, onPlaceChange, nearest: current }
+  latest.current = { map, spots, onPlaceChange, nearest: current }
+
+  // travelled to another map: put the player at its arrival point
+  // (back in the hub you land next to the Clubs portal: returnSpawn)
+  const prevMap = useRef(mapId)
+  useEffect(() => {
+    if (prevMap.current === mapId) return
+    prevMap.current = mapId
+    const g = game.current
+    const arrive = map.returnSpawn || map.spawn
+    g.x = arrive.x
+    g.y = arrive.y
+    g.place = null
+    g.target = null
+    g.drawn = '' // draw again even if the numbers happen to be the same
+  }, [mapId, map])
 
   // jump to a place when a zone is picked in the top bar
-  // (starts as the current zone, so you spawn in the hub, not on a place)
+  // (runs after the map effect above, so it uses the new map)
   const prevZone = useRef(zone)
   useEffect(() => {
     const g = game.current
     if (prevZone.current === zone) return
     prevZone.current = zone
     if (g.place === zone) return // already standing there
-    const p = placeSpawn(zone)
+    const p = placeSpawn(map, zone)
+    if (!p) return // this map does not have that place
     g.x = p.x
     g.y = p.y
-    g.place = zone // the page opens the stack itself, no need to tell it again
-  }, [zone])
+    g.place = zone // the page opens it itself, no need to tell it again
+  }, [zone, map])
 
   // keyboard
   useEffect(() => {
@@ -170,6 +196,11 @@ export default function MovieVerseWorld({
 
       minimapDotRef.current.setAttribute('cx', Math.round(g.x))
       minimapDotRef.current.setAttribute('cy', Math.round(g.y))
+
+      // parallax: the stars move slower than the floor, so they look far
+      // away (far stars 10 % of your speed, near stars 25 %)
+      starsFarRef.current.style.backgroundPosition = `${-g.x * 0.1}px ${-g.y * 0.1}px`
+      starsNearRef.current.style.backgroundPosition = `${-g.x * 0.25}px ${-g.y * 0.25}px`
     }
 
     let frame
@@ -180,18 +211,18 @@ export default function MovieVerseWorld({
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       const g = game.current
-      const { spots } = latest.current
+      const { map, spots } = latest.current
 
       // 1. move towards the pressed keys or the clicked point
       const direction = moveDirection(g)
       g.moving = direction.x !== 0 || direction.y !== 0
       if (g.moving) movePlayer(g, direction, dt)
 
-      // 2. do not walk out of the world
-      stayInsideWorld(g)
+      // 2. do not walk out of the map
+      stayInsideMap(g, map)
 
       // 3. tell the page when we step onto a place (or off it)
-      const here = placeAt(g.x, g.y)
+      const here = placeAt(map, g.x, g.y)
       const hereId = here ? here.id : null
       if (hereId !== g.place) {
         g.place = hereId
@@ -232,63 +263,69 @@ export default function MovieVerseWorld({
     }
   }
 
-  // name and icon of a place, from the zones list
-  const zoneOf = (id) =>
-    zones.find((z) => z.id === id) || { name: id, icon: '' }
-
   return (
-    <div ref={viewportRef} className="walk-world" onPointerDown={walkToPointer}>
-      <div className="walk-sky" />
+    <div
+      ref={viewportRef}
+      className={'walk-world map-' + mapId}
+      onPointerDown={walkToPointer}
+    >
+      {/* space: two star layers that move at different speeds (parallax) */}
+      <div ref={starsFarRef} className="walk-stars far" />
+      <div ref={starsNearRef} className="walk-stars near" />
       <div
         ref={planeRef}
         className="walk-plane"
-        style={{ width: WORLD.width, height: WORLD.height }}
+        style={{ width: map.width, height: map.height }}
       >
-        {/* floor: the paths, the hub circle and the 4 places */}
+        {/* floor: spacetime grid, paths, the spawn platform and the places */}
         <div className="walk-ground" />
-        {places.map((p) => (
-          <div key={p.id} className="walk-path" style={pathTo(p)} />
-        ))}
-        <div className="walk-hub" style={{ left: SPAWN.x, top: SPAWN.y }} />
-        {places.map((p) => (
-          <div
-            key={p.id}
-            className={'walk-place' + (zone === p.id ? ' current' : '')}
-            style={{ left: p.x, top: p.y }}
-          >
-            <span className="walk-place-ring" />
-            <span className="walk-place-icon">{zoneOf(p.id).icon}</span>
-            <b>{zoneOf(p.id).name}</b>
-          </div>
-        ))}
+        {map.paths &&
+          map.places.map((p) => (
+            <div key={p.id} className="walk-path" style={pathTo(map, p)} />
+          ))}
+        <div
+          className="walk-hub"
+          style={{ left: map.spawn.x, top: map.spawn.y }}
+        />
+        {map.places.map((p) =>
+          p.portal ? (
+            <MovieVersePortal key={p.id} place={p} current={zone === p.id} />
+          ) : (
+            <div
+              key={p.id}
+              className={'walk-place' + (zone === p.id ? ' current' : '')}
+              style={{ left: p.x, top: p.y }}
+            >
+              <span className="walk-place-ring" />
+              <span className="walk-place-icon">{p.icon}</span>
+              <b>{p.label}</b>
+            </div>
+          ),
+        )}
 
-        {/* welcome sign above the spawn point */}
+        {/* sign above the spawn point */}
         <div
           className="billboard walk-sign"
-          style={{ left: SIGN.x, top: SIGN.y, zIndex: SIGN.y }}
+          style={{ left: map.sign.x, top: map.sign.y, zIndex: map.sign.y }}
         >
-          <span className="eyebrow">YOUR PERSONAL CINEMA DIMENSION</span>
-          <b>
-            Explore beyond <em>the screen.</em>
-          </b>
-          <small>Walk onto a glowing place to browse movies</small>
+          <span className="eyebrow">{map.sign.eyebrow}</span>
+          <b>{map.sign.title}</b>
+          <small>{map.sign.sub}</small>
         </div>
 
-        {/* friends (simulated): walk up and talk, invited friends wait at
-            the "Clubs & you" portal */}
-        {friends.map((f, i) => {
-          const spot = friendPosition(i, invited.has(f.name))
+        {/* friends (simulated): walk up and talk */}
+        {friendsHere.map((f) => {
           const isNear = current?.id === 'friend-' + f.name
           return (
             <button
               key={f.name}
               className={'billboard walk-friend' + (isNear ? ' near' : '')}
-              style={{ left: spot.x, top: spot.y, zIndex: spot.y }}
+              style={{ left: f.spot.x, top: f.spot.y, zIndex: f.spot.y }}
               onClick={() => onOpenFriend(f)}
             >
               <div className="player-bubble">
                 {f.name} ·{' '}
-                {invited.has(f.name) ? 'In Friday Film Club' : f.status}
+                {mapId === 'clubs' ? 'In Friday Film Club' : f.status}
               </div>
               <div className={'friend-avatar ' + f.color}>{f.initial}</div>
               <span className="player-shadow" />
@@ -307,7 +344,7 @@ export default function MovieVerseWorld({
       </div>
 
       {/* on top of the world */}
-      <MovieVerseMinimap zone={zone} dotRef={minimapDotRef} />
+      <MovieVerseMinimap map={map} zone={zone} dotRef={minimapDotRef} />
       <MovieVerseControls
         onPress={(direction) => game.current.keys.add(direction)}
         onRelease={(direction) => game.current.keys.delete(direction)}
@@ -357,10 +394,10 @@ function movePlayer(g, direction, dt) {
   if (direction.x !== 0) g.facingLeft = direction.x < 0
 }
 
-// Keeps the player inside the world (40 px away from the edges).
-function stayInsideWorld(g) {
-  g.x = Math.max(40, Math.min(WORLD.width - 40, g.x))
-  g.y = Math.max(60, Math.min(WORLD.height - 40, g.y))
+// Keeps the player inside the map (40 px away from the edges).
+function stayInsideMap(g, map) {
+  g.x = Math.max(40, Math.min(map.width - 40, g.x))
+  g.y = Math.max(60, Math.min(map.height - 40, g.y))
 }
 
 // The closest enabled spot within REACH pixels, or null.
@@ -377,10 +414,4 @@ function nearestSpot(g, spots) {
     }
   }
   return best
-}
-
-// invited friends wait at the "Clubs & you" portal, others stand in the hub
-function friendPosition(index, inRoom) {
-  const list = inRoom ? roomFriendSpots : friendSpots
-  return list[index % list.length]
 }
