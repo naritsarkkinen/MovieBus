@@ -46,9 +46,6 @@ describe('placeAt', () => {
   it('nobody arrives standing on a place (that would open it at once)', () => {
     expect(placeAt(maps.hub, maps.hub.spawn.x, maps.hub.spawn.y)).toBeNull()
     expect(
-      placeAt(maps.hub, maps.hub.returnSpawn.x, maps.hub.returnSpawn.y),
-    ).toBeNull()
-    expect(
       placeAt(maps.clubs, maps.clubs.spawn.x, maps.clubs.spawn.y),
     ).toBeNull()
   })

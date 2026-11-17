@@ -5,6 +5,9 @@
 //         dimensions: 3 movie dimensions and your own Clubs & you dimension.
 // clubs = your own dimension: only your stuff, and a portal back to the hub.
 //
+// Travelling to a map always puts you on its spawn point (the middle), so
+// you never land next to a portal and walk back in by accident.
+//
 // A place with `portal` is an upright dimension door (the value is its look).
 // A place without it is a flat glowing "station" on the floor.
 export const maps = {
@@ -12,11 +15,10 @@ export const maps = {
     id: 'hub',
     width: 2800,
     height: 2000,
-    spawn: { x: 1400, y: 1000 }, // the middle
-    returnSpawn: { x: 1400, y: 1420 }, // coming back from your dimension
+    spawn: { x: 1400, y: 1000 }, // the middle (on the Earth)
     sign: {
       x: 1400,
-      y: 860,
+      y: 700,
       eyebrow: 'THE MOVIEVERSE HUB',
       title: 'Pick a dimension.',
       sub: 'Walk into a portal to travel',
@@ -52,7 +54,7 @@ export const maps = {
         y: 1620,
         label: 'Clubs & you',
         icon: '♥',
-        portal: 'rings',
+        portal: 'earth',
       },
     ],
     // friends you have not invited yet hang around in the hub
@@ -69,7 +71,7 @@ export const maps = {
     spawn: { x: 900, y: 660 },
     sign: {
       x: 900,
-      y: 540,
+      y: 380,
       eyebrow: 'CLUBS & YOU',
       title: 'Your dimension.',
       sub: 'Only your own stuff lives here',

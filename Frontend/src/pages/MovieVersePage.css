@@ -240,11 +240,11 @@
   user-select: none;
   isolation: isolate;
 }
-/* your own dimension (Clubs & you) is pink */
+/* your own dimension (Clubs & you) is "home": calm blue and green */
 .walk-world.map-clubs {
   background:
-    radial-gradient(ellipse at 25% 30%, #db277740, transparent 45%),
-    radial-gradient(ellipse at 80% 75%, #a855f735, transparent 45%), #070310;
+    radial-gradient(ellipse at 25% 30%, #0ea5e933, transparent 45%),
+    radial-gradient(ellipse at 80% 75%, #22c55e26, transparent 45%), #030712;
 }
 
 /* Stars: a small tile of dots, repeated over the whole screen.
@@ -287,23 +287,77 @@
   will-change: transform;
 }
 
-/* the spawn platform: a glowing oval disc in the middle */
+/* ---------- Earth ----------
+   The middle of both maps (.walk-hub.earth) and the Clubs & you portal
+   (.portal-earth .portal-door) are the Earth: your home planet.
+   3 layers (spans): land, clouds, and light / shadow on top. */
 .walk-hub {
   position: absolute;
-  width: 560px;
-  height: 280px;
+  width: 520px;
+  height: 520px;
   transform: translate(-50%, -50%);
+}
+.earth,
+.portal-earth .portal-door {
   border-radius: 50%;
+  overflow: hidden; /* cut the moving layers to a circle */
+  /* the ocean, lit from the top-left */
   background: radial-gradient(
-    ellipse,
-    #8b5cf655,
-    #1e1b4b44 60%,
-    transparent 72%
+    circle at 35% 30%,
+    #4fc3f7,
+    #1565c0 45%,
+    #0b2559 78%
   );
-  border: 2px solid #a78bfa55;
+  /* the atmosphere: a soft blue glow around the planet */
   box-shadow:
-    0 0 80px #8b5cf644,
-    inset 0 0 60px #c4b5fd22;
+    0 0 50px #38bdf866,
+    0 0 120px #38bdf833;
+}
+/* land and clouds are twice as wide as the planet and slide to the left.
+   The pattern repeats every planet-width (background-size: 50%), so after
+   sliding half their width (= one planet) they look the same again:
+   the loop never jumps. */
+.earth span,
+.portal-earth .portal-door span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background-size: 50% 100%;
+}
+/* continents: soft green and brown blobs */
+.earth span:nth-child(1),
+.portal-earth .portal-door span:nth-child(1) {
+  background-image:
+    radial-gradient(ellipse 16% 24% at 22% 36%, #43a047 70%, transparent 72%),
+    radial-gradient(ellipse 10% 18% at 32% 66%, #7cb342 70%, transparent 72%),
+    radial-gradient(ellipse 14% 10% at 60% 26%, #8d6e63 70%, transparent 72%),
+    radial-gradient(ellipse 20% 16% at 70% 64%, #388e3c 70%, transparent 72%),
+    radial-gradient(ellipse 7% 9% at 88% 42%, #9ccc65 70%, transparent 72%);
+  animation: earth-turn 60s linear infinite;
+}
+/* clouds, turning a bit faster than the land */
+.earth span:nth-child(2),
+.portal-earth .portal-door span:nth-child(2) {
+  background-image:
+    radial-gradient(ellipse 18% 5% at 30% 20%, #ffffffbb 60%, transparent 70%),
+    radial-gradient(ellipse 14% 4% at 70% 50%, #ffffffaa 60%, transparent 70%),
+    radial-gradient(ellipse 20% 5% at 45% 80%, #ffffff99 60%, transparent 70%);
+  animation: earth-turn 40s linear infinite;
+}
+/* sunlight on the top-left, night on the bottom-right (does not move) */
+.earth span:nth-child(3),
+.portal-earth .portal-door span:nth-child(3) {
+  width: 100%;
+  background:
+    radial-gradient(circle at 30% 25%, #ffffff40, transparent 35%),
+    radial-gradient(circle at 75% 80%, #000000aa, transparent 65%);
+}
+@keyframes earth-turn {
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* a place you can walk onto: an oval "portal" on the floor
@@ -371,9 +425,9 @@
   --portal: #60a5fa;
   --portal-soft: #60a5fa44;
 }
-.portal-rings {
-  --portal: #f472b6;
-  --portal-soft: #f472b644;
+.portal-earth {
+  --portal: #38bdf8;
+  --portal-soft: #38bdf844;
 }
 
 /* the glowing base on the floor (PLACE_SIZE × 2): you step onto this */
@@ -598,39 +652,10 @@
   animation: spin 20s linear infinite;
 }
 
-/* Clubs & you: pink rings pulsing outwards from a bright core */
-.portal-rings .portal-door {
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    #fff 0,
-    #fbcfe8 8%,
-    #db2777 26%,
-    #3b0a2a 58%,
-    transparent 60%
-  );
-  box-shadow: 0 0 70px #ec489988;
-}
-.portal-rings .portal-door span {
-  border-radius: 50%;
-  border: 3px solid #f9a8d4;
-  animation: ring-out 2.4s ease-out infinite;
-}
-.portal-rings .portal-door span:nth-child(2) {
-  animation-delay: -0.8s;
-}
-.portal-rings .portal-door span:nth-child(3) {
-  animation-delay: -1.6s;
-}
-@keyframes ring-out {
-  from {
-    transform: scale(0.2);
-    opacity: 1;
-  }
-  to {
-    transform: scale(1.25);
-    opacity: 0;
-  }
+/* Clubs & you: a small Earth (its look is in the "Earth" section) */
+.portal-earth .portal-door {
+  width: 230px;
+  height: 230px;
 }
 
 /* things that stand up: (left, top) is where their feet touch the floor */
@@ -1863,7 +1888,8 @@
   .walk-place-ring,
   .walk-stars.near,
   .portal-door,
-  .portal-door span {
+  .portal-door span,
+  .earth span {
     animation: none;
   }
 }

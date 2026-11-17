@@ -1,7 +1,7 @@
 // One upright dimension portal, standing on its glowing base.
 // The look comes from CSS: `portal-hex`, `portal-glitch`, `portal-galaxy` or
-// `portal-rings` (see "dimension portals" in MovieVersePage.css).
-// The 3 empty <span> layers are animated by CSS (tunnel, rings, swirl...).
+// `portal-earth` (see "dimension portals" and "Earth" in MovieVersePage.css).
+// The 3 empty <span> layers are animated by CSS (tunnel, dots, swirl, Earth).
 export default function MovieVersePortal({ place, current }) {
   const look = 'portal-' + place.portal
   return (

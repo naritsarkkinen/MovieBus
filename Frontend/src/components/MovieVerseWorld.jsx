@@ -94,18 +94,18 @@ export default function MovieVerseWorld({
   const latest = useRef({})
   latest.current = { map, spots, onPlaceChange, nearest: current }
 
-  // travelled to another map: put the player at its arrival point
-  // (back in the hub you land next to the Clubs portal: returnSpawn)
+  // travelled to another map: you always arrive in its middle (spawn),
+  // never next to a portal, so you can't walk back in by accident
   const prevMap = useRef(mapId)
   useEffect(() => {
     if (prevMap.current === mapId) return
     prevMap.current = mapId
     const g = game.current
-    const arrive = map.returnSpawn || map.spawn
-    g.x = arrive.x
-    g.y = arrive.y
+    g.x = map.spawn.x
+    g.y = map.spawn.y
     g.place = null
     g.target = null
+    g.keys.clear() // stop: don't keep walking just because a key was held
     g.drawn = '' // draw again even if the numbers happen to be the same
   }, [mapId, map])
 
@@ -272,11 +272,16 @@ export default function MovieVerseWorld({
         className="walk-plane"
         style={{ width: map.width, height: map.height }}
       >
-        {/* floor: the spawn platform and the places */}
+        {/* the middle: the Earth you stand on (3 layers: land, clouds,
+            light) and the places around it */}
         <div
-          className="walk-hub"
+          className="walk-hub earth"
           style={{ left: map.spawn.x, top: map.spawn.y }}
-        />
+        >
+          <span />
+          <span />
+          <span />
+        </div>
         {map.places.map((p) =>
           p.portal ? (
             <MovieVersePortal key={p.id} place={p} current={zone === p.id} />
