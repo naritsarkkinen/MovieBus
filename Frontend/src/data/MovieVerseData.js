@@ -20,6 +20,12 @@ export const zones = [
     icon: '◎',
     genre: 'Community',
   },
+  {
+    id: 'clubs',
+    name: 'Clubs & you',
+    sub: 'Communities, your watchlist and your avatar',
+    icon: '♥',
+  },
 ]
 export const friends = [
   { name: 'Mila', status: 'Exploring Sci-Fi', initial: 'M', color: 'lavender' },

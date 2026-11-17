@@ -6,6 +6,7 @@
     3. Posters and avatars
     4. Friends panel
     5. Overlay panels (catalogue, watchlist, communities, friend)
+       + card stack
     6. Movie popup
     7. Profile popup
     8. Buttons and toast
@@ -30,7 +31,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 18px 26px;
+  padding: 16px 24px 30px;
   background: linear-gradient(#090914f0, #090914c0 60%, #09091400);
   pointer-events: none;
 }
@@ -42,13 +43,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font: 700 15px 'Space Grotesk';
+  font: 700 18px 'Space Grotesk';
   letter-spacing: 1.5px;
   margin: 0 0 10px;
 }
 .brand-mark {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   background: linear-gradient(135deg, #a78bfa, #6554d9);
   display: grid;
@@ -72,8 +73,8 @@
   background: #15112bcc;
   color: #bcb5d0;
   border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 11px;
+  padding: 9px 14px;
+  font-size: 14px;
 }
 .mv-hud-zones button.selected {
   border-color: #a78bfa;
@@ -81,7 +82,7 @@
   background: #8b5cf644;
 }
 .mv-hud-button {
-  height: 36px;
+  height: 42px;
   padding: 0 12px;
 }
 .mv-hud-button:hover {
@@ -99,7 +100,7 @@
 }
 
 .search-box {
-  height: 38px;
+  height: 42px;
   min-width: 0;
   width: 100%;
   flex: 1;
@@ -120,7 +121,7 @@
   outline: 0;
   color: white;
   flex: 1;
-  font-size: 11px;
+  font-size: 14px;
 }
 .search-box input::placeholder {
   color: #716b86;
@@ -144,8 +145,8 @@
   background: #15112bcc;
   color: #8f89a6;
   border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 9px;
+  padding: 7px 14px;
+  font-size: 12px;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -166,12 +167,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 15px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 18px;
   border: 1px solid #ffffff18;
   background: #15112bcc;
-  font: 10px 'DM Mono';
+  font: 12px 'DM Mono';
   letter-spacing: 0.5px;
   color: #a69bc9;
   white-space: nowrap;
@@ -193,8 +194,8 @@
 .icon-button {
   border: 1px solid #ffffff18;
   background: #ffffff08;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 9px;
   display: grid;
   place-items: center;
@@ -215,14 +216,14 @@
   border: 1px solid #ffffff18;
   background: #ffffff08;
   border-radius: 20px;
-  padding: 5px 10px 5px 6px;
+  padding: 6px 14px 6px 8px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 10px;
+  gap: 8px;
+  font-size: 14px;
 }
 .user-chip span {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 /* ---------- 2. Walkable world (plain CSS 2D, no WebGL) ---------- */
@@ -275,63 +276,6 @@
     0 0 0 2px #8b5cf633,
     0 0 120px #8b5cf622;
 }
-.walk-area {
-  position: absolute;
-  border-radius: 40px;
-  border: 2px solid #ffffff14;
-}
-.walk-lobby {
-  background: radial-gradient(ellipse at 50% 40%, #3b2a7a55, #1a143566 70%);
-  border-color: #a78bfa33;
-}
-.district-trending {
-  background: radial-gradient(ellipse at 50% 60%, #7c3aed44, #1a143544 75%);
-  border-color: #a78bfa44;
-}
-.district-discover {
-  background: radial-gradient(ellipse at 50% 60%, #0891b244, #10202d44 75%);
-  border-color: #67e8f944;
-}
-.district-community {
-  background: radial-gradient(ellipse at 50% 60%, #db277744, #2a102544 75%);
-  border-color: #f9a8d444;
-}
-.walk-district.current {
-  box-shadow: inset 0 0 60px #ffffff12;
-  border-color: #ffffff55;
-}
-.walk-floor-label {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 40px;
-  text-align: center;
-  font: 700 46px 'Space Grotesk';
-  letter-spacing: 6px;
-  color: #ffffff1c;
-}
-.walk-path {
-  position: absolute;
-  width: 140px;
-  height: 90px;
-  background: repeating-linear-gradient(
-    180deg,
-    #a78bfa22 0 12px,
-    transparent 12px 24px
-  );
-}
-.path-a {
-  left: 370px;
-  top: 715px;
-}
-.path-b {
-  left: 1130px;
-  top: 715px;
-}
-.path-c {
-  left: 1890px;
-  top: 715px;
-}
 .walk-pad {
   position: absolute;
   width: 150px;
@@ -353,46 +297,54 @@
   border-color: #e9ddff;
 }
 
+/* the hub: a big glowing circle in the middle */
+.walk-hub {
+  position: absolute;
+  width: 560px;
+  height: 560px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #3b2a7a55, #1a143522 70%);
+  border: 2px solid #a78bfa33;
+}
+
+/* a place you can walk onto */
+.walk-place {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  background: radial-gradient(circle, #a78bfa44, transparent 70%);
+  border: 2px solid #a78bfa66;
+  box-shadow: 0 0 60px #8b5cf644;
+  animation: place-glow 3s ease-in-out infinite;
+}
+.walk-place.current {
+  border-color: #e9ddff;
+}
+.walk-place-icon {
+  font-size: 34px;
+}
+.walk-place b {
+  font: 600 18px 'Space Grotesk';
+}
+@keyframes place-glow {
+  50% {
+    box-shadow: 0 0 90px #8b5cf688;
+  }
+}
+
 /* things that stand up: (left, top) is where their feet touch the floor */
 .billboard {
   position: absolute;
   transform: translate(-50%, -100%);
-}
-
-/* movie stands */
-.walk-stand {
-  width: 130px;
-  padding: 0;
-  border: 0;
-  background: none;
-  transition:
-    opacity 0.25s,
-    filter 0.25s;
-}
-.walk-stand .poster {
-  height: 180px;
-  transition:
-    box-shadow 0.2s,
-    translate 0.2s;
-}
-.walk-stand:hover .poster,
-.walk-stand.near .poster {
-  translate: 0 -10px;
-  box-shadow:
-    0 0 0 2px #e9ddff,
-    0 0 34px #a78bfacc,
-    0 18px 30px #0009;
-}
-.walk-stand.dimmed {
-  opacity: 0.22;
-  filter: grayscale(1);
-  cursor: default;
-}
-.walk-stand .poster > b {
-  font-size: 11px;
-}
-.walk-stand .poster > small {
-  font-size: 8px;
 }
 
 /* welcome sign in the lobby */
@@ -562,12 +514,6 @@
   stroke: #e9ddff;
   stroke-width: 14;
 }
-.mm-stand {
-  fill: #c4b5fd;
-}
-.mm-stand.dimmed {
-  opacity: 0.25;
-}
 .mm-you {
   fill: #fff;
   stroke: #8b5cf6;
@@ -663,23 +609,8 @@
   color: #827d9c;
 }
 
-.poster {
-  height: 144px;
-  width: 100%;
-  border: 1px solid #ffffff50;
-  border-radius: 7px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 13px 28px #0008,
-    inset 0 0 30px #ffffff12;
-}
 /* dark fade at the bottom of every poster */
-.poster:after,
+.stack-poster:after,
 .catalog-art:after,
 .modal-art:after {
   content: '';
@@ -687,49 +618,14 @@
   inset: 0;
   background: linear-gradient(180deg, transparent 30%, #080713d9 100%);
 }
-.poster-tag {
-  position: absolute;
-  top: 8px;
-  left: 7px;
-  font: 6px 'DM Mono';
-  letter-spacing: 0.7px;
-  background: #09091488;
-  padding: 4px 5px;
-  border-radius: 3px;
-  z-index: 1;
-}
 .poster-emoji {
   font-size: 42px;
   filter: drop-shadow(0 5px 6px #0008);
   z-index: 1;
   margin-top: 10px;
 }
-.poster > b {
-  z-index: 1;
-  font: 600 9px 'Space Grotesk';
-  text-align: center;
-  padding: 0 5px;
-  margin-top: 5px;
-}
-.poster > small {
-  z-index: 1;
-  font-size: 7px;
-  color: #e0d9e8;
-  margin-top: 3px;
-}
-.poster-rating {
-  position: absolute;
-  bottom: 7px;
-  right: 7px;
-  z-index: 1;
-  font: 8px 'DM Mono';
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  color: #fbd38d;
-}
 
-/* poster colours (movie.color in the data) */
+/* poster colours when there is no image (movie.color in the data) */
 .poster-sand {
   background: radial-gradient(circle at 50% 30%, #f4c77b, #8c4c37 60%, #24152c);
 }
@@ -758,7 +654,7 @@
   background: radial-gradient(circle at 50% 30%, #b9d8e6, #496d88 58%, #101a2b);
 }
 
-/* real poster image: it hides the emoji (and the printed title on world posters) */
+/* real poster image: it hides the emoji */
 .poster-img {
   position: absolute;
   inset: 0;
@@ -768,9 +664,7 @@
   user-select: none;
 }
 .poster-img ~ .poster-emoji,
-.poster-img ~ .art-emoji,
-.walk-stand .poster-img ~ b,
-.walk-stand .poster-img ~ small {
+.poster-img ~ .art-emoji {
   display: none;
 }
 
@@ -1190,6 +1084,88 @@
   font-size: 13px;
 }
 
+/* ---------- card stack (like the phone app switcher) ---------- */
+.card-stack {
+  position: fixed;
+  inset: 0;
+  z-index: 9; /* under the top bar (10), over the world */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 150px 16px 40px;
+  background: #05040b99;
+  backdrop-filter: blur(10px); /* the world is blurred behind the cards */
+  animation: stack-in 0.25s ease-out;
+}
+.card-stack-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.card-stack-head h2 {
+  margin: 0;
+  font: 600 26px 'Space Grotesk';
+}
+.card-stack-head span {
+  font: 13px 'DM Mono';
+  color: #a69bc9;
+}
+.card-stack-head .modal-close {
+  position: static;
+}
+.card-stack-track {
+  position: relative;
+  width: min(300px, 70vw);
+  height: min(440px, 55vh);
+}
+.stack-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 14px;
+  border: 1px solid #ffffff22;
+  border-radius: 22px;
+  background: #151326;
+  text-align: left;
+  box-shadow: 0 20px 50px #000a;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+.stack-card.center {
+  border-color: #a78bfa;
+}
+.stack-poster {
+  position: relative;
+  flex: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.stack-card b {
+  font: 600 17px 'Space Grotesk';
+}
+.stack-card small {
+  font-size: 12px;
+  color: #a69bc9;
+}
+.card-stack-hint {
+  margin: 0;
+  font: 12px 'DM Mono';
+  color: #8c87a2;
+}
+@keyframes stack-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
 /* ---------- 6. Movie popup ---------- */
 .movie-modal {
   width: min(720px, 100%);
@@ -1509,8 +1485,11 @@
     display: none;
   }
   .mv-hud-zones button {
-    padding: 5px 8px;
-    font-size: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .card-stack {
+    padding-top: 170px;
   }
   .mv-hud-center .genre-row {
     flex-wrap: nowrap;

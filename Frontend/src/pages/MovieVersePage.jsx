@@ -12,6 +12,8 @@ import MovieVersePanel from '../components/MovieVersePanel'
 import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
 import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
 import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
+import MovieVerseCardStack from '../components/MovieVerseCardStack'
+import { splitMovies } from '../data/MovieVerseWorldLayout'
 
 // The whole page is the walkable world. Everything else (catalogue, friends,
 // communities, watchlist, movie details) opens on top of it as an overlay.
@@ -41,6 +43,7 @@ export default function MovieVersePage() {
   const [profilePending, setProfilePending] = useState(false)
   const [friendOpen, setFriendOpen] = useState(null)
   const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
+  const [stackOpen, setStackOpen] = useState(false) // movie cards of a place
   const [friendsOpen, setFriendsOpen] = useState(false)
 
   const [myRatings, setMyRatings] = useState({})
@@ -105,11 +108,12 @@ export default function MovieVersePage() {
         if (!profilePending) setProfileDraft(null)
       }
       else if (overlay) setOverlay(null)
+      else if (stackOpen) setStackOpen(false)
       else setFriendsOpen(false)
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [selectedId, friendOpen, profileDraft, profilePending, overlay])
+  }, [selectedId, friendOpen, profileDraft, profilePending, overlay, stackOpen])
 
   useEffect(() => {
     if (!toast) return undefined
@@ -132,8 +136,14 @@ export default function MovieVersePage() {
     () => new Set(filtered.map((m) => m.id)),
     [filtered],
   )
+  // which movies belong to which place (recalculated only when movies change)
+  const groups = useMemo(() => splitMovies(movies), [movies])
+  // the movies of the place you are in, with search + genre filter applied
+  const stackMovies = (groups[zone] || []).filter((m) => visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
-  const paused = Boolean(selected || friendOpen || profileDraft || overlay)
+  const paused = Boolean(
+    selected || friendOpen || profileDraft || overlay || stackOpen,
+  )
   const review = reviewDrafts[selectedId] || ''
 
   async function rate(movie, value) {
@@ -182,9 +192,17 @@ export default function MovieVersePage() {
     )
     setToast(saved ? 'Removed from your watchlist' : 'Saved to your watchlist')
   }
+  // you walked onto a place (id is null when you walk off it)
+  function enterPlace(id) {
+    if (!id) return
+    setZone(id)
+    setStackOpen(id !== 'clubs') // clubs has booths, not movies
+  }
+  // you clicked a zone in the top bar
   function switchZone(id) {
     setZone(id)
     setActiveGenre('All')
+    setStackOpen(id !== 'clubs')
   }
   // Friday Film Club is both a community and the friend room in the lobby
   function toggleRoom() {
@@ -217,11 +235,9 @@ export default function MovieVersePage() {
   return (
     <div className="mv-shell">
       <MovieVerseWorld
-        movies={movies}
-        visibleIds={visibleIds}
         zones={zones}
         zone={zone}
-        onDistrictChange={setZone}
+        onPlaceChange={enterPlace}
         name={name}
         avatar={avatar}
         skin={skin}
@@ -230,7 +246,6 @@ export default function MovieVersePage() {
         invited={invited}
         watchlistCount={watchlist.length}
         paused={paused}
-        onOpenMovie={openFromList}
         onOpenProfile={() => setProfileDraft(profile)}
         onToggleRoom={toggleRoom}
         onOpenFriend={setFriendOpen}
@@ -264,6 +279,17 @@ export default function MovieVersePage() {
           onInviteLink={() => setToast('Invite link copied (demo)')}
           onOpenFriend={setFriendOpen}
           onToggleRoom={toggleRoom}
+        />
+      )}
+
+      {stackOpen && (
+        <MovieVerseCardStack
+          key={zone}
+          title={zones.find((z) => z.id === zone).name}
+          movies={stackMovies}
+          active={selectedId === null}
+          onOpen={openFromList}
+          onClose={() => setStackOpen(false)}
         />
       )}
 

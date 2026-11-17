@@ -1,8 +1,10 @@
 # MovieVerse frontend
 
-React + Vite frontend for MovieBus. The whole page is a small 2D world:
-you walk around with your avatar, open movies, rate and review them and
-join communities.
+React + Vite frontend for MovieBus. The page is a small 2D hub you walk
+around in. Four glowing places surround it: Trending, Discover and Community
+open a stack of movie cards you can scroll through (like the phone app
+switcher), and "Clubs & you" has the booths for communities, the friend room,
+your watchlist and your avatar.
 
 The backend (Express + PostgreSQL) is in the `Backend/` folder next to this one.
 
@@ -43,8 +45,9 @@ src/
   api/                calls to the backend API
   hooks/
     useMovieVerseApi.js  saving and loading data for the page
+  utils/              small helper functions
   data/               sample movies, friends and the world layout
-tests/frontend/       tests for the api/ code
+tests/frontend/       tests for the api/ code and the hub layout
 (project docs are in ../docs)
 ```
 

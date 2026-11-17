@@ -1,20 +1,16 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { Star } from 'lucide-react'
-import MoviePosterImage from './MoviePosterImage'
+import { useEffect, useRef, useState } from 'react'
 import MovieVerseMinimap from './MovieVerseMinimap'
 import MovieVerseControls from './MovieVerseControls'
-import { formatRating } from '../api/movies'
 import {
   WORLD,
   SPAWN,
-  districts,
-  lobby,
-  lobbySpots,
+  SIGN,
+  places,
+  clubSpots,
   friendSpots,
   roomFriendSpots,
-  districtAt,
-  districtSpawn,
-  placeMovies,
+  placeAt,
+  placeSpawn,
 } from '../data/MovieVerseWorldLayout'
 
 const SPEED = 330
@@ -45,11 +41,9 @@ function isTyping(target) {
 
 // eslint-disable-next-line max-lines-per-function, complexity
 export default function MovieVerseWorld({
-  movies,
-  visibleIds,
   zones,
   zone,
-  onDistrictChange,
+  onPlaceChange,
   name,
   avatar,
   skin,
@@ -58,7 +52,6 @@ export default function MovieVerseWorld({
   invited,
   watchlistCount,
   paused,
-  onOpenMovie,
   onOpenProfile,
   onToggleRoom,
   onOpenFriend,
@@ -71,10 +64,7 @@ export default function MovieVerseWorld({
   const minimapDotRef = useRef(null)
   const [nearest, setNearest] = useState(null)
 
-  // one stand per movie (positions are calculated in MovieVerseWorldLayout.js)
-  const stands = useMemo(() => placeMovies(movies), [movies])
-
-  // the four booths in the lobby: what they show and what they do
+  // the four booths in "Clubs & you": what they show and what they do
   const booths = [
     {
       id: 'studio',
@@ -113,21 +103,11 @@ export default function MovieVerseWorld({
     },
   ]
 
-  // "spots" = everything you can bump into or use: movies, booths, the sign
-  // and friends. radius = how big it is, enabled = can you open it.
+  // "spots" = booths and friends: things you can bump into or use.
+  // radius = how big it is, enabled = can you open it.
   const spots = [
-    ...stands.map((s) => ({
-      id: 'movie-' + s.movie.id,
-      x: s.x,
-      y: s.y,
-      radius: 48,
-      label: s.movie.title,
-      verb: 'Open movie',
-      enabled: visibleIds.has(s.movie.id),
-      use: () => onOpenMovie(s.movie),
-    })),
     ...booths.map((b) => ({
-      ...lobbySpots[b.id],
+      ...clubSpots[b.id],
       id: b.id,
       radius: 70,
       label: b.title,
@@ -135,7 +115,6 @@ export default function MovieVerseWorld({
       enabled: true,
       use: b.use,
     })),
-    { id: 'sign', ...lobbySpots.sign, radius: 90, enabled: false },
     ...friends.map((f, i) => ({
       id: 'friend-' + f.name,
       ...friendPosition(i, invited.has(f.name)),
@@ -156,27 +135,27 @@ export default function MovieVerseWorld({
     target: null, // where a click / tap asked us to walk
     facingLeft: false,
     moving: false,
-    district: null,
+    place: null, // id of the place we stand on, or null in the hub
     nearestId: null,
     drawn: '', // last position written to the screen
   })
   // re-read the spot every render so its action is never stale
   const current = nearest && spots.find((s) => s.id === nearest.id)
   const latest = useRef({})
-  latest.current = { spots, onDistrictChange, nearest: current }
+  latest.current = { spots, onPlaceChange, nearest: current }
 
-  // teleport when a zone is picked from the sidebar / arrows
-  // (starts as the current zone, so you spawn in the lobby, not a district)
+  // jump to a place when a zone is picked in the top bar
+  // (starts as the current zone, so you spawn in the hub, not on a place)
   const prevZone = useRef(zone)
   useEffect(() => {
     const g = game.current
     if (prevZone.current === zone) return
     prevZone.current = zone
-    if (g.district === zone) return
-    const p = districtSpawn(zone)
+    if (g.place === zone) return // already standing there
+    const p = placeSpawn(zone)
     g.x = p.x
     g.y = p.y
-    g.district = zone
+    g.place = zone // the page opens the stack itself, no need to tell it again
   }, [zone])
 
   // keyboard
@@ -266,12 +245,12 @@ export default function MovieVerseWorld({
       // 2. do not walk through things or out of the world
       pushOutOfSpots(g, spots)
 
-      // 3. tell the page when we walk into another district
-      const here = districtAt(g.x, g.y)
+      // 3. tell the page when we step onto a place (or off it)
+      const here = placeAt(g.x, g.y)
       const hereId = here ? here.id : null
-      if (hereId !== g.district) {
-        g.district = hereId
-        if (hereId) latest.current.onDistrictChange(hereId)
+      if (hereId !== g.place) {
+        g.place = hereId
+        latest.current.onPlaceChange(hereId)
       }
 
       // 4. the closest thing we can use gets the "Press F" prompt
@@ -308,7 +287,9 @@ export default function MovieVerseWorld({
     }
   }
 
-  const zoneName = (id) => zones.find((z) => z.id === id)?.name || id
+  // name and icon of a place, from the zones list
+  const zoneOf = (id) =>
+    zones.find((z) => z.id === id) || { name: id, icon: '' }
 
   return (
     <div ref={viewportRef} className="walk-world" onPointerDown={walkToPointer}>
@@ -318,99 +299,38 @@ export default function MovieVerseWorld({
         className="walk-plane"
         style={{ width: WORLD.width, height: WORLD.height }}
       >
-        {/* floor */}
+        {/* floor: the hub circle and the 4 places */}
         <div className="walk-ground" />
-        <div
-          className="walk-area walk-lobby"
-          style={{
-            left: lobby.x,
-            top: lobby.y,
-            width: lobby.w,
-            height: lobby.h,
-          }}
-        >
-          <span className="walk-floor-label">THE LOBBY</span>
-        </div>
-        {districts.map((d) => (
+        <div className="walk-hub" style={{ left: SPAWN.x, top: SPAWN.y }} />
+        {places.map((p) => (
           <div
-            key={d.id}
-            className={
-              'walk-area walk-district district-' +
-              d.id +
-              (zone === d.id ? ' current' : '')
-            }
-            style={{ left: d.x, top: d.y, width: d.w, height: d.h }}
+            key={p.id}
+            className={'walk-place' + (zone === p.id ? ' current' : '')}
+            style={{ left: p.x, top: p.y }}
           >
-            <span className="walk-floor-label">
-              {zoneName(d.id).toUpperCase()}
-            </span>
+            <span className="walk-place-icon">{zoneOf(p.id).icon}</span>
+            <b>{zoneOf(p.id).name}</b>
           </div>
         ))}
-        <div className="walk-path path-a" />
-        <div className="walk-path path-b" />
-        <div className="walk-path path-c" />
 
-        {/* movie stands (Fragment, not a div: a wrapper div would flatten them) */}
-        {stands.map((s) => {
-          const enabled = visibleIds.has(s.movie.id)
-          const isNear = current?.id === 'movie-' + s.movie.id
-          return (
-            <Fragment key={s.movie.id}>
-              <div
-                className={'walk-pad' + (isNear ? ' near' : '')}
-                style={{ left: s.x, top: s.y }}
-              />
-              <button
-                className={
-                  'billboard walk-stand' +
-                  (enabled ? '' : ' dimmed') +
-                  (isNear ? ' near' : '')
-                }
-                style={{ left: s.x, top: s.y, zIndex: s.y }}
-                disabled={!enabled}
-                onClick={() => onOpenMovie(s.movie)}
-              >
-                <div className={'poster poster-' + s.movie.color}>
-                  <MoviePosterImage
-                    src={s.movie.poster}
-                    title={s.movie.title}
-                  />
-                  <span className="poster-tag">{s.movie.tag}</span>
-                  <span className="poster-emoji">{s.movie.emoji}</span>
-                  <b>{s.movie.title}</b>
-                  <small>
-                    {s.movie.year} · {s.movie.genre}
-                  </small>
-                  <span className="poster-rating">
-                    <Star size={12} fill="currentColor" />
-                    {formatRating(s.movie.rating)}
-                  </span>
-                </div>
-              </button>
-            </Fragment>
-          )
-        })}
-
-        {/* lobby */}
+        {/* welcome sign above the spawn point */}
         <div
           className="billboard walk-sign"
-          style={{
-            left: lobbySpots.sign.x,
-            top: lobbySpots.sign.y,
-            zIndex: lobbySpots.sign.y,
-          }}
+          style={{ left: SIGN.x, top: SIGN.y, zIndex: SIGN.y }}
         >
           <span className="eyebrow">YOUR PERSONAL CINEMA DIMENSION</span>
           <b>
             Explore beyond <em>the screen.</em>
           </b>
-          <small>Walk up to a movie and press F to open it</small>
+          <small>Walk onto a glowing place to browse movies</small>
         </div>
+
+        {/* booths in "Clubs & you" */}
         {booths.map((b) => (
           <Booth
             key={b.id}
             booth={b}
-            spot={lobbySpots[b.id]}
+            spot={clubSpots[b.id]}
             near={current?.id === b.id}
           />
         ))}
@@ -447,12 +367,7 @@ export default function MovieVerseWorld({
       </div>
 
       {/* on top of the world */}
-      <MovieVerseMinimap
-        stands={stands}
-        zone={zone}
-        visibleIds={visibleIds}
-        dotRef={minimapDotRef}
-      />
+      <MovieVerseMinimap zone={zone} dotRef={minimapDotRef} />
       <MovieVerseControls
         onPress={(direction) => game.current.keys.add(direction)}
         onRelease={(direction) => game.current.keys.delete(direction)}
@@ -542,7 +457,7 @@ function friendPosition(index, inRoom) {
   return list[index % list.length]
 }
 
-// one booth in the lobby: a glowing floor pad + the booth itself
+// one booth in "Clubs & you": a glowing floor pad + the booth itself
 function Booth({ booth, spot, near }) {
   return (
     <>

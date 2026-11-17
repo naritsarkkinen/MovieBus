@@ -1,73 +1,67 @@
-// Layout of the walkable MovieVerse world, in world pixels.
-export const WORLD = { width: 2400, height: 1500 }
+// Layout of the MovieVerse hub, in world pixels.
+export const WORLD = { width: 1600, height: 1200 }
 
-export const SPAWN = { x: 1200, y: 1260 }
+// you start in the middle of the hub
+export const SPAWN = { x: 800, y: 640 }
 
-export const districts = [
-  { id: 'trending', x: 80, y: 80, w: 720, h: 640 },
-  { id: 'discover', x: 840, y: 80, w: 720, h: 640 },
-  { id: 'community', x: 1600, y: 80, w: 720, h: 640 },
+// the 4 places around the hub (x, y = middle of the place)
+export const places = [
+  { id: 'trending', x: 420, y: 420 },
+  { id: 'discover', x: 800, y: 260 },
+  { id: 'community', x: 1180, y: 420 },
+  { id: 'clubs', x: 800, y: 960 },
 ]
 
-export const lobby = { x: 420, y: 780, w: 1560, h: 660 }
+// how close (in pixels) you must be to stand "on" a place
+export const PLACE_RADIUS = 90
 
-// Spots in the lobby you can walk up to.
-export const lobbySpots = {
-  sign: { x: 1200, y: 960 },
-  studio: { x: 760, y: 1200 },
-  room: { x: 1640, y: 1200 },
-  shelf: { x: 600, y: 960 },
-  board: { x: 1800, y: 960 },
+// booths in the "Clubs + you" place
+export const clubSpots = {
+  studio: { x: 600, y: 1060 },
+  room: { x: 1000, y: 1060 },
+  shelf: { x: 620, y: 880 },
+  board: { x: 980, y: 880 },
 }
 
+// the welcome sign floats above the spawn point
+export const SIGN = { x: 800, y: 560 }
+
 export const friendSpots = [
-  { x: 330, y: 670 },
-  { x: 980, y: 1110 },
-  { x: 1340, y: 650 },
+  { x: 560, y: 700 },
+  { x: 1040, y: 700 },
+  { x: 700, y: 780 },
 ]
 
 // where friends go after you invite them to Friday Film Club
 export const roomFriendSpots = [
-  { x: 1520, y: 1300 },
-  { x: 1760, y: 1300 },
-  { x: 1640, y: 1350 },
+  { x: 1130, y: 1110 },
+  { x: 1190, y: 1050 },
+  { x: 1080, y: 1150 },
 ]
 
-export function districtAt(x, y) {
-  return districts.find(
-    (d) => x >= d.x && x <= d.x + d.w && y >= d.y && y <= d.y + d.h,
-  )
+// the place you are standing on, or null
+export function placeAt(x, y) {
+  return places.find((p) => Math.hypot(x - p.x, y - p.y) < PLACE_RADIUS) || null
 }
 
-export function districtSpawn(id) {
-  const d = districts.find((item) => item.id === id) || districts[0]
-  return { x: d.x + d.w / 2, y: d.y + d.h - 80 }
+// where you land when you jump to a place from the top bar
+export function placeSpawn(id) {
+  const place = places.find((p) => p.id === id) || places[0]
+  return { x: place.x, y: place.y }
 }
 
-// Every movie gets exactly one stand: the best rated go to Community,
-// the first of the rest to Trending, everything else to Discover.
-export function placeMovies(movies) {
-  const perDistrict = Math.max(1, Math.ceil(movies.length / 3))
+// Every movie goes to one of the 3 movie places (same rule as before):
+// the best rated third -> Community, the next third -> Trending,
+// the rest -> Discover.
+export function splitMovies(movies) {
+  const perPlace = Math.max(1, Math.ceil(movies.length / 3))
   const community = [...movies]
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-    .slice(0, perDistrict)
+    .slice(0, perPlace)
   const rest = movies.filter((m) => !community.includes(m))
-  const groups = {
-    trending: rest.slice(0, perDistrict),
-    discover: rest.slice(perDistrict),
+  return {
+    trending: rest.slice(0, perPlace),
+    discover: rest.slice(perPlace),
     community,
   }
-
-  return districts.flatMap((d) =>
-    groups[d.id].map((movie, i) => {
-      const col = i % 3
-      const row = Math.floor(i / 3)
-      return {
-        movie,
-        district: d.id,
-        x: d.x + 180 + col * 180,
-        y: d.y + 400 + row * 190 - (col === 1 ? 70 : 0),
-      }
-    }),
-  )
 }
