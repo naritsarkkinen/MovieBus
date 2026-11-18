@@ -37,7 +37,7 @@ const pool = new Pool({
   user: "appadmin",
   password,
   ssl: { rejectUnauthorized: true },
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 30000,
 });
 
 // ==========================================
