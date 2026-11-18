@@ -35,4 +35,21 @@ jobs:
         env:
           TMDB_READ_TOKEN: ${{ secrets.TMDB_READ_TOKEN }}
           MOVIEBUS_DB_PASSWORD: ${{ secrets.MOVIEBUS_DB_PASSWORD }}
-        run: node database/import-tmdb.cjs
+
+        run: |
+          for attempt in 1 2 3; do
+            echo "Starting TMDB import (attempt $attempt/3)"
+
+            if node database/import-tmdb.cjs; then
+              echo "TMDB import completed successfully."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "Import failed. Retrying in 30 seconds..."
+              sleep 30
+            fi
+          done
+
+          echo "TMDB import failed after 3 attempts."
+          exit 1
