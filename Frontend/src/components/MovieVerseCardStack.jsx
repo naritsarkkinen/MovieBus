@@ -3,29 +3,21 @@ import { X } from 'lucide-react'
 import MoviePosterImage from './MoviePosterImage'
 import { clampIndex } from '../utils/clampIndex'
 
-// how many cards are visible on each side of the middle card
 const SIDE_CARDS = 3
 
-// Where a card is drawn in 3D ("cover flow", like old iTunes):
-// offset = how far the card is from the middle card (0 = middle,
-// -1 = first on the left, 2 = second on the right...).
-// - the middle card faces you
-// - side cards move to the side, go back into the screen (translateZ) and
-//   turn 50° toward the middle (rotateY), like pages of an open book
+// COVER FLOW: offset 0 = middle card. Side cards: move aside (x),
+// go back (z), turn 50° to the middle (rotateY) → like an open book
 function coverFlow(offset) {
   if (offset === 0) return 'translateX(0) translateZ(0) rotateY(0deg)'
-  const side = offset < 0 ? -1 : 1 // -1 = left, 1 = right
+  const side = offset < 0 ? -1 : 1 // -1 left, 1 right
   const distance = Math.abs(offset)
-  const x = side * (60 + (distance - 1) * 22) // in % of the card width
-  const z = -150 - (distance - 1) * 60 // in px, negative = further away
-  const turn = -side * 50 // left cards turn right, right cards turn left
+  const x = side * (60 + (distance - 1) * 22) // %
+  const z = -150 - (distance - 1) * 60 // px, minus = further
+  const turn = -side * 50
   return `translateX(${x}%) translateZ(${z}px) rotateY(${turn}deg)`
 }
 
-// Cards in 3D "cover flow": the middle card faces you, the others turn
-// toward it. Used for movies and communities (same card shape, see
-// data/MovieVerseCards.js). theme = which dimension, for the colours.
-// active = false while a popup is open on top (then the keys do nothing).
+// active = false → popup on top, keys do nothing
 export default function MovieVerseCardStack({
   title,
   theme,
@@ -38,14 +30,11 @@ export default function MovieVerseCardStack({
   const [index, setIndex] = useState(0)
   const current = clampIndex(index, cards.length)
 
-  // move step cards (-1 = left, 1 = right).
-  // setIndex((old) => ...) uses the newest index, so two fast key presses
-  // really move two cards (not the same card twice).
+  // (old) => ... uses newest index → 2 fast presses = 2 cards
   function go(step) {
     setIndex((old) => clampIndex(old + step, cards.length))
   }
 
-  // ← → (or A / D) on the keyboard
   useEffect(() => {
     if (!active) return undefined
     function handleKey(e) {
@@ -57,7 +46,7 @@ export default function MovieVerseCardStack({
     return () => window.removeEventListener('keydown', handleKey)
   })
 
-  // mouse wheel / touchpad: one card per scroll, at most one every 250 ms
+  // wheel: max 1 card per 250 ms
   const lastWheel = useRef(0)
   function handleWheel(e) {
     const amount = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
@@ -66,7 +55,7 @@ export default function MovieVerseCardStack({
     go(amount > 0 ? 1 : -1)
   }
 
-  // swipe / drag: remember where the finger went down, compare when it goes up
+  // swipe: compare x on down vs up (> 50 px = swipe)
   const dragStart = useRef(null)
   const swiped = useRef(false)
   function handlePointerUp(e) {
@@ -76,8 +65,7 @@ export default function MovieVerseCardStack({
     swiped.current = Math.abs(moved) > 50
     if (swiped.current) go(moved < 0 ? 1 : -1)
   }
-  // after a swipe the browser also sends a "click": ignore that one,
-  // otherwise swiping over the middle card would open the movie
+  // swipe also fires a click → ignore it (no accidental open)
   function ignoreClickAfterSwipe(e) {
     if (!swiped.current) return
     swiped.current = false
@@ -86,7 +74,7 @@ export default function MovieVerseCardStack({
 
   return (
     <div
-      className={'card-stack theme-' + theme} // colours of the dimension
+      className={'card-stack theme-' + theme}
       onWheel={handleWheel}
       onPointerDown={(e) => (dragStart.current = e.clientX)}
       onPointerUp={handlePointerUp}
@@ -114,7 +102,7 @@ export default function MovieVerseCardStack({
               className={'stack-card' + (offset === 0 ? ' center' : '')}
               style={{
                 transform: coverFlow(offset),
-                zIndex: 10 - Math.abs(offset), // the middle card is on top
+                zIndex: 10 - Math.abs(offset), // middle on top
               }}
               onClick={() => (offset === 0 ? onOpen(card) : setIndex(i))}
             >

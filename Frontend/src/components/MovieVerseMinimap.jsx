@@ -1,9 +1,6 @@
 import { PLACE_SIZE } from '../data/MovieVerseWorldLayout'
 
-// Small map in the corner: the places of the current map (ovals) and you.
-// It uses the same coordinates as the map, so the SVG viewBox is simply
-// the size of the map. The "you" dot is moved by the game loop through
-// dotRef (no re-render).
+// viewBox = map size → same coordinates. Dot is moved by the game loop (ref)
 export default function MovieVerseMinimap({ map, zone, dotRef }) {
   return (
     <svg

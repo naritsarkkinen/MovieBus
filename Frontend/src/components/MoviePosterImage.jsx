@@ -1,7 +1,6 @@
 import { useState } from 'react'
 
-// Real poster image. If there is no image, or it fails to load, it renders
-// nothing and the coloured card with the emoji underneath stays visible.
+// no image / broken image → render nothing, emoji card shows instead
 export default function MoviePosterImage({ src, title }) {
   const [failedSrc, setFailedSrc] = useState(null)
   if (!src || failedSrc === src) return null

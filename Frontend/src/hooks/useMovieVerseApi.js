@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { hasApi } from '../api/client'
 import { ensureUser, saveAvatar } from '../api/users'
 import { fetchReviews, postRating, postReview, toReview } from '../api/reviews'
 
@@ -7,23 +6,12 @@ export default function useMovieVerseApi({ name, selectedId, notify }) {
   const [reviewsByMovie, setReviewsByMovie] = useState({})
 
   useEffect(() => {
-    if (selectedId === null) return undefined
-    let ignore = false
+    if (selectedId === null) return
     fetchReviews(selectedId)
-      .then((list) => {
-        if (ignore) return
-        setReviewsByMovie((all) => {
-          const ids = new Set(list.map((review) => review.id))
-          const recent = (all[selectedId] || []).filter((review) => !ids.has(review.id))
-          return { ...all, [selectedId]: [...recent, ...list] }
-        })
-      })
-      .catch((error) => {
-        if (!ignore) notify('Could not load reviews: ' + error.message)
-      })
-    return () => {
-      ignore = true
-    }
+      .then((list) =>
+        setReviewsByMovie((all) => ({ ...all, [selectedId]: list })),
+      )
+      .catch((error) => notify('Could not load reviews: ' + error.message))
   }, [selectedId, notify])
 
   async function save(nameForGuest, action, success) {
@@ -38,11 +26,7 @@ export default function useMovieVerseApi({ name, selectedId, notify }) {
     }
   }
 
-  function sendRating(movie, score, live) {
-    if (!live) {
-      notify('Rating updated in sample mode')
-      return score
-    }
+  function sendRating(movie, score) {
     return save(
       name,
       async (user) => (await postRating(movie.id, user.id, score)).score,
@@ -50,21 +34,15 @@ export default function useMovieVerseApi({ name, selectedId, notify }) {
     )
   }
 
-  function sendReview(movie, body, live, stars) {
-    function addReview(review) {
-      setReviewsByMovie((all) => ({
-        ...all,
-        [movie.id]: [review, ...(all[movie.id] || []).filter((item) => item.id !== review.id)],
-      }))
-      return review
-    }
-    if (!live) {
-      notify('Review added in sample mode')
-      return addReview({ id: crypto.randomUUID(), author: name, text: body, stars })
-    }
+  function sendReview(movie, body) {
     return save(name, async (user) => {
       const row = await postReview(movie.id, user.id, body)
-      return addReview(toReview({ ...row, display_name: user.name }))
+      const review = toReview({ ...row, display_name: user.name })
+      setReviewsByMovie((all) => ({
+        ...all,
+        [movie.id]: [review, ...(all[movie.id] || [])],
+      }))
+      return review
     }, 'Review posted')
   }
 
@@ -73,10 +51,6 @@ export default function useMovieVerseApi({ name, selectedId, notify }) {
     if (updated.name.length < 2) {
       notify('Display name must be at least 2 characters')
       return null
-    }
-    if (!hasApi()) {
-      notify('Profile updated in sample mode')
-      return updated
     }
     return save(
       updated.name,

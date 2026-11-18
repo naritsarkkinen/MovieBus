@@ -61,9 +61,8 @@ describe('guests', () => {
       { display_name: 'Mila', avatar_emoji: '🦊', skin: 'mint' },
     ])
     expect(profile).toEqual({ id: 9, name: 'Mila', avatar: '🦊', skin: 'mint' })
-    expect(JSON.parse(store.get('mv-guest:' + baseUrl))).toEqual(profile)
-    expect(savedUser(baseUrl)).toEqual(profile)
-    expect(savedUser(api.baseUrl)).toBeNull()
+    expect(JSON.parse(store.get('mv-guest'))).toEqual(profile)
+    expect(savedUser()).toEqual(profile)
     expect(await ensureUser('Mila', options)).toEqual(profile)
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })

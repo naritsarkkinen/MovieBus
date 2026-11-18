@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import './MovieVersePage.css'
 import { fetchMovie, loadMovies } from '../api/movies'
+import { fetchCommunities } from '../api/communities'
 import { savedUser } from '../api/users'
-import { zones, friends, communities } from '../data/MovieVerseData'
+import { zones, friends } from '../data/MovieVerseData'
 import useMovieVerseApi from '../hooks/useMovieVerseApi'
 import MovieVerseMovieCard from '../components/MovieVerseMovieCard'
 import MovieVerseWorld from '../components/MovieVerseWorld'
@@ -16,7 +17,6 @@ import MovieVerseCardStack from '../components/MovieVerseCardStack'
 import { splitMovies } from '../data/MovieVerseWorldLayout'
 import { communityCard, movieCard } from '../data/MovieVerseCards'
 
-// titles of the card stacks
 const STACK_TITLES = {
   trending: 'Trending dimension',
   discover: 'Discover dimension',
@@ -25,17 +25,17 @@ const STACK_TITLES = {
   communities: 'Communities',
 }
 
-// The whole page is the walkable world. Everything else (catalogue, friends,
-// communities, watchlist, movie details) opens on top of it as an overlay.
+// world underneath, everything else = overlays on top
 // eslint-disable-next-line max-lines-per-function
 export default function MovieVersePage() {
   const [movies, setMovies] = useState([])
-  const [dataSource, setDataSource] = useState('loading') // 'loading' | 'live' | 'sample'
+  const [dataSource, setDataSource] = useState('loading') // loading | live | error
+  const [loadError, setLoadError] = useState('')
+  const [communities, setCommunities] = useState([])
   const [zone, setZone] = useState('trending')
   const [search, setSearch] = useState('')
   const [activeGenre, setActiveGenre] = useState('All')
 
-  // profile / avatar
   const [profile, setProfile] = useState(() => {
     const guest = savedUser()
     return {
@@ -44,18 +44,16 @@ export default function MovieVersePage() {
       avatar: guest?.avatar || '🧑🏽‍🚀',
     }
   })
+
   const { name, avatar, skin } = profile
 
-  // what is open on top of the world
   const [selectedId, setSelectedId] = useState(null)
   const selected = movies.find((movie) => movie.id === selectedId)
   const [profileDraft, setProfileDraft] = useState(null)
   const [profilePending, setProfilePending] = useState(false)
   const [friendOpen, setFriendOpen] = useState(null)
-  const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
-  // which map ("dimension") you are in: 'hub' or 'clubs' (your dimension)
+  const [overlay, setOverlay] = useState(null) // catalogue | communities | watchlist
   const [mapId, setMapId] = useState('hub')
-  // the cards of the place you stand on are open
   const [placeOpen, setPlaceOpen] = useState(false)
   const [friendsOpen, setFriendsOpen] = useState(false)
 
@@ -76,45 +74,54 @@ export default function MovieVersePage() {
     notify: setToast,
   })
 
-  const detailRequests = useRef(new Map())
-  const refreshMovie = useCallback(async (id) => {
-    const request = Symbol()
-    detailRequests.current.set(id, request)
-    try {
-      const latest = await fetchMovie(id)
-      if (detailRequests.current.get(id) === request) {
+  // after rating: get new average, swap the movie in the list
+  function refreshMovie(id) {
+    return fetchMovie(id)
+      .then((latest) =>
         setMovies((list) =>
           list.map((movie) => (movie.id === id ? latest : movie)),
-        )
-      }
-    } catch (error) {
-      if (detailRequests.current.get(id) === request) {
-        setToast('Could not refresh movie details: ' + error.message)
-      }
-    } finally {
-      if (detailRequests.current.get(id) === request)
-        detailRequests.current.delete(id)
-    }
-  }, [])
+        ),
+      )
+      .catch((error) =>
+        setToast('Could not refresh movie details: ' + error.message),
+      )
+  }
 
   useEffect(() => {
-    if (live && selectedId !== null) refreshMovie(selectedId)
-  }, [live, selectedId, refreshMovie])
+    if (!live || selectedId === null) return
+    fetchMovie(selectedId)
+      .then((latest) =>
+        setMovies((list) =>
+          list.map((movie) => (movie.id === selectedId ? latest : movie)),
+        ),
+      )
+      .catch((error) =>
+        setToast('Could not load movie details: ' + error.message),
+      )
+  }, [live, selectedId])
 
-  // movies come from the API (Azure PostgreSQL); sample data if it is not reachable
   useEffect(() => {
-    let ignore = false // true if the page closes before the answer arrives
+    let ignore = false // page closed → ignore late answer
     loadMovies().then((result) => {
       if (ignore) return
       setMovies(result.movies)
       setDataSource(result.source)
+      setLoadError(result.error || '')
+      if (result.error) setToast('Could not load movies: ' + result.error)
     })
+    fetchCommunities()
+      .then((list) => {
+        if (!ignore) setCommunities(list)
+      })
+      .catch((error) => {
+        if (!ignore) console.warn('Could not load communities:', error.message)
+      })
     return () => {
       ignore = true
     }
   }, [])
 
-  // Escape closes the top-most overlay
+  // Escape closes the top-most overlay first
   useEffect(() => {
     const handle = (e) => {
       if (e.key !== 'Escape') return
@@ -151,20 +158,17 @@ export default function MovieVersePage() {
     () => new Set(filtered.map((m) => m.id)),
     [filtered],
   )
-  // which movies belong to which place (recalculated only when movies change)
+  // useMemo = recalculate only when movies change
   const groups = useMemo(() => splitMovies(movies), [movies])
-  // the movies of the place you are in, with search + genre filter applied
   const stackMovies = (groups[zone] || []).filter((m) => visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
-  // a popup on top of the cards (movie, friend, profile, panel)
   const popupOpen = Boolean(selected || friendOpen || profileDraft || overlay)
-  // no walking (and no world animations) while something covers the world
+  // paused = no walking while something covers the world
   const paused = popupOpen || placeOpen
 
-  // the cards of the place you are on
   const isMember = (c) =>
     c.name === 'Friday Film Club' ? joined : memberships.has(c.id)
-  let placeCards = stackMovies.map(movieCard) // a movie dimension
+  let placeCards = stackMovies.map(movieCard)
   if (zone === 'watchlist') placeCards = watchlistMovies.map(movieCard)
   if (zone === 'communities') {
     placeCards = communities.map((c) => communityCard(c, isMember(c)))
@@ -175,10 +179,10 @@ export default function MovieVersePage() {
     if (ratingPending) return
     setRatingPending(true)
     try {
-      const score = await api.sendRating(movie, value, live)
+      const score = await api.sendRating(movie, value)
       if (score === null) return
       setMyRatings((ratings) => ({ ...ratings, [movie.id]: score }))
-      if (live) await refreshMovie(movie.id)
+      await refreshMovie(movie.id)
     } finally {
       setRatingPending(false)
     }
@@ -189,7 +193,7 @@ export default function MovieVersePage() {
     const id = selected.id
     setReviewPending(true)
     try {
-      const posted = await api.sendReview(selected, body, live, myRatings[id])
+      const posted = await api.sendReview(selected, body)
       if (posted) {
         setReviewDrafts((drafts) =>
           drafts[id] === review ? { ...drafts, [id]: '' } : drafts,
@@ -221,24 +225,23 @@ export default function MovieVersePage() {
   }
   function goToMap(id) {
     setMapId(id)
-    setZone(id) // 'clubs' lights up "Clubs & you" in the top bar
+    setZone(id)
   }
 
-  // you walked onto a place (id is null when you walk off it)
+  // called by the world: id = place you stepped on (null = off)
   function enterPlace(id) {
     if (!id) return
     if (id === 'clubs' || id === 'hub') {
-      goToMap(id) // another map
+      goToMap(id)
     } else if (id === 'studio') {
       setProfileDraft(profile)
     } else if (id === 'room') {
-      setFriendsOpen(true) // the Friday Film Club room and your friends
+      setFriendsOpen(true)
     } else {
       setZone(id)
-      setPlaceOpen(true) // a movie dimension, or watchlist / communities
+      setPlaceOpen(true)
     }
   }
-  // you clicked a zone in the top bar (Trending, Discover, Community, Clubs)
   function switchZone(id) {
     setActiveGenre('All')
     setPlaceOpen(false)
@@ -246,17 +249,15 @@ export default function MovieVersePage() {
       goToMap('clubs')
       return
     }
-    // a movie dimension: go back to the hub if needed, then open it
     setMapId('hub')
     setZone(id)
     setPlaceOpen(true)
   }
-  // a card was opened: a community card joins / leaves, a movie card opens
   function openCard(card) {
     if (card.community) toggleCommunity(card.community)
     else openFromList(card.movie)
   }
-  // Friday Film Club is both a community and the friend room
+  // Friday Film Club = community AND friend room
   function toggleRoom() {
     setJoined(!joined)
     setToast(
@@ -315,6 +316,7 @@ export default function MovieVersePage() {
         onGenre={setActiveGenre}
         onCatalogue={() => setOverlay('catalogue')}
         dataSource={dataSource}
+        loadError={loadError}
         onFriends={() => setFriendsOpen((v) => !v)}
         friendCount={friends.length}
         name={name}
@@ -343,7 +345,11 @@ export default function MovieVersePage() {
           emptyText={
             zone === 'watchlist'
               ? 'Nothing saved yet. Open a movie and press “Save to watchlist”.'
-              : 'No movies here. Try another search or genre.'
+              : zone === 'communities'
+                ? 'No communities yet.'
+                : dataSource === 'error'
+                  ? 'Could not load movies from the API. Check that the backend is running.'
+                  : 'No movies here. Try another search or genre.'
           }
           active={!popupOpen}
           onOpen={openCard}
@@ -373,7 +379,9 @@ export default function MovieVersePage() {
           </div>
           {filtered.length === 0 && (
             <div className="empty-state">
-              No movies found. Try another search or genre.
+              {dataSource === 'error'
+                ? 'Could not load movies from the API. Check that the backend is running.'
+                : 'No movies found. Try another search or genre.'}
             </div>
           )}
         </MovieVersePanel>

@@ -1,4 +1,3 @@
-import { initialMovies } from '../data/MockMovies'
 import { API_URL, apiRequest } from './client'
 
 const genreColors = {
@@ -10,6 +9,13 @@ const genreColors = {
   Romance: 'gold',
   Adventure: 'orange',
   Drama: 'steel',
+}
+
+// DB has only the path ("/abc.jpg"), TMDB images need no key
+const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/'
+
+export function tmdbImage(path, size = 'w500') {
+  return path ? TMDB_IMAGE_URL + size + path : null
 }
 
 export function toMovie(row) {
@@ -26,7 +32,8 @@ export function toMovie(row) {
     genre,
     desc: row.description || 'No description yet.',
     emoji: row.poster_emoji || '🎬',
-    poster: null,
+    poster: tmdbImage(row.poster_path, 'w500'),
+    backdrop: tmdbImage(row.backdrop_path, 'w1280'),
     rating,
     votes: String(count),
     color: genreColors[genre] || 'violet',
@@ -39,14 +46,13 @@ export function formatRating(rating) {
 }
 
 export async function loadMovies(baseUrl = API_URL) {
-  if (!baseUrl) return { movies: initialMovies, source: 'sample' }
   try {
     const rows = await apiRequest('/movies', { baseUrl })
     if (!Array.isArray(rows)) throw new Error('Invalid movie catalogue')
     return { movies: rows.map(toMovie), source: 'live' }
   } catch (error) {
-    console.warn('Using sample movies:', error.message)
-    return { movies: initialMovies, source: 'sample' }
+    console.warn('Could not load movies:', error.message)
+    return { movies: [], source: 'error', error: error.message }
   }
 }
 

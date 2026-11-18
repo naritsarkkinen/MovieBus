@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fetchMovie, formatRating, loadMovies, toMovie } from '../../src/api/movies.js'
-import { initialMovies } from '../../src/data/MockMovies.js'
 
 const baseUrl = 'http://localhost:4000/api'
 
@@ -30,6 +29,7 @@ describe('movies', () => {
       desc: movieRow.description,
       emoji: '🚀',
       poster: null,
+      backdrop: null,
       rating: 8.4,
       votes: '3',
       color: 'violet',
@@ -38,6 +38,7 @@ describe('movies', () => {
     const unrated = toMovie({ ...movieRow, average_rating: null, rating_count: 0 })
     expect(formatRating(unrated.rating)).toBe('New')
   })
+
 
   it('reads the catalogue and the latest rating from the detail route', async () => {
     const fetchMock = vi.fn()
@@ -55,13 +56,24 @@ describe('movies', () => {
     await expect(loadMovies(baseUrl)).resolves.toEqual({ movies: [], source: 'live' })
   })
 
-  it('falls back to sample movies when the API fails or is disabled', async () => {
+  it('reports an error with no movies when the API fails or is not configured', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const fetchMock = vi.fn().mockResolvedValue(Response.json({ error: 'Offline' }, { status: 503 }))
     vi.stubGlobal('fetch', fetchMock)
-    const sample = { movies: initialMovies, source: 'sample' }
-    await expect(loadMovies(baseUrl)).resolves.toEqual(sample)
-    await expect(loadMovies('')).resolves.toEqual(sample)
+    await expect(loadMovies(baseUrl)).resolves.toEqual({ movies: [], source: 'error', error: 'Offline' })
+    await expect(loadMovies('')).resolves.toEqual({
+      movies: [],
+      source: 'error',
+      error: 'No API address configured',
+    })
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('movie images', () => {
+  it('builds TMDB image addresses from stored paths', () => {
+    const movie = toMovie({ ...movieRow, poster_path: '/abc.jpg', backdrop_path: '/wide.jpg' })
+    expect(movie.poster).toBe('https://image.tmdb.org/t/p/w500/abc.jpg')
+    expect(movie.backdrop).toBe('https://image.tmdb.org/t/p/w1280/wide.jpg')
   })
 })

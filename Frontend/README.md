@@ -26,8 +26,8 @@ npm run dev
 Open http://localhost:5173. Start the backend too (`cd Backend`, `npm start`):
 Vite forwards every `/api` request to it on port 4000 (see `vite.config.js`).
 
-If the backend is not running, the page shows sample movies and says
-"sample mode" when you save something.
+If the backend is not running, the top bar shows "Offline" and there are no
+movies: the page has no sample data. Saving shows an error until the API is back.
 
 ## Scripts
 
@@ -53,7 +53,7 @@ src/
   hooks/
     useMovieVerseApi.js  saving and loading data for the page
   utils/              small helper functions
-  data/               sample movies, friends and the world layout
+  data/               zones, simulated friends and the world layout
 tests/frontend/       tests for the api/ code and the hub layout
 (project docs are in ../docs)
 ```

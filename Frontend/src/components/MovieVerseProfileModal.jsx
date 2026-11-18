@@ -3,7 +3,6 @@ import { Sparkles, X } from 'lucide-react'
 const avatars = ['🧑🏽‍🚀', '👩🏻‍🚀', '🧑🏿‍🎤', '🧑🏼‍🎨', '🦊', '🤖']
 const skins = ['violet', 'blue', 'mint', 'rose', 'gold']
 
-// Avatar studio: name, avatar and glow colour.
 export default function MovieVerseProfileModal({
   name,
   avatar,

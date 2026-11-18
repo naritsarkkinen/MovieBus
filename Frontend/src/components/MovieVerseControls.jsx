@@ -1,6 +1,4 @@
-// Keyboard help (desktop) and arrow buttons (phones).
-// CSS decides which one is visible. Holding an arrow button works like
-// holding the key: onPress when the finger goes down, onRelease when it leaves.
+// hold arrow button = hold key (press on down, release on up/leave)
 const ARROWS = [
   ['up', '▲'],
   ['left', '◀'],
@@ -32,7 +30,7 @@ export default function MovieVerseControls({ onPress, onRelease }) {
             aria-label={direction}
             className={'pad-' + direction}
             onPointerDown={(e) => {
-              e.stopPropagation() // do not also "walk to the click"
+              e.stopPropagation() // don't also walk to the click
               onPress(direction)
             }}
             onPointerUp={() => onRelease(direction)}

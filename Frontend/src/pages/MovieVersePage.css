@@ -162,7 +162,7 @@
   gap: 8px;
 }
 
-/* "Live data" / "Sample data" badge */
+/* "Live data" / "Offline" badge */
 .mv-data-badge {
   display: flex;
   align-items: center;
@@ -189,6 +189,12 @@
 .mv-data-badge.live i {
   background: #6ee7b7;
   box-shadow: 0 0 8px #6ee7b7;
+}
+.mv-data-badge.error {
+  color: #fca5a5;
+}
+.mv-data-badge.error i {
+  background: #f87171;
 }
 
 .icon-button {
@@ -270,12 +276,6 @@
     radial-gradient(1.5px 1.5px at 230px 180px, #a5f3fc, transparent),
     radial-gradient(2px 2px at 150px 260px, #f9a8d4, transparent);
   background-size: 320px 320px;
-  animation: twinkle 4s ease-in-out infinite;
-}
-@keyframes twinkle {
-  50% {
-    opacity: 0.4;
-  }
 }
 
 .walk-plane {
@@ -313,10 +313,10 @@
     0 0 50px #38bdf866,
     0 0 120px #38bdf833;
 }
-/* land and clouds are twice as wide as the planet and slide to the left.
+/* The land is twice as wide as the planet and slides slowly to the left.
    The pattern repeats every planet-width (background-size: 50%), so after
-   sliding half their width (= one planet) they look the same again:
-   the loop never jumps. */
+   sliding half its width (= one planet) it looks the same again:
+   the loop never jumps. (The clouds use the same size but stay still.) */
 .earth span,
 .portal-earth .portal-door span {
   position: absolute;
@@ -337,14 +337,13 @@
     radial-gradient(ellipse 7% 9% at 88% 42%, #9ccc65 70%, transparent 72%);
   animation: earth-turn 60s linear infinite;
 }
-/* clouds, turning a bit faster than the land */
+/* clouds */
 .earth span:nth-child(2),
 .portal-earth .portal-door span:nth-child(2) {
   background-image:
     radial-gradient(ellipse 18% 5% at 30% 20%, #ffffffbb 60%, transparent 70%),
     radial-gradient(ellipse 14% 4% at 70% 50%, #ffffffaa 60%, transparent 70%),
     radial-gradient(ellipse 20% 5% at 45% 80%, #ffffff99 60%, transparent 70%);
-  animation: earth-turn 40s linear infinite;
 }
 /* sunlight on the top-left, night on the bottom-right (does not move) */
 .earth span:nth-child(3),
@@ -381,10 +380,8 @@
 .walk-place.current {
   border-color: #e9ddff;
 }
-/* The spinning ring: a dashed circle that turns around, squeezed flat
-   with scaleY(0.5) so it looks like it lies on the floor.
-   (Turning a circle, then squeezing it, keeps the oval shape still while
-   the dashes move around it.) */
+/* The dashed ring: a dashed circle squeezed flat with scaleY(0.5), so it
+   looks like it lies on the floor around the place. */
 .walk-place-ring {
   position: absolute;
   left: 50%;
@@ -394,21 +391,13 @@
   border: 3px dashed #c4b5fd88;
   border-radius: 50%;
   pointer-events: none;
-  animation: ring-spin 8s linear infinite;
+  transform: translate(-50%, -50%) scaleY(0.5);
 }
 .walk-place-icon {
   font-size: 30px;
 }
 .walk-place b {
   font: 600 20px 'Space Grotesk';
-}
-@keyframes ring-spin {
-  from {
-    transform: translate(-50%, -50%) scaleY(0.5) rotate(0deg);
-  }
-  to {
-    transform: translate(-50%, -50%) scaleY(0.5) rotate(360deg);
-  }
 }
 
 /* ---------- dimension portals ---------- */
@@ -459,7 +448,7 @@
   height: 260px;
   animation: portal-float 4s ease-in-out infinite;
 }
-/* the 3 animated layers of every door */
+/* the 3 layers of every door (only the whole door moves: it floats) */
 .portal-door span {
   position: absolute;
   inset: 0;
@@ -478,16 +467,11 @@
     translate: 0 -10px;
   }
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 /* Trending: an orange hexagon tunnel.
    Each span is a hexagon ring: an outer hexagon with an inner one cut out
-   (evenodd = where the shapes overlap becomes a hole). The 3 rings grow
-   from the middle one after another, so it looks like flying into a tunnel. */
+   (evenodd = where the shapes overlap becomes a hole). The 3 rings have
+   different sizes, so together they look like a tunnel. */
 .portal-hex .portal-door {
   background: radial-gradient(
     circle,
@@ -517,32 +501,17 @@
     90% 30%,
     50% 10%
   );
-  animation: hex-tunnel 2.4s linear infinite;
 }
 .portal-hex .portal-door span:nth-child(2) {
-  animation-delay: -0.8s;
+  transform: scale(0.66);
+  opacity: 0.8;
 }
 .portal-hex .portal-door span:nth-child(3) {
-  animation-delay: -1.6s;
-}
-@keyframes hex-tunnel {
-  from {
-    transform: scale(0.15) rotate(0deg);
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  85% {
-    opacity: 1;
-  }
-  to {
-    transform: scale(1.1) rotate(60deg);
-    opacity: 0;
-  }
+  transform: scale(0.33);
+  opacity: 0.6;
 }
 
-/* Discover: a glitchy black hole with comic-book dots (Spider-Verse feel) */
+/* Discover: a black hole with comic-book dots (Spider-Verse feel) */
 .portal-glitch .portal-door {
   border-radius: 50%;
   background: radial-gradient(circle, #000 0 34%, #3b0764 46%, transparent 47%);
@@ -564,7 +533,6 @@
     #000 60%,
     transparent 68%
   );
-  animation: spin 14s linear infinite;
 }
 .portal-glitch .portal-door span:nth-child(2) {
   inset: 18px;
@@ -577,32 +545,16 @@
     #000 50%,
     transparent 66%
   );
-  animation: spin 9s linear infinite reverse;
 }
-/* a teal outline that sometimes jumps to the side (the glitch) */
+/* a teal outline, a little to the side (a comic-book misprint) */
 .portal-glitch .portal-door span:nth-child(3) {
   border-radius: 50%;
   border: 3px solid #5eead4;
-  animation: glitch-shift 2.2s steps(1) infinite;
+  transform: translate(-4px, 2px);
 }
-@keyframes glitch-shift {
-  0%,
-  28%,
-  100% {
-    transform: translate(0, 0);
-    border-color: #5eead4;
-  }
-  20% {
-    transform: translate(-6px, 3px);
-    border-color: #f0abfc;
-  }
-  24% {
-    transform: translate(5px, -2px);
-  }
-}
-/* Community (and the way back to the hub): a spinning blue galaxy.
-   conic-gradient = colours going around the middle like a clock;
-   spinning it makes a swirl. */
+/* Community (and the way back to the hub): a blue galaxy.
+   conic-gradient = colours going around the middle like a clock; two of
+   them, one turned a bit, make a swirl. */
 .portal-galaxy .portal-door {
   border-radius: 50%;
   background: radial-gradient(
@@ -634,22 +586,19 @@
     #000 52%,
     transparent 68%
   );
-  animation: spin 6s linear infinite;
 }
 .portal-galaxy .portal-door span:nth-child(2) {
   inset: 30px;
   opacity: 0.7;
-  animation-duration: 4s;
-  animation-direction: reverse;
+  transform: rotate(140deg);
 }
-/* tiny stars turning slowly */
+/* tiny stars */
 .portal-galaxy .portal-door span:nth-child(3) {
   border-radius: 50%;
   background: radial-gradient(circle, #fff 1.5px, transparent 2.5px) 0 0 / 22px
     22px;
   mask-image: radial-gradient(circle, #000 20%, transparent 60%);
   opacity: 0.6;
-  animation: spin 20s linear infinite;
 }
 
 /* Clubs & you: a small Earth (its look is in the "Earth" section) */
@@ -743,7 +692,6 @@
   width: 40px;
   height: 40px;
   font-size: 15px;
-  animation: friend-idle 3s ease-in-out infinite;
 }
 .walk-friend.near .friend-avatar,
 .walk-friend:hover .friend-avatar {
@@ -758,11 +706,6 @@
 @keyframes walk-bob {
   to {
     translate: 0 -6px;
-  }
-}
-@keyframes friend-idle {
-  50% {
-    translate: 0 -4px;
   }
 }
 

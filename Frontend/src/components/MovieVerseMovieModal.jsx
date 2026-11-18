@@ -2,7 +2,6 @@ import { Heart, MessageCircle, Star, X } from 'lucide-react'
 import MoviePosterImage from './MoviePosterImage'
 import { formatRating } from '../api/movies'
 
-// Movie details: rating, watchlist and review.
 export default function MovieVerseMovieModal({
   movie,
   myRating,

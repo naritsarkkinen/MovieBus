@@ -7,7 +7,7 @@ import { maps, placeAt, placeSpawn } from '../data/MovieVerseWorldLayout'
 const SPEED = 330
 const RUN_SPEED = 560
 const REACH = 120
-// where the player sits on screen (matches .walk-plane left / top in CSS)
+// player's spot on screen (same as .walk-plane in CSS)
 const CAMERA_X = 0.5
 const CAMERA_Y = 0.62
 const MOVE_KEYS = {
@@ -30,8 +30,6 @@ function isTyping(target) {
   )
 }
 
-// The walkable world. mapId says which map ("dimension") you are in:
-// 'hub' or 'clubs' (see data/MovieVerseWorldLayout.js).
 // eslint-disable-next-line max-lines-per-function
 export default function MovieVerseWorld({
   mapId,
@@ -54,8 +52,7 @@ export default function MovieVerseWorld({
   const [nearest, setNearest] = useState(null)
   const map = maps[mapId]
 
-  // Which friends are in this map: in the hub the friends you have not
-  // invited yet, in your dimension the ones you invited to Friday Film Club.
+  // hub = not invited friends, clubs = invited friends
   const friendsHere = friends
     .filter((f) => invited.has(f.name) === (mapId === 'clubs'))
     .map((f, i) => ({
@@ -63,9 +60,7 @@ export default function MovieVerseWorld({
       spot: map.friendSpots[i % map.friendSpots.length],
     }))
 
-  // "spots" = things you can walk up to and use (the friends here).
-  // Nothing is solid: you walk through people, so a crowd can never
-  // block anyone. radius = how big it is, enabled = can you use it.
+  // spot = something you can walk to and press F on
   const spots = friendsHere.map((f) => ({
     id: 'friend-' + f.name,
     ...f.spot,
@@ -76,26 +71,25 @@ export default function MovieVerseWorld({
     use: () => onOpenFriend(f),
   }))
 
-  // all mutable game state lives in a ref so moving does not re-render React
+  // ref, not state: changes 60x/s without re-rendering React
   const game = useRef({
     x: maps.hub.spawn.x,
     y: maps.hub.spawn.y,
     zoom: 1,
     keys: new Set(),
-    target: null, // where a click / tap asked us to walk
+    target: null, // clicked point to walk to
     facingLeft: false,
     moving: false,
-    place: null, // id of the place we stand on, or null
+    place: null,
     nearestId: null,
-    drawn: '', // last position written to the screen
+    drawn: '', // last drawn position → skip drawing if same
   })
-  // re-read the spot every render so its action is never stale
   const current = nearest && spots.find((s) => s.id === nearest.id)
+  // loop runs once, so it reads fresh props from here
   const latest = useRef({})
   latest.current = { map, spots, onPlaceChange, nearest: current }
 
-  // travelled to another map: you always arrive in its middle (spawn),
-  // never next to a portal, so you can't walk back in by accident
+  // new map → start in the middle (not on a portal)
   const prevMap = useRef(mapId)
   useEffect(() => {
     if (prevMap.current === mapId) return
@@ -105,26 +99,24 @@ export default function MovieVerseWorld({
     g.y = map.spawn.y
     g.place = null
     g.target = null
-    g.keys.clear() // stop: don't keep walking just because a key was held
-    g.drawn = '' // draw again even if the numbers happen to be the same
+    g.keys.clear()
+    g.drawn = '' // force redraw
   }, [mapId, map])
 
-  // jump to a place when a zone is picked in the top bar
-  // (runs after the map effect above, so it uses the new map)
+  // top bar zone click → jump to that place
   const prevZone = useRef(zone)
   useEffect(() => {
     const g = game.current
     if (prevZone.current === zone) return
     prevZone.current = zone
-    if (g.place === zone) return // already standing there
+    if (g.place === zone) return
     const p = placeSpawn(map, zone)
-    if (!p) return // this map does not have that place
+    if (!p) return
     g.x = p.x
     g.y = p.y
-    g.place = zone // the page opens it itself, no need to tell it again
+    g.place = zone
   }, [zone, map])
 
-  // keyboard
   useEffect(() => {
     const g = game.current
     if (paused) {
@@ -134,7 +126,7 @@ export default function MovieVerseWorld({
     const down = (e) => {
       if (isTyping(e.target)) return
       const key = e.key.toLowerCase()
-      // Enter / Space on a focused button should just press that button
+      // Enter/Space on a button = press the button, not F-action
       const onButton =
         e.target instanceof HTMLElement && e.target.closest('button')
       if (MOVE_KEYS[key]) {
@@ -164,7 +156,7 @@ export default function MovieVerseWorld({
     }
   }, [paused])
 
-  // smaller screens see more of the map
+  // small screen → zoom out
   useEffect(() => {
     const fit = () => {
       const w = viewportRef.current?.clientWidth || window.innerWidth
@@ -176,24 +168,22 @@ export default function MovieVerseWorld({
     return () => window.removeEventListener('resize', fit)
   }, [])
 
-  // game loop: the browser calls tick() about 60 times per second
+  // GAME LOOP: tick() ~60x/s → move, stay in map, place?, nearest?, draw
   useEffect(() => {
-    // moves the map, the player and the minimap dot on the screen
     function draw(g) {
-      // the camera: move the map the other way so the player stays centred
+      // camera: move the map opposite → player stays in the middle
       planeRef.current.style.transform = `scale(${g.zoom}) translate(${-g.x}px, ${-g.y}px)`
 
       const player = playerRef.current
       player.style.transform = `translate(${g.x}px, ${g.y}px) translate(-50%, -100%)`
-      player.style.zIndex = Math.round(g.y) // lower on screen = in front
+      player.style.zIndex = Math.round(g.y) // lower = in front
       player.classList.toggle('walking', g.moving)
       player.classList.toggle('facing-left', g.facingLeft)
 
       minimapDotRef.current.setAttribute('cx', Math.round(g.x))
       minimapDotRef.current.setAttribute('cy', Math.round(g.y))
 
-      // parallax: the stars move slower than the floor, so they look far
-      // away (far stars 10 % of your speed, near stars 25 %)
+      // parallax: slower stars look further away
       starsFarRef.current.style.transform = starShift(g, 0.1, 200)
       starsNearRef.current.style.transform = starShift(g, 0.25, 320)
     }
@@ -202,21 +192,21 @@ export default function MovieVerseWorld({
     let last = performance.now()
 
     function tick(now) {
-      // seconds since the last frame (max 0.05 so a slow frame is no big jump)
+      // dt = seconds since last frame (max 0.05 → no big jumps)
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       const g = game.current
       const { map, spots } = latest.current
 
-      // 1. move towards the pressed keys or the clicked point
+      // 1. move
       const direction = moveDirection(g)
       g.moving = direction.x !== 0 || direction.y !== 0
       if (g.moving) movePlayer(g, direction, dt)
 
-      // 2. do not walk out of the map
+      // 2. stay in map
       stayInsideMap(g, map)
 
-      // 3. tell the page when we step onto a place (or off it)
+      // 3. stepped on/off a place → tell the page
       const here = placeAt(map, g.x, g.y)
       const hereId = here ? here.id : null
       if (hereId !== g.place) {
@@ -224,15 +214,15 @@ export default function MovieVerseWorld({
         latest.current.onPlaceChange(hereId)
       }
 
-      // 4. the closest thing we can use gets the "Press F" prompt
+      // 4. closest spot gets the "F" prompt
       const best = nearestSpot(g, spots)
       const bestId = best ? best.id : null
       if (bestId !== g.nearestId) {
         g.nearestId = bestId
-        setNearest(best) // only this re-renders React, and only on change
+        setNearest(best) // only React update in the loop
       }
 
-      // 5. draw, but only when something changed (saves battery on phones)
+      // 5. draw only if something changed
       const position = `${g.x},${g.y},${g.zoom},${g.moving},${g.facingLeft}`
       if (position !== g.drawn) {
         g.drawn = position
@@ -243,10 +233,10 @@ export default function MovieVerseWorld({
     }
 
     frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame) // stop the loop when the page closes
+    return () => cancelAnimationFrame(frame)
   }, [])
 
-  // click / tap on the floor: walk there
+  // screen click → map coordinates (undo camera + zoom)
   function walkToPointer(e) {
     if (paused || e.button > 0) return
     if (e.target instanceof Element && e.target.closest('button')) return
@@ -264,7 +254,6 @@ export default function MovieVerseWorld({
       className={'walk-world map-' + mapId}
       onPointerDown={walkToPointer}
     >
-      {/* space: two star layers that move at different speeds (parallax) */}
       <div ref={starsFarRef} className="walk-stars far" />
       <div ref={starsNearRef} className="walk-stars near" />
       <div
@@ -272,8 +261,6 @@ export default function MovieVerseWorld({
         className="walk-plane"
         style={{ width: map.width, height: map.height }}
       >
-        {/* the middle: the Earth you stand on (3 layers: land, clouds,
-            light) and the places around it */}
         <div
           className="walk-hub earth"
           style={{ left: map.spawn.x, top: map.spawn.y }}
@@ -298,7 +285,6 @@ export default function MovieVerseWorld({
           ),
         )}
 
-        {/* sign above the spawn point */}
         <div
           className="billboard walk-sign"
           style={{ left: map.sign.x, top: map.sign.y, zIndex: map.sign.y }}
@@ -308,7 +294,6 @@ export default function MovieVerseWorld({
           <small>{map.sign.sub}</small>
         </div>
 
-        {/* friends (simulated): walk up and talk */}
         {friendsHere.map((f) => {
           const isNear = current?.id === 'friend-' + f.name
           return (
@@ -328,7 +313,6 @@ export default function MovieVerseWorld({
           )
         })}
 
-        {/* you */}
         <div ref={playerRef} className="billboard walk-player">
           <div className="player-bubble">{name}</div>
           <div className={'player-avatar skin-' + skin}>
@@ -338,7 +322,6 @@ export default function MovieVerseWorld({
         </div>
       </div>
 
-      {/* on top of the world */}
       <MovieVerseMinimap map={map} zone={zone} dotRef={minimapDotRef} />
       <MovieVerseControls
         onPress={(direction) => game.current.keys.add(direction)}
@@ -358,29 +341,25 @@ export default function MovieVerseWorld({
   )
 }
 
-// ----- game loop helpers (g = the game state object) -----
-
-// Which way does the player want to go? Keys win over a clicked point.
-// Returns { x, y }: e.g. { x: 1, y: 0 } = right, { x: 0, y: 0 } = stand still.
+// keys win over click. {1,0} = right, {0,0} = stand
 function moveDirection(g) {
   const keyX = (g.keys.has('right') ? 1 : 0) - (g.keys.has('left') ? 1 : 0)
   const keyY = (g.keys.has('down') ? 1 : 0) - (g.keys.has('up') ? 1 : 0)
   if (keyX !== 0 || keyY !== 0) {
-    g.target = null // pressing a key cancels the click target
+    g.target = null
     return { x: keyX, y: keyY }
   }
   if (!g.target) return { x: 0, y: 0 }
 
   const toTarget = { x: g.target.x - g.x, y: g.target.y - g.y }
   if (Math.hypot(toTarget.x, toTarget.y) < 8) {
-    g.target = null // arrived
+    g.target = null
     return { x: 0, y: 0 }
   }
   return toTarget
 }
 
-// Moves the player. The direction is divided by its length so walking
-// diagonally is not faster than walking straight.
+// divide by length → diagonal is not faster
 function movePlayer(g, direction, dt) {
   const length = Math.hypot(direction.x, direction.y)
   const speed = g.keys.has('run') ? RUN_SPEED : SPEED
@@ -389,24 +368,19 @@ function movePlayer(g, direction, dt) {
   if (direction.x !== 0) g.facingLeft = direction.x < 0
 }
 
-// How far to move a star layer. speed = part of your speed (0.1 = 10 %).
-// The star pattern repeats every `tile` px, so moving it by a whole tile
-// looks exactly the same: % tile keeps the number small and the stars endless.
-// (transform is done by the graphics card, so this is cheap every frame)
+// pattern repeats every tile px → % tile = endless stars
 function starShift(g, speed, tile) {
   const x = -(g.x * speed) % tile
   const y = -(g.y * speed) % tile
   return `translate(${x}px, ${y}px)`
 }
 
-// Keeps the player inside the map (40 px away from the edges).
 function stayInsideMap(g, map) {
   g.x = Math.max(40, Math.min(map.width - 40, g.x))
   g.y = Math.max(60, Math.min(map.height - 40, g.y))
 }
 
-// The closest enabled spot within REACH pixels, or null.
-// (s.y + 40 = measure from just in front of the spot, where you stand)
+// closest spot within REACH (s.y + 40 = in front of it)
 function nearestSpot(g, spots) {
   let best = null
   let bestDistance = REACH

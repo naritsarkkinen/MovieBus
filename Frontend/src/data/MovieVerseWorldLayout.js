@@ -1,21 +1,11 @@
-// The maps ("dimensions") of the MovieVerse, in world pixels.
-// (0, 0) is the top-left corner of a map, x grows right, y grows down.
-//
-// hub   = the shared space where everyone spawns. 4 portals lead to the
-//         dimensions: 3 movie dimensions and your own Clubs & you dimension.
-// clubs = your own dimension: only your stuff, and a portal back to the hub.
-//
-// Travelling to a map always puts you on its spawn point (the middle), so
-// you never land next to a portal and walk back in by accident.
-//
-// A place with `portal` is an upright dimension door (the value is its look).
-// A place without it is a flat glowing "station" on the floor.
+// pixels, (0,0) = top-left. hub = shared space with 4 portals,
+// clubs = your own map. place with `portal` = door, without = floor station
 export const maps = {
   hub: {
     id: 'hub',
     width: 2800,
     height: 2000,
-    spawn: { x: 1400, y: 1000 }, // the middle (on the Earth)
+    spawn: { x: 1400, y: 1000 },
     sign: {
       x: 1400,
       y: 700,
@@ -57,7 +47,6 @@ export const maps = {
         portal: 'earth',
       },
     ],
-    // friends you have not invited yet hang around in the hub
     friendSpots: [
       { x: 1180, y: 1180 },
       { x: 1630, y: 1180 },
@@ -90,7 +79,6 @@ export const maps = {
         portal: 'galaxy',
       },
     ],
-    // friends you invited wait next to the Friday Film Club
     friendSpots: [
       { x: 1160, y: 1040 },
       { x: 1480, y: 1040 },
@@ -99,33 +87,25 @@ export const maps = {
   },
 }
 
-// Every place is an oval on the floor (for a portal: its glowing base):
-// 170 px from the middle to the left/right edge, 85 px to the top/bottom.
 export const PLACE_SIZE = { rx: 170, ry: 85 }
 
-// Is the point (x, y) inside the oval of place p?
-// Oval formula: (dx / rx)² + (dy / ry)² < 1
+// inside oval if (dx/rx)² + (dy/ry)² < 1
 export function isOnPlace(p, x, y) {
   const dx = (x - p.x) / PLACE_SIZE.rx
   const dy = (y - p.y) / PLACE_SIZE.ry
   return dx * dx + dy * dy < 1
 }
 
-// the place you are standing on in this map, or null
 export function placeAt(map, x, y) {
   return map.places.find((p) => isOnPlace(p, x, y)) || null
 }
 
-// the middle of a place (for jumping there from the top bar),
-// or null if this map does not have that place
 export function placeSpawn(map, id) {
   const place = map.places.find((p) => p.id === id)
   return place ? { x: place.x, y: place.y } : null
 }
 
-// Every movie goes to one of the 3 movie dimensions:
-// the best rated third -> Community, the next third -> Trending,
-// the rest -> Discover.
+// best rated third → Community, next third → Trending, rest → Discover
 export function splitMovies(movies) {
   const perPlace = Math.max(1, Math.ceil(movies.length / 3))
   const community = [...movies]

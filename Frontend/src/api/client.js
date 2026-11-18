@@ -1,15 +1,9 @@
-// Shared helper for every call to the MovieVerse API.
-
-// Use Vite's proxy locally, or set VITE_API_URL to a public API base.
 export const API_URL = import.meta.env.VITE_API_URL ?? '/api'
 
 export function hasApi(baseUrl = API_URL) {
   return Boolean(baseUrl)
 }
 
-// Sends one request and returns the JSON answer.
-// Throws an error if there is no API address, the server answers with an
-// error status, or there is no answer within 5 seconds.
 export async function apiRequest(
   path,
   { method = 'GET', body, baseUrl = API_URL } = {},
@@ -26,6 +20,6 @@ export async function apiRequest(
     const problem = await res.json().catch(() => null)
     throw new Error(problem?.error || 'API answered ' + res.status)
   }
-  if (res.status === 204) return null // "No Content"
+  if (res.status === 204) return null // 204 = no body
   return res.json()
 }

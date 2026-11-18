@@ -1,7 +1,6 @@
 import { Film, LayoutGrid, Search, Users } from 'lucide-react'
 import MovieVerseGenreFilter from './MovieVerseGenreFilter'
 
-// The thin bar on top of the world: logo, zones, search, catalogue, profile.
 export default function MovieVerseHud({
   zones,
   zone,
@@ -12,6 +11,7 @@ export default function MovieVerseHud({
   onGenre,
   onCatalogue,
   dataSource,
+  loadError,
   onFriends,
   friendCount,
   name,
@@ -63,7 +63,7 @@ export default function MovieVerseHud({
               ? 'Movies are loaded from the MovieVerse API'
               : dataSource === 'loading'
                 ? 'Loading movies'
-                : 'Showing sample movies'
+                : 'Could not reach the MovieVerse API: ' + loadError
           }
         >
           <i />
@@ -71,7 +71,7 @@ export default function MovieVerseHud({
             ? 'Live data'
             : dataSource === 'loading'
               ? 'Loading…'
-              : 'Sample data'}
+              : 'Offline'}
         </span>
         <button className="mv-hud-button" onClick={onCatalogue}>
           <LayoutGrid size={16} /> Catalogue
