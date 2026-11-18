@@ -1,0 +1,1838 @@
+/*
+  MovieVerse page styles.
+  Sections:
+    1. Page and top bar (HUD)
+    2. Walkable world
+    3. Posters and avatars
+    4. Friends panel
+    5. Overlay panels (catalogue, watchlist, communities, friend)
+       + card stack
+    6. Movie popup
+    7. Profile popup
+    8. Buttons and toast
+    9. Small screens
+*/
+
+/* ---------- 1. Page and top bar (HUD) ---------- */
+.mv-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #090914;
+}
+
+.mv-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px 30px;
+  background: linear-gradient(#090914f0, #090914c0 60%, #09091400);
+  pointer-events: none;
+}
+.mv-hud > * {
+  pointer-events: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 700 18px 'Space Grotesk';
+  letter-spacing: 1.5px;
+  margin: 0 0 10px;
+}
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #a78bfa, #6554d9);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 25px #8b5cf655;
+}
+.brand-accent {
+  color: #a78bfa;
+}
+
+.mv-hud-zones {
+  display: flex;
+  gap: 6px;
+}
+.mv-hud-zones button,
+.mv-hud-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ffffff18;
+  background: #15112bcc;
+  color: #bcb5d0;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 14px;
+}
+.mv-hud-zones button.selected {
+  border-color: #a78bfa;
+  color: #fff;
+  background: #8b5cf644;
+}
+.mv-hud-button {
+  height: 42px;
+  padding: 0 12px;
+}
+.mv-hud-button:hover {
+  border-color: #a78bfa88;
+  color: #fff;
+}
+
+.mv-hud-center {
+  flex: 1;
+  min-width: 0;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-box {
+  height: 42px;
+  min-width: 0;
+  width: 100%;
+  flex: 1;
+  border: 1px solid #ffffff16;
+  border-radius: 9px;
+  background: #15112bdd;
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  gap: 10px;
+  color: #77718d;
+}
+.search-box input {
+  min-width: 0;
+  width: 100%;
+  background: none;
+  border: 0;
+  outline: 0;
+  color: white;
+  flex: 1;
+  font-size: 14px;
+}
+.search-box input::placeholder {
+  color: #716b86;
+}
+.search-box kbd {
+  font: 9px 'DM Mono';
+  padding: 4px 6px;
+  border: 1px solid #ffffff20;
+  border-radius: 4px;
+  color: #8f89a7;
+}
+
+.genre-row {
+  display: flex;
+  gap: 7px;
+  margin: 0;
+  flex-wrap: wrap;
+}
+.genre {
+  border: 1px solid #ffffff13;
+  background: #15112bcc;
+  color: #8f89a6;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.genre.active-genre {
+  background: #8b5cf625;
+  border-color: #a78bfa55;
+  color: #d7caff;
+}
+
+.mv-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* "Live data" / "Offline" badge */
+.mv-data-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 18px;
+  border: 1px solid #ffffff18;
+  background: #15112bcc;
+  font: 12px 'DM Mono';
+  letter-spacing: 0.5px;
+  color: #a69bc9;
+  white-space: nowrap;
+}
+.mv-data-badge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8c87a2;
+}
+.mv-data-badge.live {
+  color: #a7f3d0;
+}
+.mv-data-badge.live i {
+  background: #6ee7b7;
+  box-shadow: 0 0 8px #6ee7b7;
+}
+.mv-data-badge.error {
+  color: #fca5a5;
+}
+.mv-data-badge.error i {
+  background: #f87171;
+}
+
+.icon-button {
+  border: 1px solid #ffffff18;
+  background: #ffffff08;
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  color: #bdb6d1;
+}
+.tiny-count {
+  position: absolute;
+  right: -4px;
+  top: -5px;
+  background: #8b5cf6;
+  border-radius: 8px;
+  font-size: 8px;
+  padding: 2px 5px;
+  color: white;
+}
+.user-chip {
+  border: 1px solid #ffffff18;
+  background: #ffffff08;
+  border-radius: 20px;
+  padding: 6px 14px 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.user-chip span {
+  font-size: 20px;
+}
+
+/* ---------- 2. Walkable world: space (plain CSS 2D, no WebGL) ---------- */
+.walk-world {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /* space: almost black, with coloured nebula clouds */
+  background:
+    radial-gradient(ellipse at 18% 25%, #7c3aed38, transparent 45%),
+    radial-gradient(ellipse at 85% 70%, #0d948830, transparent 45%),
+    radial-gradient(ellipse at 60% 10%, #db277724, transparent 40%), #05040b;
+  touch-action: none;
+  user-select: none;
+  isolation: isolate;
+}
+/* your own dimension (Clubs & you) is "home": calm blue and green */
+.walk-world.map-clubs {
+  background:
+    radial-gradient(ellipse at 25% 30%, #0ea5e933, transparent 45%),
+    radial-gradient(ellipse at 80% 75%, #22c55e26, transparent 45%), #030712;
+}
+
+/* Stars: a small tile of dots, repeated over the whole screen.
+   The game loop moves the layers slower than you walk (parallax),
+   so the stars look very far away. */
+.walk-stars {
+  position: absolute;
+  inset: -400px; /* bigger than the screen, so moving it shows no edges */
+  pointer-events: none;
+  will-change: transform; /* moved every frame: give it its own GPU layer */
+}
+.walk-stars.far {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff8, transparent),
+    radial-gradient(1px 1px at 120px 90px, #fff6, transparent),
+    radial-gradient(1px 1px at 70px 160px, #c4b5fd88, transparent),
+    radial-gradient(1px 1px at 170px 140px, #fff5, transparent);
+  background-size: 200px 200px;
+}
+.walk-stars.near {
+  background-image:
+    radial-gradient(2px 2px at 40px 60px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 230px 180px, #a5f3fc, transparent),
+    radial-gradient(2px 2px at 150px 260px, #f9a8d4, transparent);
+  background-size: 320px 320px;
+}
+
+.walk-plane {
+  position: absolute;
+  /* keep in sync with CAMERA_X / CAMERA_Y in MovieVerseWorld.jsx */
+  left: 50%;
+  top: 62%;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* ---------- Earth ----------
+   The middle of both maps (.walk-hub.earth) and the Clubs & you portal
+   (.portal-earth .portal-door) are the Earth: your home planet.
+   3 layers (spans): land, clouds, and light / shadow on top. */
+.walk-hub {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  transform: translate(-50%, -50%);
+}
+.earth,
+.portal-earth .portal-door {
+  border-radius: 50%;
+  overflow: hidden; /* cut the moving layers to a circle */
+  /* the ocean, lit from the top-left */
+  background: radial-gradient(
+    circle at 35% 30%,
+    #4fc3f7,
+    #1565c0 45%,
+    #0b2559 78%
+  );
+  /* the atmosphere: a soft blue glow around the planet */
+  box-shadow:
+    0 0 50px #38bdf866,
+    0 0 120px #38bdf833;
+}
+/* The land is twice as wide as the planet and slides slowly to the left.
+   The pattern repeats every planet-width (background-size: 50%), so after
+   sliding half its width (= one planet) it looks the same again:
+   the loop never jumps. (The clouds use the same size but stay still.) */
+.earth span,
+.portal-earth .portal-door span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background-size: 50% 100%;
+}
+/* continents: soft green and brown blobs */
+.earth span:nth-child(1),
+.portal-earth .portal-door span:nth-child(1) {
+  background-image:
+    radial-gradient(ellipse 16% 24% at 22% 36%, #43a047 70%, transparent 72%),
+    radial-gradient(ellipse 10% 18% at 32% 66%, #7cb342 70%, transparent 72%),
+    radial-gradient(ellipse 14% 10% at 60% 26%, #8d6e63 70%, transparent 72%),
+    radial-gradient(ellipse 20% 16% at 70% 64%, #388e3c 70%, transparent 72%),
+    radial-gradient(ellipse 7% 9% at 88% 42%, #9ccc65 70%, transparent 72%);
+  animation: earth-turn 60s linear infinite;
+}
+/* clouds */
+.earth span:nth-child(2),
+.portal-earth .portal-door span:nth-child(2) {
+  background-image:
+    radial-gradient(ellipse 18% 5% at 30% 20%, #ffffffbb 60%, transparent 70%),
+    radial-gradient(ellipse 14% 4% at 70% 50%, #ffffffaa 60%, transparent 70%),
+    radial-gradient(ellipse 20% 5% at 45% 80%, #ffffff99 60%, transparent 70%);
+}
+/* sunlight on the top-left, night on the bottom-right (does not move) */
+.earth span:nth-child(3),
+.portal-earth .portal-door span:nth-child(3) {
+  width: 100%;
+  background:
+    radial-gradient(circle at 30% 25%, #ffffff40, transparent 35%),
+    radial-gradient(circle at 75% 80%, #000000aa, transparent 65%);
+}
+@keyframes earth-turn {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* a place you can walk onto: an oval "portal" on the floor
+   (340 × 170 px = PLACE_SIZE in MovieVerseWorldLayout.js, times 2) */
+.walk-place {
+  position: absolute;
+  width: 340px;
+  height: 170px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%; /* 50% on a wide box = an oval */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+  background: radial-gradient(ellipse, #a78bfa55, #8b5cf611 70%);
+  border: 2px solid #a78bfa66;
+  box-shadow: 0 0 60px #8b5cf644;
+}
+.walk-place.current {
+  border-color: #e9ddff;
+}
+/* The dashed ring: a dashed circle squeezed flat with scaleY(0.5), so it
+   looks like it lies on the floor around the place. */
+.walk-place-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 380px;
+  height: 380px;
+  border: 3px dashed #c4b5fd88;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scaleY(0.5);
+}
+.walk-place-icon {
+  font-size: 30px;
+}
+.walk-place b {
+  font: 600 20px 'Space Grotesk';
+}
+
+/* ---------- dimension portals ---------- */
+/* every look has its own colour: --portal (strong) and --portal-soft */
+.portal-hex {
+  --portal: #fb923c;
+  --portal-soft: #fb923c44;
+}
+.portal-glitch {
+  --portal: #2dd4bf;
+  --portal-soft: #2dd4bf44;
+}
+.portal-galaxy {
+  --portal: #60a5fa;
+  --portal-soft: #60a5fa44;
+}
+.portal-earth {
+  --portal: #38bdf8;
+  --portal-soft: #38bdf844;
+}
+
+/* the glowing base on the floor (PLACE_SIZE × 2): you step onto this */
+.portal-base {
+  position: absolute;
+  width: 340px;
+  height: 170px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--portal-soft), transparent 70%);
+  border: 2px solid var(--portal);
+  box-shadow: 0 0 60px var(--portal-soft);
+}
+.portal-base .walk-place-ring {
+  border-color: var(--portal);
+}
+
+/* the door, standing up above its base */
+.portal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none; /* clicks go through to the floor */
+}
+.portal-door {
+  position: relative;
+  width: 220px;
+  height: 260px;
+  animation: portal-float 4s ease-in-out infinite;
+}
+/* the 3 layers of every door (only the whole door moves: it floats) */
+.portal-door span {
+  position: absolute;
+  inset: 0;
+}
+.portal-label {
+  font: 600 18px 'Space Grotesk';
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #0b0820cc;
+  border: 1px solid var(--portal);
+  box-shadow: 0 0 20px var(--portal-soft);
+  white-space: nowrap;
+}
+@keyframes portal-float {
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+/* Trending: an orange hexagon tunnel.
+   Each span is a hexagon ring: an outer hexagon with an inner one cut out
+   (evenodd = where the shapes overlap becomes a hole). The 3 rings have
+   different sizes, so together they look like a tunnel. */
+.portal-hex .portal-door {
+  background: radial-gradient(
+    circle,
+    #fff 0,
+    #e9d5ff 8%,
+    #7c3aed 30%,
+    #1e1b4b 58%,
+    transparent 60%
+  );
+}
+.portal-hex .portal-door span {
+  background: linear-gradient(135deg, #fde047, #fb923c 45%, #ea580c);
+  clip-path: polygon(
+    evenodd,
+    50% 0%,
+    100% 25%,
+    100% 75%,
+    50% 100%,
+    0% 75%,
+    0% 25%,
+    50% 0%,
+    50% 10%,
+    10% 30%,
+    10% 70%,
+    50% 90%,
+    90% 70%,
+    90% 30%,
+    50% 10%
+  );
+}
+.portal-hex .portal-door span:nth-child(2) {
+  transform: scale(0.66);
+  opacity: 0.8;
+}
+.portal-hex .portal-door span:nth-child(3) {
+  transform: scale(0.33);
+  opacity: 0.6;
+}
+
+/* Discover: a black hole with comic-book dots (Spider-Verse feel) */
+.portal-glitch .portal-door {
+  border-radius: 50%;
+  background: radial-gradient(circle, #000 0 34%, #3b0764 46%, transparent 47%);
+  box-shadow:
+    0 0 60px #2dd4bf88,
+    inset 0 0 40px #2dd4bf66;
+  animation: portal-float 4s ease-in-out infinite;
+}
+/* halftone dots in a ring around the hole: a dot pattern, with a mask
+   that only shows a ring of it */
+.portal-glitch .portal-door span:nth-child(1) {
+  border-radius: 50%;
+  background: radial-gradient(circle, #f0abfc 2.5px, transparent 3.5px) 0 0 /
+    12px 12px;
+  mask-image: radial-gradient(
+    circle,
+    transparent 33%,
+    #000 36%,
+    #000 60%,
+    transparent 68%
+  );
+}
+.portal-glitch .portal-door span:nth-child(2) {
+  inset: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #a855f7 3px, transparent 4px) 6px 6px /
+    16px 16px;
+  mask-image: radial-gradient(
+    circle,
+    transparent 40%,
+    #000 50%,
+    transparent 66%
+  );
+}
+/* a teal outline, a little to the side (a comic-book misprint) */
+.portal-glitch .portal-door span:nth-child(3) {
+  border-radius: 50%;
+  border: 3px solid #5eead4;
+  transform: translate(-4px, 2px);
+}
+/* Community (and the way back to the hub): a blue galaxy.
+   conic-gradient = colours going around the middle like a clock; two of
+   them, one turned a bit, make a swirl. */
+.portal-galaxy .portal-door {
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fff 0,
+    #bfdbfe 6%,
+    #1d4ed8 22%,
+    #0b1033 58%,
+    transparent 60%
+  );
+  box-shadow: 0 0 70px #3b82f688;
+}
+.portal-galaxy .portal-door span:nth-child(1),
+.portal-galaxy .portal-door span:nth-child(2) {
+  border-radius: 50%;
+  background: conic-gradient(
+    transparent,
+    #60a5fa,
+    transparent 25%,
+    #a78bfa 40%,
+    transparent 55%,
+    #22d3ee 75%,
+    transparent
+  );
+  mask-image: radial-gradient(
+    circle,
+    transparent 10%,
+    #000 30%,
+    #000 52%,
+    transparent 68%
+  );
+}
+.portal-galaxy .portal-door span:nth-child(2) {
+  inset: 30px;
+  opacity: 0.7;
+  transform: rotate(140deg);
+}
+/* tiny stars */
+.portal-galaxy .portal-door span:nth-child(3) {
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 1.5px, transparent 2.5px) 0 0 / 22px
+    22px;
+  mask-image: radial-gradient(circle, #000 20%, transparent 60%);
+  opacity: 0.6;
+}
+
+/* Clubs & you: a small Earth (its look is in the "Earth" section) */
+.portal-earth .portal-door {
+  width: 230px;
+  height: 230px;
+}
+
+/* things that stand up: (left, top) is where their feet touch the floor */
+.billboard {
+  position: absolute;
+  transform: translate(-50%, -100%);
+}
+
+/* welcome sign in the lobby */
+.walk-sign {
+  width: 330px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid #a78bfa66;
+  background: linear-gradient(160deg, #241a47f2, #120f26f2);
+  box-shadow: 0 0 40px #8b5cf644;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+.walk-sign b {
+  font: 600 28px/1.05 'Space Grotesk';
+  letter-spacing: -0.8px;
+}
+.walk-sign em {
+  color: #b9a8ff;
+}
+.walk-sign small {
+  font-size: 11px;
+  color: #a69bc9;
+}
+
+/* while cards or a popup cover the world, its animations pause
+   (nobody can see them, so the computer does not have to draw them) */
+.mv-shell.covered .walk-world *,
+/* (the portal layers need a stronger selector: their own rules like
+   .portal-glitch .portal-door span:nth-child(1) are more specific) */
+.mv-shell.covered .walk-world .portal-door span:nth-child(n) {
+  animation-play-state: paused;
+}
+
+/* the player */
+.walk-player {
+  /* moved every frame with transform (cheaper than left / top) */
+  left: 0;
+  top: 0;
+  will-change: transform;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+.walk-player .player-avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 30px;
+}
+.walk-player.facing-left .player-avatar span {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+.walk-player.walking .player-avatar {
+  animation: walk-bob 0.32s ease-in-out infinite alternate;
+}
+.walk-player .player-bubble {
+  font-size: 10px;
+}
+
+/* friends you can walk up to */
+.walk-friend {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  pointer-events: auto;
+  transition:
+    left 1.4s ease-in-out,
+    top 1.4s ease-in-out;
+}
+.walk-friend .friend-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+}
+.walk-friend.near .friend-avatar,
+.walk-friend:hover .friend-avatar {
+  box-shadow:
+    0 0 0 2px #e9ddff,
+    0 0 24px #a78bfacc;
+}
+.walk-friend .player-bubble {
+  opacity: 0.85;
+}
+
+@keyframes walk-bob {
+  to {
+    translate: 0 -6px;
+  }
+}
+
+/* minimap (SVG) */
+.walk-minimap {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 130px;
+  height: auto;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 5000;
+}
+.mm-bg {
+  fill: #0e0b1ecc;
+  stroke: #a78bfa55;
+  stroke-width: 12;
+}
+.mm-area {
+  fill: #ffffff10;
+  stroke: #ffffff22;
+  stroke-width: 8;
+}
+.mm-area.current {
+  stroke: #e9ddff;
+  stroke-width: 14;
+}
+.mm-you {
+  fill: #fff;
+  stroke: #8b5cf6;
+  stroke-width: 18;
+}
+
+/* keyboard help box */
+.walk-help {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font: 9px 'DM Mono';
+  color: #a29ab8;
+  background: #0e0b1ecc;
+  border: 1px solid #ffffff12;
+  border-radius: 10px;
+  padding: 9px 11px;
+  pointer-events: none;
+  z-index: 5000;
+}
+.walk-help b {
+  color: #ddd0ff;
+  letter-spacing: 1.2px;
+}
+.walk-help kbd {
+  display: inline-block;
+  min-width: 16px;
+  text-align: center;
+  border: 1px solid #ffffff2a;
+  border-radius: 4px;
+  padding: 1px 3px;
+  margin-right: 2px;
+  background: #ffffff0d;
+  color: #e9e4ff;
+  font: inherit;
+}
+
+/* "Press E" prompt */
+.walk-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #a78bfa;
+  background: #1b1533f2;
+  border-radius: 13px;
+  padding: 8px 16px 8px 8px;
+  box-shadow: 0 0 30px #8b5cf688;
+  text-align: left;
+  z-index: 5000;
+  animation: walk-prompt-in 0.2s ease-out;
+}
+.walk-prompt-key {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #8b5cf6;
+  font: 700 14px 'Space Grotesk';
+}
+.walk-prompt small {
+  display: block;
+  font: 8px 'DM Mono';
+  letter-spacing: 1.3px;
+  color: #b5a9db;
+}
+.walk-prompt b {
+  font: 600 14px 'Space Grotesk';
+}
+@keyframes walk-prompt-in {
+  from {
+    opacity: 0;
+    translate: -50% 8px;
+  }
+}
+
+/* arrow buttons, only shown on touch screens (see section 9) */
+.walk-pad-controls {
+  display: none;
+}
+
+/* ---------- 3. Posters and avatars ---------- */
+.eyebrow {
+  font: 500 9px 'DM Mono';
+  letter-spacing: 1.6px;
+  color: #827d9c;
+}
+
+/* dark fade at the bottom of every poster */
+.stack-poster:after,
+.catalog-art:after,
+.modal-art:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, #080713d9 100%);
+}
+.poster-emoji {
+  font-size: 42px;
+  filter: drop-shadow(0 5px 6px #0008);
+  z-index: 1;
+  margin-top: 10px;
+}
+
+/* poster colours when there is no image (movie.color in the data) */
+.poster-sand {
+  background: radial-gradient(circle at 50% 30%, #f4c77b, #8c4c37 60%, #24152c);
+}
+.poster-pink {
+  background: radial-gradient(circle at 50% 30%, #ffb1d0, #a02d83 58%, #191b4c);
+}
+.poster-blue {
+  background: radial-gradient(circle at 50% 30%, #7cb7e6, #244d78 55%, #10172b);
+}
+.poster-violet {
+  background: radial-gradient(circle at 50% 30%, #d1b6ff, #573a9b 58%, #12132c);
+}
+.poster-orange {
+  background: radial-gradient(circle at 50% 30%, #ffcc72, #c55d31 58%, #251332);
+}
+.poster-rose {
+  background: radial-gradient(circle at 50% 30%, #ffb2b7, #a33e70 58%, #241638);
+}
+.poster-green {
+  background: radial-gradient(circle at 50% 30%, #a7d18c, #386b4e 58%, #111b25);
+}
+.poster-gold {
+  background: radial-gradient(circle at 50% 30%, #ffe28b, #b76c3e 58%, #25162e);
+}
+.poster-steel {
+  background: radial-gradient(circle at 50% 30%, #b9d8e6, #496d88 58%, #101a2b);
+}
+
+/* real poster image: it hides the emoji */
+.poster-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+.poster-img ~ .poster-emoji,
+.poster-img ~ .art-emoji {
+  display: none;
+}
+
+/* player avatar and skin colours */
+.player-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  border: 1px solid #c4b5fd88;
+  background: radial-gradient(circle at 30% 20%, #6f57a7, #211a3a);
+  box-shadow: 0 0 22px #a78bfa77;
+  position: relative;
+  z-index: 1;
+}
+.skin-blue {
+  background: radial-gradient(circle at 30% 20%, #55a7bd, #17314d);
+}
+.skin-mint {
+  background: radial-gradient(circle at 30% 20%, #63bd9e, #173d37);
+}
+.skin-rose {
+  background: radial-gradient(circle at 30% 20%, #d778a7, #51253f);
+}
+.skin-gold {
+  background: radial-gradient(circle at 30% 20%, #d7ad57, #4a351d);
+}
+.player-shadow {
+  width: 34px;
+  height: 7px;
+  background: #0009;
+  filter: blur(4px);
+  border-radius: 50%;
+  margin-top: -1px;
+}
+.player-bubble {
+  font: 8px 'DM Mono';
+  background: #171329;
+  border: 1px solid #a78bfa66;
+  padding: 3px 7px;
+  border-radius: 9px;
+  margin-bottom: 4px;
+  color: #ddd0ff;
+  white-space: nowrap;
+}
+
+/* friend avatar and colours */
+.friend-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 600 12px 'Space Grotesk';
+}
+.lavender {
+  background: #493b6d;
+  color: #d9c7ff;
+}
+.mint {
+  background: #28584f;
+  color: #a4f0d4;
+}
+.peach {
+  background: #754d46;
+  color: #ffd0b8;
+}
+
+/* ---------- 4. Friends panel ---------- */
+.friends-panel {
+  position: absolute;
+  top: 120px;
+  right: 16px;
+  z-index: 12;
+  width: 270px;
+  max-height: calc(100vh - 140px);
+  overflow: auto;
+  border: 1px solid #ffffff14;
+  border-radius: 14px;
+  background: #0e0b1ef0;
+  padding: 18px 15px;
+}
+.friends-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.friends-head h3 {
+  font: 600 17px 'Space Grotesk';
+  margin: 5px 0 0;
+}
+.friends-head h3 span {
+  font: 9px 'DM Mono';
+  color: #9d8af0;
+  margin-left: 4px;
+}
+.invite-button {
+  width: 100%;
+  margin: 23px 0 20px;
+  background: #8b5cf61c;
+  border: 1px solid #a78bfa55;
+  color: #d3c5ff;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 10px;
+}
+.invite-button span {
+  font-size: 15px;
+  margin-right: 6px;
+}
+
+.friend-list {
+  display: grid;
+  gap: 15px;
+}
+.friend {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  border-radius: 10px;
+}
+.friend:hover {
+  background: #ffffff0a;
+}
+.friend > div:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+}
+.friend b {
+  font-size: 10px;
+}
+.friend small {
+  font-size: 8px;
+  color: #88829a;
+}
+.friend > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6ee7b7;
+}
+
+.room-card {
+  margin-top: 28px;
+  border: 1px solid #ffffff14;
+  background: linear-gradient(135deg, #211a3b, #131323);
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.room-art {
+  width: 40px;
+  height: 44px;
+  border-radius: 7px;
+  background: radial-gradient(circle at 50% 30%, #c5b3ff, #6741b7 70%);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+.room-card > div:nth-child(2) {
+  display: grid;
+  gap: 4px;
+}
+.room-card b {
+  font: 600 10px 'Space Grotesk';
+}
+.room-card small {
+  font-size: 8px;
+  color: #928ba6;
+}
+.room-card button {
+  grid-column: 1/3;
+  border: 0;
+  background: #ffffff0b;
+  border-radius: 6px;
+  padding: 7px;
+  color: #c6b7ff;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.activity {
+  margin-top: 29px;
+}
+.activity p {
+  font-size: 9px;
+  color: #a39db5;
+  margin: 15px 0 4px;
+}
+.activity p b {
+  color: #d5cee4;
+}
+.activity > small {
+  font-size: 8px;
+  color: #716b85;
+  margin-left: 13px;
+}
+.activity-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: #6ee7b7;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.activity-dot.purple {
+  background: #a78bfa;
+}
+.friends-note {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #706a84;
+  font-size: 8px;
+}
+
+/* ---------- 5. Overlay panels ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #05040bd9;
+  backdrop-filter: blur(9px);
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.modal-close {
+  position: absolute;
+  right: 13px;
+  top: 13px;
+  z-index: 3;
+  border: 1px solid #ffffff25;
+  background: #09091499;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.mv-panel {
+  position: relative;
+  width: min(440px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  background: #120f24;
+  border: 1px solid #ffffff1a;
+  border-radius: 16px;
+  padding: 26px;
+  box-shadow: 0 30px 80px #000a;
+}
+.mv-panel.wide {
+  width: min(860px, 100%);
+}
+.mv-panel h2 {
+  font: 600 24px 'Space Grotesk';
+  margin: 6px 0 14px;
+}
+.mv-panel-sub {
+  font-size: 12px;
+  color: #8c87a2;
+  margin: -6px 0 16px;
+}
+.mv-panel-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mv-panel-actions .primary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* catalogue grid */
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.catalog-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  background: #ffffff06;
+  border: 1px solid #ffffff10;
+  border-radius: 9px;
+  padding: 8px;
+  min-width: 0;
+  transition: 0.2s;
+}
+.catalog-card:hover {
+  background: #ffffff0d;
+  border-color: #a78bfa55;
+  transform: perspective(600px) rotateX(4deg) translateY(-3px);
+  box-shadow: 0 14px 26px #0007;
+}
+.catalog-art {
+  width: 57px;
+  height: 70px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.catalog-art span {
+  font-size: 26px;
+  z-index: 1;
+}
+.catalog-art small {
+  position: absolute;
+  bottom: 5px;
+  left: 4px;
+  z-index: 1;
+  font: 5px 'DM Mono';
+}
+.catalog-info {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.catalog-info b {
+  font: 600 10px 'Space Grotesk';
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.catalog-info small {
+  font-size: 8px;
+  color: #88839f;
+}
+.catalog-info > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 9px 'DM Mono';
+  color: #f5c978;
+}
+.catalog-info i {
+  font-style: normal;
+  color: #77718d;
+  font-size: 8px;
+}
+.empty-state {
+  padding: 25px;
+  text-align: center;
+  color: #8e88a5;
+  font-size: 11px;
+  border: 1px dashed #ffffff22;
+  border-radius: 10px;
+}
+
+/* communities */
+.mv-community-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mv-community {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #ffffff14;
+  border-radius: 12px;
+  background: #ffffff06;
+}
+.mv-community b {
+  display: block;
+  font: 600 15px 'Space Grotesk';
+}
+.mv-community small {
+  display: block;
+  font-size: 11px;
+  color: #8c87a2;
+  margin-top: 3px;
+}
+.mv-community button.joined {
+  border-color: #6ee7b7;
+  background: #10b98122;
+}
+
+/* friend profile */
+.mv-friend-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.mv-friend-card .friend-avatar {
+  width: 54px;
+  height: 54px;
+  font-size: 20px;
+}
+.mv-friend-card p {
+  margin: 0;
+  color: #cfc6ea;
+  font-size: 13px;
+}
+
+/* ---------- card stack (like the phone app switcher) ---------- */
+.card-stack {
+  position: fixed;
+  inset: 0;
+  z-index: 9; /* under the top bar (10), over the world */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 150px 16px 40px;
+  background: #05040be6; /* dark, no blur: blurring the moving world is slow */
+  animation: stack-in 0.25s ease-out;
+}
+/* every dimension tints the space behind its cards */
+.card-stack.theme-trending {
+  background: radial-gradient(circle at 50% 45%, #f9731640, #05040bdd 65%);
+}
+.card-stack.theme-discover {
+  background:
+    radial-gradient(circle at 40% 40%, #a855f733, transparent 50%),
+    radial-gradient(circle at 60% 60%, #2dd4bf33, #05040bdd 65%);
+}
+.card-stack.theme-community {
+  background: radial-gradient(circle at 50% 45%, #3b82f640, #05040bdd 65%);
+}
+.card-stack.theme-watchlist {
+  background: radial-gradient(circle at 50% 45%, #f43f5e33, #070310dd 65%);
+}
+.card-stack.theme-communities {
+  background: radial-gradient(circle at 50% 45%, #ec489933, #070310dd 65%);
+}
+.card-stack-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.card-stack-head h2 {
+  margin: 0;
+  font: 600 26px 'Space Grotesk';
+}
+.card-stack-head span {
+  font: 13px 'DM Mono';
+  color: #a69bc9;
+}
+.card-stack-head .modal-close {
+  position: static;
+}
+.card-stack-track {
+  position: relative;
+  width: min(280px, 62vw);
+  height: min(420px, 52vh);
+  /* 3D: how far away the "camera" is. Smaller = stronger 3D effect */
+  perspective: 1100px;
+  transform-style: preserve-3d;
+}
+.stack-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 14px;
+  border: 1px solid #ffffff22;
+  border-radius: 22px;
+  background: #151326;
+  text-align: left;
+  box-shadow: 0 20px 50px #000a;
+  transition: transform 0.4s ease;
+  backface-visibility: hidden;
+}
+.stack-card.center {
+  border-color: #a78bfa;
+  box-shadow:
+    0 0 40px #8b5cf666,
+    0 30px 60px #000c;
+}
+/* a light shine on the side cards, so the 3D turn is easy to see */
+.stack-card:not(.center) {
+  filter: brightness(0.75);
+}
+.stack-poster {
+  position: relative;
+  flex: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.stack-card b {
+  font: 600 17px 'Space Grotesk';
+}
+.stack-card small {
+  font-size: 12px;
+  color: #a69bc9;
+}
+.card-stack-hint {
+  margin: 0;
+  font: 12px 'DM Mono';
+  color: #8c87a2;
+}
+@keyframes stack-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+/* ---------- 6. Movie popup ---------- */
+.movie-modal {
+  width: min(720px, 100%);
+  background: #131222;
+  border: 1px solid #ffffff22;
+  border-radius: 15px;
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 30px 100px #000b;
+}
+.modal-art {
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+}
+.modal-art span {
+  font-size: 85px;
+  z-index: 1;
+  filter: drop-shadow(0 10px 10px #0008);
+}
+.modal-art small {
+  position: absolute;
+  top: 20px;
+  left: 18px;
+  z-index: 1;
+  font: 8px 'DM Mono';
+  letter-spacing: 1px;
+}
+.modal-content {
+  padding: 35px 30px;
+}
+.modal-content h2,
+.profile-modal h2 {
+  font: 600 27px 'Space Grotesk';
+  margin: 10px 0;
+}
+.modal-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: 10px 'DM Mono';
+  color: #b2a9c8;
+}
+.modal-meta svg {
+  color: #f5c978;
+}
+.modal-meta small {
+  color: #77718d;
+}
+.movie-desc {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #aaa4bb;
+  margin: 22px 0;
+}
+
+.watchlist-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #fda4af66;
+  background: #e11d4818;
+  color: #fecdd3;
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 12px;
+  margin: 2px 0 16px;
+}
+.watchlist-button.saved {
+  background: #e11d4840;
+  border-color: #fda4af;
+}
+
+/* small labels above inputs */
+.rate-block > b,
+.review-block label,
+.profile-modal > label {
+  font: 9px 'DM Mono';
+  letter-spacing: 1.2px;
+  color: #a9a1bd;
+}
+
+.rate-block {
+  border-top: 1px solid #ffffff16;
+  padding-top: 17px;
+}
+.rate-block > small {
+  font-size: 9px;
+  color: #817b94;
+}
+.stars {
+  display: flex;
+  gap: 5px;
+  margin: 10px 0 4px;
+}
+.stars button {
+  background: none;
+  border: 0;
+  padding: 2px;
+  color: #514b65;
+}
+.stars button.rated {
+  color: #f5c978;
+}
+
+.review-block {
+  border-top: 1px solid #ffffff16;
+  margin-top: 17px;
+  padding-top: 16px;
+  display: grid;
+  gap: 9px;
+}
+.review-block textarea {
+  resize: vertical;
+  min-height: 65px;
+  background: #090914;
+  border: 1px solid #ffffff19;
+  border-radius: 7px;
+  padding: 9px;
+  color: white;
+  font-size: 10px;
+  outline: none;
+}
+
+/* community reviews */
+.mv-reviews {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mv-reviews > b {
+  font: 9px 'DM Mono';
+  letter-spacing: 1.3px;
+  color: #a69bc9;
+}
+.mv-reviews > small {
+  font-size: 11px;
+  color: #8c87a2;
+}
+.mv-review {
+  border: 1px solid #ffffff12;
+  background: #ffffff06;
+  border-radius: 10px;
+  padding: 9px 11px;
+}
+.mv-review > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+.mv-review span {
+  color: #fbd38d;
+  letter-spacing: 1px;
+}
+.mv-review p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #cfc6ea;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- 7. Profile popup ---------- */
+.profile-modal {
+  width: min(390px, 100%);
+  background: #151326;
+  border: 1px solid #ffffff22;
+  border-radius: 15px;
+  padding: 30px;
+  position: relative;
+}
+.profile-modal h2 {
+  margin: 7px 0 20px;
+}
+.profile-modal > label {
+  display: block;
+  margin: 15px 0 8px;
+}
+.avatar-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #ffffff08;
+  border-radius: 9px;
+}
+.avatar-preview .player-avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 29px;
+}
+.avatar-preview span {
+  font-size: 11px;
+}
+.profile-input {
+  width: 100%;
+  background: #090914;
+  border: 1px solid #ffffff20;
+  border-radius: 7px;
+  padding: 10px;
+  color: white;
+  font-size: 11px;
+  outline: none;
+}
+.avatar-options,
+.skin-options {
+  display: flex;
+  gap: 8px;
+}
+.avatar-options button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ffffff18;
+  background: #ffffff08;
+  border-radius: 8px;
+  font-size: 21px;
+}
+.avatar-options button.chosen {
+  border-color: #a78bfa;
+  background: #8b5cf633;
+}
+.skin-dot {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 2px solid #ffffff20;
+}
+.skin-dot.chosen {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 3px;
+}
+.save-profile {
+  width: 100%;
+  margin-top: 25px;
+}
+
+/* ---------- 8. Buttons and toast ---------- */
+.primary-button {
+  border: 0;
+  background: linear-gradient(100deg, #8762e8, #5c4ac2);
+  border-radius: 7px;
+  padding: 10px 13px;
+  color: white;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.mv-community button,
+.mv-secondary-button {
+  border: 1px solid #a78bfa77;
+  background: #8b5cf622;
+  color: #ede6ff;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+.toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  background: #211a39;
+  border: 1px solid #a78bfa66;
+  border-radius: 30px;
+  padding: 11px 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e3d9ff;
+  font-size: 10px;
+  box-shadow: 0 10px 40px #0009;
+  white-space: nowrap;
+}
+
+/* ---------- 9. Small screens ---------- */
+@media (max-width: 1150px) {
+  .friends-panel {
+    display: none;
+  }
+  .movie-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .mv-hud {
+    flex-wrap: wrap;
+  }
+  .mv-hud-center {
+    order: 3;
+    max-width: none;
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  /* top bar */
+  .mv-hud {
+    padding: 10px 12px 18px;
+    gap: 8px;
+  }
+  .mv-hud .brand span,
+  .mv-hud-zones span,
+  .mv-hud .user-chip,
+  .mv-hud-button,
+  .mv-data-badge {
+    display: none;
+  }
+  .mv-hud-zones button {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .card-stack {
+    padding-top: 170px;
+  }
+  .mv-hud-center .genre-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .friends-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    top: 150px;
+  }
+
+  /* panels and popups */
+  .movie-grid {
+    grid-template-columns: 1fr;
+  }
+  .catalog-card {
+    padding: 7px;
+  }
+  .movie-modal {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow: auto;
+  }
+  .modal-art {
+    min-height: 150px;
+  }
+  .modal-art span {
+    font-size: 50px;
+  }
+  .modal-content {
+    padding: 22px;
+  }
+  .modal-content h2 {
+    font-size: 22px;
+  }
+  .poster-emoji {
+    font-size: 32px;
+  }
+}
+
+/* touch screens: arrow buttons instead of the keyboard help */
+@media (pointer: coarse), (max-width: 720px) {
+  .walk-help {
+    display: none;
+  }
+  .walk-pad-controls {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 52px);
+    grid-template-areas:
+      '. up .'
+      'left down right';
+    gap: 6px;
+    z-index: 5000;
+  }
+  .walk-pad-controls .pad-up {
+    grid-area: up;
+  }
+  .walk-pad-controls .pad-left {
+    grid-area: left;
+  }
+  .walk-pad-controls .pad-down {
+    grid-area: down;
+  }
+  .walk-pad-controls .pad-right {
+    grid-area: right;
+  }
+  .walk-pad-controls button {
+    height: 52px;
+    border: 1px solid #a78bfa55;
+    border-radius: 11px;
+    background: #1b1533cc;
+    color: #ede6ff;
+    font-size: 16px;
+    touch-action: none;
+  }
+  .walk-prompt {
+    bottom: 132px;
+  }
+  .walk-minimap {
+    width: 110px;
+    right: auto;
+    left: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walk-player.walking .player-avatar,
+  .walk-friend .friend-avatar,
+  .walk-place-ring,
+  .walk-stars.near,
+  .portal-door,
+  .portal-door span,
+  .earth span {
+    animation: none;
+  }
+}
