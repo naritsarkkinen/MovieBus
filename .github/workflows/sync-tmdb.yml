@@ -1,0 +1,38 @@
+
+name: Sync TMDB Movies to Azure PostgreSQL
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moviebus-tmdb-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-tmdb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install database dependencies
+        working-directory: database
+        run: npm ci
+
+      - name: Import TMDB movies into PostgreSQL
+        env:
+          TMDB_READ_TOKEN: ${{ secrets.TMDB_READ_TOKEN }}
+          MOVIEBUS_DB_PASSWORD: ${{ secrets.MOVIEBUS_DB_PASSWORD }}
+        run: node database/import-tmdb.cjs
