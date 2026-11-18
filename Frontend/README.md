@@ -67,5 +67,6 @@ tests/frontend/       tests for the api/ code and the hub layout
 | GET    | `/api/movies/:id/reviews`   | reviews in the movie popup                |
 | POST   | `/api/movies/:id/ratings`   | save a star rating                        |
 | POST   | `/api/movies/:id/reviews`   | save a review                             |
+| GET    | `/api/communities`          | communities in Clubs & you                |
 | POST   | `/api/users`                | create a guest user                       |
 | PATCH  | `/api/users/:id/avatar`     | save name, avatar, skin                   |

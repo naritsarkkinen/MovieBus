@@ -1,9 +1,5 @@
 export const API_URL = import.meta.env.VITE_API_URL ?? '/api'
 
-export function hasApi(baseUrl = API_URL) {
-  return Boolean(baseUrl)
-}
-
 export async function apiRequest(
   path,
   { method = 'GET', body, baseUrl = API_URL } = {},
