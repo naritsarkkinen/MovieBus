@@ -1,6 +1,5 @@
 import { MoveUpRight, Radio, X } from 'lucide-react'
 
-// Side panel listing friends, the friend room and recent activity.
 export default function MovieVerseFriendsPanel({
   friends,
   invited,

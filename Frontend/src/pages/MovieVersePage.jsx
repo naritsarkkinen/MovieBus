@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import './MovieVersePage.css'
 import { fetchMovie, loadMovies } from '../api/movies'
+import { fetchCommunities } from '../api/communities'
 import { savedUser } from '../api/users'
-import { zones, friends, communities } from '../data/MovieVerseData'
+import { zones, friends } from '../data/MovieVerseData'
 import useMovieVerseApi from '../hooks/useMovieVerseApi'
 import MovieVerseMovieCard from '../components/MovieVerseMovieCard'
 import MovieVerseWorld from '../components/MovieVerseWorld'
@@ -12,18 +13,29 @@ import MovieVersePanel from '../components/MovieVersePanel'
 import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
 import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
 import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
+import MovieVerseCardStack from '../components/MovieVerseCardStack'
+import { splitMovies } from '../data/MovieVerseWorldLayout'
+import { communityCard, movieCard } from '../data/MovieVerseCards'
 
-// The whole page is the walkable world. Everything else (catalogue, friends,
-// communities, watchlist, movie details) opens on top of it as an overlay.
+const STACK_TITLES = {
+  trending: 'Trending dimension',
+  discover: 'Discover dimension',
+  community: 'Community dimension',
+  watchlist: 'Your watchlist',
+  communities: 'Communities',
+}
+
+// world underneath, everything else = overlays on top
 // eslint-disable-next-line max-lines-per-function
 export default function MovieVersePage() {
   const [movies, setMovies] = useState([])
-  const [dataSource, setDataSource] = useState('loading') // 'loading' | 'live' | 'sample'
+  const [dataSource, setDataSource] = useState('loading') // loading | live | error
+  const [loadError, setLoadError] = useState('')
+  const [communities, setCommunities] = useState([])
   const [zone, setZone] = useState('trending')
   const [search, setSearch] = useState('')
   const [activeGenre, setActiveGenre] = useState('All')
 
-  // profile / avatar
   const [profile, setProfile] = useState(() => {
     const guest = savedUser()
     return {
@@ -32,15 +44,17 @@ export default function MovieVersePage() {
       avatar: guest?.avatar || '🧑🏽‍🚀',
     }
   })
+
   const { name, avatar, skin } = profile
 
-  // what is open on top of the world
   const [selectedId, setSelectedId] = useState(null)
   const selected = movies.find((movie) => movie.id === selectedId)
   const [profileDraft, setProfileDraft] = useState(null)
   const [profilePending, setProfilePending] = useState(false)
   const [friendOpen, setFriendOpen] = useState(null)
-  const [overlay, setOverlay] = useState(null) // 'catalogue' | 'communities' | 'watchlist'
+  const [overlay, setOverlay] = useState(null) // catalogue | communities | watchlist
+  const [mapId, setMapId] = useState('hub')
+  const [placeOpen, setPlaceOpen] = useState(false)
   const [friendsOpen, setFriendsOpen] = useState(false)
 
   const [myRatings, setMyRatings] = useState({})
@@ -60,42 +74,54 @@ export default function MovieVersePage() {
     notify: setToast,
   })
 
-  const detailRequests = useRef(new Map())
-  const refreshMovie = useCallback(async (id) => {
-    const request = Symbol()
-    detailRequests.current.set(id, request)
-    try {
-      const latest = await fetchMovie(id)
-      if (detailRequests.current.get(id) === request) {
-        setMovies((list) => list.map((movie) => movie.id === id ? latest : movie))
-      }
-    } catch (error) {
-      if (detailRequests.current.get(id) === request) {
-        setToast('Could not refresh movie details: ' + error.message)
-      }
-    } finally {
-      if (detailRequests.current.get(id) === request) detailRequests.current.delete(id)
-    }
-  }, [])
+  // after rating: get new average, swap the movie in the list
+  function refreshMovie(id) {
+    return fetchMovie(id)
+      .then((latest) =>
+        setMovies((list) =>
+          list.map((movie) => (movie.id === id ? latest : movie)),
+        ),
+      )
+      .catch((error) =>
+        setToast('Could not refresh movie details: ' + error.message),
+      )
+  }
 
   useEffect(() => {
-    if (live && selectedId !== null) refreshMovie(selectedId)
-  }, [live, selectedId, refreshMovie])
+    if (!live || selectedId === null) return
+    fetchMovie(selectedId)
+      .then((latest) =>
+        setMovies((list) =>
+          list.map((movie) => (movie.id === selectedId ? latest : movie)),
+        ),
+      )
+      .catch((error) =>
+        setToast('Could not load movie details: ' + error.message),
+      )
+  }, [live, selectedId])
 
-  // movies come from the API (Azure PostgreSQL); sample data if it is not reachable
   useEffect(() => {
-    let ignore = false // true if the page closes before the answer arrives
+    let ignore = false // page closed → ignore late answer
     loadMovies().then((result) => {
       if (ignore) return
       setMovies(result.movies)
       setDataSource(result.source)
+      setLoadError(result.error || '')
+      if (result.error) setToast('Could not load movies: ' + result.error)
     })
+    fetchCommunities()
+      .then((list) => {
+        if (!ignore) setCommunities(list)
+      })
+      .catch((error) => {
+        if (!ignore) console.warn('Could not load communities:', error.message)
+      })
     return () => {
       ignore = true
     }
   }, [])
 
-  // Escape closes the top-most overlay
+  // Escape closes the top-most overlay first
   useEffect(() => {
     const handle = (e) => {
       if (e.key !== 'Escape') return
@@ -103,13 +129,13 @@ export default function MovieVersePage() {
       else if (friendOpen) setFriendOpen(null)
       else if (profileDraft) {
         if (!profilePending) setProfileDraft(null)
-      }
-      else if (overlay) setOverlay(null)
+      } else if (overlay) setOverlay(null)
+      else if (placeOpen) setPlaceOpen(false)
       else setFriendsOpen(false)
     }
     window.addEventListener('keydown', handle)
     return () => window.removeEventListener('keydown', handle)
-  }, [selectedId, friendOpen, profileDraft, profilePending, overlay])
+  }, [selectedId, friendOpen, profileDraft, profilePending, overlay, placeOpen])
 
   useEffect(() => {
     if (!toast) return undefined
@@ -132,18 +158,31 @@ export default function MovieVersePage() {
     () => new Set(filtered.map((m) => m.id)),
     [filtered],
   )
+  // useMemo = recalculate only when movies change
+  const groups = useMemo(() => splitMovies(movies), [movies])
+  const stackMovies = (groups[zone] || []).filter((m) => visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
-  const paused = Boolean(selected || friendOpen || profileDraft || overlay)
+  const popupOpen = Boolean(selected || friendOpen || profileDraft || overlay)
+  // paused = no walking while something covers the world
+  const paused = popupOpen || placeOpen
+
+  const isMember = (c) =>
+    c.name === 'Friday Film Club' ? joined : memberships.has(c.id)
+  let placeCards = stackMovies.map(movieCard)
+  if (zone === 'watchlist') placeCards = watchlistMovies.map(movieCard)
+  if (zone === 'communities') {
+    placeCards = communities.map((c) => communityCard(c, isMember(c)))
+  }
   const review = reviewDrafts[selectedId] || ''
 
   async function rate(movie, value) {
     if (ratingPending) return
     setRatingPending(true)
     try {
-      const score = await api.sendRating(movie, value, live)
+      const score = await api.sendRating(movie, value)
       if (score === null) return
       setMyRatings((ratings) => ({ ...ratings, [movie.id]: score }))
-      if (live) await refreshMovie(movie.id)
+      await refreshMovie(movie.id)
     } finally {
       setRatingPending(false)
     }
@@ -154,9 +193,11 @@ export default function MovieVersePage() {
     const id = selected.id
     setReviewPending(true)
     try {
-      const posted = await api.sendReview(selected, body, live, myRatings[id])
+      const posted = await api.sendReview(selected, body)
       if (posted) {
-        setReviewDrafts((drafts) => drafts[id] === review ? { ...drafts, [id]: '' } : drafts)
+        setReviewDrafts((drafts) =>
+          drafts[id] === review ? { ...drafts, [id]: '' } : drafts,
+        )
       }
     } finally {
       setReviewPending(false)
@@ -182,14 +223,48 @@ export default function MovieVersePage() {
     )
     setToast(saved ? 'Removed from your watchlist' : 'Saved to your watchlist')
   }
-  function switchZone(id) {
+  function goToMap(id) {
+    setMapId(id)
     setZone(id)
-    setActiveGenre('All')
   }
-  // Friday Film Club is both a community and the friend room in the lobby
+
+  // called by the world: id = place you stepped on (null = off)
+  function enterPlace(id) {
+    if (!id) return
+    if (id === 'clubs' || id === 'hub') {
+      goToMap(id)
+    } else if (id === 'studio') {
+      setProfileDraft(profile)
+    } else if (id === 'room') {
+      setFriendsOpen(true)
+    } else {
+      setZone(id)
+      setPlaceOpen(true)
+    }
+  }
+  function switchZone(id) {
+    setActiveGenre('All')
+    setPlaceOpen(false)
+    if (id === 'clubs') {
+      goToMap('clubs')
+      return
+    }
+    setMapId('hub')
+    setZone(id)
+    setPlaceOpen(true)
+  }
+  function openCard(card) {
+    if (card.community) toggleCommunity(card.community)
+    else openFromList(card.movie)
+  }
+  // Friday Film Club = community AND friend room
   function toggleRoom() {
     setJoined(!joined)
-    setToast(joined ? 'You left the room (demo)' : 'You joined Friday Film Club (demo)')
+    setToast(
+      joined
+        ? 'You left the room (demo)'
+        : 'You joined Friday Film Club (demo)',
+    )
   }
   function toggleCommunity(community) {
     if (community.name === 'Friday Film Club') {
@@ -203,7 +278,9 @@ export default function MovieVersePage() {
       else next.add(community.id)
       return next
     })
-    setToast((member ? 'You left ' : 'You joined ') + community.name + ' (demo)')
+    setToast(
+      (member ? 'You left ' : 'You joined ') + community.name + ' (demo)',
+    )
   }
   function inviteFriend(friend) {
     setInvited((set) => new Set(set).add(friend.name))
@@ -215,27 +292,18 @@ export default function MovieVersePage() {
   }
 
   return (
-    <div className="mv-shell">
+    <div className={'mv-shell' + (paused ? ' covered' : '')}>
       <MovieVerseWorld
-        movies={movies}
-        visibleIds={visibleIds}
-        zones={zones}
+        mapId={mapId}
         zone={zone}
-        onDistrictChange={setZone}
+        onPlaceChange={enterPlace}
         name={name}
         avatar={avatar}
         skin={skin}
         friends={friends}
-        joined={joined}
         invited={invited}
-        watchlistCount={watchlist.length}
         paused={paused}
-        onOpenMovie={openFromList}
-        onOpenProfile={() => setProfileDraft(profile)}
-        onToggleRoom={toggleRoom}
         onOpenFriend={setFriendOpen}
-        onOpenCommunities={() => setOverlay('communities')}
-        onOpenWatchlist={() => setOverlay('watchlist')}
       />
 
       <MovieVerseHud
@@ -248,6 +316,7 @@ export default function MovieVersePage() {
         onGenre={setActiveGenre}
         onCatalogue={() => setOverlay('catalogue')}
         dataSource={dataSource}
+        loadError={loadError}
         onFriends={() => setFriendsOpen((v) => !v)}
         friendCount={friends.length}
         name={name}
@@ -264,6 +333,27 @@ export default function MovieVersePage() {
           onInviteLink={() => setToast('Invite link copied (demo)')}
           onOpenFriend={setFriendOpen}
           onToggleRoom={toggleRoom}
+        />
+      )}
+
+      {placeOpen && (
+        <MovieVerseCardStack
+          key={zone}
+          title={STACK_TITLES[zone]}
+          theme={zone}
+          cards={placeCards}
+          emptyText={
+            zone === 'watchlist'
+              ? 'Nothing saved yet. Open a movie and press “Save to watchlist”.'
+              : zone === 'communities'
+                ? 'No communities yet.'
+                : dataSource === 'error'
+                  ? 'Could not load movies from the API. Check that the backend is running.'
+                  : 'No movies here. Try another search or genre.'
+          }
+          active={!popupOpen}
+          onOpen={openCard}
+          onClose={() => setPlaceOpen(false)}
         />
       )}
 
@@ -289,7 +379,9 @@ export default function MovieVersePage() {
           </div>
           {filtered.length === 0 && (
             <div className="empty-state">
-              No movies found. Try another search or genre.
+              {dataSource === 'error'
+                ? 'Could not load movies from the API. Check that the backend is running.'
+                : 'No movies found. Try another search or genre.'}
             </div>
           )}
         </MovieVersePanel>
@@ -395,10 +487,12 @@ export default function MovieVersePage() {
           myRating={myRatings[selected.id]}
           inWatchlist={watchlist.includes(selected.id)}
           review={review}
-          onReviewChange={(value) => setReviewDrafts((drafts) => ({
-            ...drafts,
-            [selected.id]: value,
-          }))}
+          onReviewChange={(value) =>
+            setReviewDrafts((drafts) => ({
+              ...drafts,
+              [selected.id]: value,
+            }))
+          }
           onRate={(n) => rate(selected, n)}
           onToggleWatchlist={() => toggleWatchlist(selected.id)}
           onSaveReview={saveReview}
@@ -412,9 +506,15 @@ export default function MovieVersePage() {
       {profileDraft && (
         <MovieVerseProfileModal
           {...profileDraft}
-          onName={(value) => setProfileDraft((draft) => ({ ...draft, name: value }))}
-          onAvatar={(value) => setProfileDraft((draft) => ({ ...draft, avatar: value }))}
-          onSkin={(value) => setProfileDraft((draft) => ({ ...draft, skin: value }))}
+          onName={(value) =>
+            setProfileDraft((draft) => ({ ...draft, name: value }))
+          }
+          onAvatar={(value) =>
+            setProfileDraft((draft) => ({ ...draft, avatar: value }))
+          }
+          onSkin={(value) =>
+            setProfileDraft((draft) => ({ ...draft, skin: value }))
+          }
           onSave={saveProfile}
           pending={profilePending}
           onClose={() => {

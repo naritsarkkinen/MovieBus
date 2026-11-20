@@ -1,6 +1,5 @@
 import { X } from 'lucide-react'
 
-// A centered overlay used for the catalogue, communities, watchlist and friend cards.
 export default function MovieVersePanel({
   eyebrow,
   title,

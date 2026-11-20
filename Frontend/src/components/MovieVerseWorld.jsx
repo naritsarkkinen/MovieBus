@@ -1,25 +1,13 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { Star } from 'lucide-react'
-import MoviePosterImage from './MoviePosterImage'
-import { formatRating } from '../api/movies'
-import './MovieVerseWorld.css'
-import {
-  WORLD,
-  SPAWN,
-  districts,
-  lobby,
-  lobbySpots,
-  friendSpots,
-  roomFriendSpots,
-  districtAt,
-  districtSpawn,
-  placeMovies,
-} from '../data/MovieVerseWorldLayout'
+import { useEffect, useRef, useState } from 'react'
+import MovieVerseMinimap from './MovieVerseMinimap'
+import MovieVerseControls from './MovieVerseControls'
+import MovieVersePortal from './MovieVersePortal'
+import { maps, placeAt, placeSpawn } from '../data/MovieVerseWorldLayout'
 
 const SPEED = 330
 const RUN_SPEED = 560
 const REACH = 120
-// where the player sits on screen (matches .walk-plane left / top in CSS)
+// player's spot on screen (same as .walk-plane in CSS)
 const CAMERA_X = 0.5
 const CAMERA_Y = 0.62
 const MOVE_KEYS = {
@@ -42,151 +30,93 @@ function isTyping(target) {
   )
 }
 
-// eslint-disable-next-line max-lines-per-function, complexity
+// eslint-disable-next-line max-lines-per-function
 export default function MovieVerseWorld({
-  movies,
-  visibleIds,
-  zones,
+  mapId,
   zone,
-  onDistrictChange,
+  onPlaceChange,
   name,
   avatar,
   skin,
   friends,
-  joined,
   invited,
-  watchlistCount,
   paused,
-  onOpenMovie,
-  onOpenProfile,
-  onToggleRoom,
   onOpenFriend,
-  onOpenCommunities,
-  onOpenWatchlist,
 }) {
   const viewportRef = useRef(null)
   const planeRef = useRef(null)
   const playerRef = useRef(null)
   const minimapDotRef = useRef(null)
+  const starsFarRef = useRef(null)
+  const starsNearRef = useRef(null)
   const [nearest, setNearest] = useState(null)
+  const map = maps[mapId]
 
-  const stands = useMemo(() => placeMovies(movies), [movies])
-
-  // things you can walk up to and use
-  const spots = useMemo(() => {
-    const list = stands.map((s) => ({
-      id: 'movie-' + s.movie.id,
-      x: s.x,
-      y: s.y,
-      radius: 48,
-      label: s.movie.title,
-      verb: 'Open movie',
-      enabled: visibleIds.has(s.movie.id),
-      use: () => onOpenMovie(s.movie),
+  // hub = not invited friends, clubs = invited friends
+  const friendsHere = friends
+    .filter((f) => invited.has(f.name) === (mapId === 'clubs'))
+    .map((f, i) => ({
+      ...f,
+      spot: map.friendSpots[i % map.friendSpots.length],
     }))
-    list.push(
-      {
-        id: 'studio',
-        ...lobbySpots.studio,
-        radius: 70,
-        label: 'Avatar studio',
-        verb: 'Customize',
-        enabled: true,
-        use: onOpenProfile,
-      },
-      {
-        id: 'room',
-        ...lobbySpots.room,
-        radius: 70,
-        label: 'Friday Film Club',
-        verb: joined ? 'Leave room' : 'Join room',
-        enabled: true,
-        use: onToggleRoom,
-      },
-      {
-        id: 'shelf',
-        ...lobbySpots.shelf,
-        radius: 70,
-        label: 'Your watchlist',
-        verb: 'Open',
-        enabled: true,
-        use: onOpenWatchlist,
-      },
-      {
-        id: 'board',
-        ...lobbySpots.board,
-        radius: 70,
-        label: 'Communities',
-        verb: 'Browse',
-        enabled: true,
-        use: onOpenCommunities,
-      },
-      {
-        id: 'sign',
-        ...lobbySpots.sign,
-        radius: 90,
-        enabled: false,
-      },
-    )
-    friends.forEach((f, i) =>
-      list.push({
-        id: 'friend-' + f.name,
-        ...friendPosition(i, invited.has(f.name)),
-        radius: 28,
-        label: f.name,
-        verb: 'Talk to',
-        enabled: true,
-        use: () => onOpenFriend(f),
-      }),
-    )
-    return list
-  }, [
-    stands,
-    visibleIds,
-    joined,
-    friends,
-    invited,
-    onOpenMovie,
-    onOpenProfile,
-    onToggleRoom,
-    onOpenFriend,
-    onOpenCommunities,
-    onOpenWatchlist,
-  ])
 
-  // all mutable game state lives in a ref so moving does not re-render React
+  // spot = something you can walk to and press F on
+  const spots = friendsHere.map((f) => ({
+    id: 'friend-' + f.name,
+    ...f.spot,
+    radius: 28,
+    label: f.name,
+    verb: 'Talk to',
+    enabled: true,
+    use: () => onOpenFriend(f),
+  }))
+
+  // ref, not state: changes 60x/s without re-rendering React
   const game = useRef({
-    x: SPAWN.x,
-    y: SPAWN.y,
+    x: maps.hub.spawn.x,
+    y: maps.hub.spawn.y,
     zoom: 1,
     keys: new Set(),
-    target: null, // where a click / tap asked us to walk
+    target: null, // clicked point to walk to
     facingLeft: false,
     moving: false,
-    district: null,
+    place: null,
     nearestId: null,
-    drawn: '', // last position written to the screen
+    drawn: '', // last drawn position → skip drawing if same
   })
-  // re-read the spot every render so its action is never stale
   const current = nearest && spots.find((s) => s.id === nearest.id)
+  // loop runs once, so it reads fresh props from here
   const latest = useRef({})
-  latest.current = { spots, onDistrictChange, nearest: current }
+  latest.current = { map, spots, onPlaceChange, nearest: current }
 
-  // teleport when a zone is picked from the sidebar / arrows
-  // (starts as the current zone, so you spawn in the lobby, not a district)
+  // new map → start in the middle (not on a portal)
+  const prevMap = useRef(mapId)
+  useEffect(() => {
+    if (prevMap.current === mapId) return
+    prevMap.current = mapId
+    const g = game.current
+    g.x = map.spawn.x
+    g.y = map.spawn.y
+    g.place = null
+    g.target = null
+    g.keys.clear()
+    g.drawn = '' // force redraw
+  }, [mapId, map])
+
+  // top bar zone click → jump to that place
   const prevZone = useRef(zone)
   useEffect(() => {
     const g = game.current
     if (prevZone.current === zone) return
     prevZone.current = zone
-    if (g.district === zone) return
-    const p = districtSpawn(zone)
+    if (g.place === zone) return
+    const p = placeSpawn(map, zone)
+    if (!p) return
     g.x = p.x
     g.y = p.y
-    g.district = zone
-  }, [zone])
+    g.place = zone
+  }, [zone, map])
 
-  // keyboard
   useEffect(() => {
     const g = game.current
     if (paused) {
@@ -196,7 +126,7 @@ export default function MovieVerseWorld({
     const down = (e) => {
       if (isTyping(e.target)) return
       const key = e.key.toLowerCase()
-      // Enter / Space on a focused button should just press that button
+      // Enter/Space on a button = press the button, not F-action
       const onButton =
         e.target instanceof HTMLElement && e.target.closest('button')
       if (MOVE_KEYS[key]) {
@@ -226,7 +156,7 @@ export default function MovieVerseWorld({
     }
   }, [paused])
 
-  // smaller screens see more of the map
+  // small screen → zoom out
   useEffect(() => {
     const fit = () => {
       const w = viewportRef.current?.clientWidth || window.innerWidth
@@ -238,110 +168,75 @@ export default function MovieVerseWorld({
     return () => window.removeEventListener('resize', fit)
   }, [])
 
-  // game loop
+  // GAME LOOP: tick() ~60x/s → move, stay in map, place?, nearest?, draw
   useEffect(() => {
+    function draw(g) {
+      // camera: move the map opposite → player stays in the middle
+      planeRef.current.style.transform = `scale(${g.zoom}) translate(${-g.x}px, ${-g.y}px)`
+
+      const player = playerRef.current
+      player.style.transform = `translate(${g.x}px, ${g.y}px) translate(-50%, -100%)`
+      player.style.zIndex = Math.round(g.y) // lower = in front
+      player.classList.toggle('walking', g.moving)
+      player.classList.toggle('facing-left', g.facingLeft)
+
+      minimapDotRef.current.setAttribute('cx', Math.round(g.x))
+      minimapDotRef.current.setAttribute('cy', Math.round(g.y))
+
+      // parallax: slower stars look further away
+      starsFarRef.current.style.transform = starShift(g, 0.1, 200)
+      starsNearRef.current.style.transform = starShift(g, 0.25, 320)
+    }
+
     let frame
     let last = performance.now()
-    const tick = (now) => {
+
+    function tick(now) {
+      // dt = seconds since last frame (max 0.05 → no big jumps)
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
       const g = game.current
-      const { spots: allSpots } = latest.current
-      const k = g.keys
+      const { map, spots } = latest.current
 
-      // 1. which way do we want to go? (keys win over a click target)
-      let mx = (k.has('right') ? 1 : 0) - (k.has('left') ? 1 : 0)
-      let my = (k.has('down') ? 1 : 0) - (k.has('up') ? 1 : 0)
-      if (mx || my) {
-        g.target = null
-      } else if (g.target) {
-        mx = g.target.x - g.x
-        my = g.target.y - g.y
-        if (Math.hypot(mx, my) < 8) {
-          g.target = null
-          mx = 0
-          my = 0
-        }
+      // 1. move
+      const direction = moveDirection(g)
+      g.moving = direction.x !== 0 || direction.y !== 0
+      if (g.moving) movePlayer(g, direction, dt)
+
+      // 2. stay in map
+      stayInsideMap(g, map)
+
+      // 3. stepped on/off a place → tell the page
+      const here = placeAt(map, g.x, g.y)
+      const hereId = here ? here.id : null
+      if (hereId !== g.place) {
+        g.place = hereId
+        latest.current.onPlaceChange(hereId)
       }
 
-      // 2. move
-      g.moving = mx !== 0 || my !== 0
-      if (g.moving) {
-        const len = Math.hypot(mx, my)
-        const speed = k.has('run') ? RUN_SPEED : SPEED
-        g.x += (mx / len) * speed * dt
-        g.y += (my / len) * speed * dt
-        if (Math.abs(mx) > 0.01) g.facingLeft = mx < 0
-      }
-
-      // 3. bump into stands, booths and friends (circle collision)
-      for (const s of allSpots) {
-        const dx = g.x - s.x
-        const dy = g.y - s.y
-        const d = Math.hypot(dx, dy)
-        const min = s.radius + 20
-        if (d < min && d > 0.001) {
-          g.x = s.x + (dx / d) * min
-          g.y = s.y + (dy / d) * min
-          g.target = null // walked into something: stop here
-        }
-      }
-      g.x = Math.max(40, Math.min(WORLD.width - 40, g.x))
-      g.y = Math.max(60, Math.min(WORLD.height - 40, g.y))
-
-      // 4. which district are we in?
-      const here = districtAt(g.x, g.y)
-      if (here && here.id !== g.district) {
-        g.district = here.id
-        latest.current.onDistrictChange(here.id)
-      } else if (!here) {
-        g.district = null
-      }
-
-      // 5. closest thing we can use
-      let best = null
-      let bestD = REACH
-      for (const s of allSpots) {
-        if (!s.enabled) continue
-        const d = Math.hypot(g.x - s.x, g.y - (s.y + 40)) - s.radius / 2
-        if (d < bestD) {
-          bestD = d
-          best = s
-        }
-      }
+      // 4. closest spot gets the "F" prompt
+      const best = nearestSpot(g, spots)
       const bestId = best ? best.id : null
       if (bestId !== g.nearestId) {
         g.nearestId = bestId
-        setNearest(best)
+        setNearest(best) // only React update in the loop
       }
 
-      // 6. draw, but only when something changed (saves battery on phones)
-      const key = `${g.x.toFixed(1)},${g.y.toFixed(1)},${g.zoom},${g.moving},${g.facingLeft}`
-      if (key !== g.drawn) {
-        g.drawn = key
-        if (planeRef.current) {
-          // the camera: move the map the other way so the player stays centred
-          planeRef.current.style.transform = `scale(${g.zoom}) translate3d(${(-g.x).toFixed(1)}px, ${(-g.y).toFixed(1)}px, 0)`
-        }
-        if (playerRef.current) {
-          const p = playerRef.current
-          p.style.transform = `translate3d(${g.x.toFixed(1)}px, ${g.y.toFixed(1)}px, 0) translate(-50%, -100%)`
-          p.style.zIndex = Math.round(g.y)
-          p.classList.toggle('walking', g.moving)
-          p.classList.toggle('facing-left', g.facingLeft)
-        }
-        if (minimapDotRef.current) {
-          minimapDotRef.current.setAttribute('cx', g.x.toFixed(0))
-          minimapDotRef.current.setAttribute('cy', g.y.toFixed(0))
-        }
+      // 5. draw only if something changed
+      const position = `${g.x},${g.y},${g.zoom},${g.moving},${g.facingLeft}`
+      if (position !== g.drawn) {
+        g.drawn = position
+        draw(g)
       }
+
       frame = requestAnimationFrame(tick)
     }
+
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
   }, [])
 
-  // click / tap on the floor: walk there
+  // screen click → map coordinates (undo camera + zoom)
   function walkToPointer(e) {
     if (paused || e.button > 0) return
     if (e.target instanceof Element && e.target.closest('button')) return
@@ -353,154 +248,64 @@ export default function MovieVerseWorld({
     }
   }
 
-  const zoneName = (id) => zones.find((z) => z.id === id)?.name || id
-
   return (
-    <div ref={viewportRef} className="walk-world" onPointerDown={walkToPointer}>
-      <div className="walk-sky" />
+    <div
+      ref={viewportRef}
+      className={'walk-world map-' + mapId}
+      onPointerDown={walkToPointer}
+    >
+      <div ref={starsFarRef} className="walk-stars far" />
+      <div ref={starsNearRef} className="walk-stars near" />
       <div
         ref={planeRef}
         className="walk-plane"
-        style={{ width: WORLD.width, height: WORLD.height }}
+        style={{ width: map.width, height: map.height }}
       >
-        {/* floor */}
-        <div className="walk-ground" />
         <div
-          className="walk-area walk-lobby"
-          style={{
-            left: lobby.x,
-            top: lobby.y,
-            width: lobby.w,
-            height: lobby.h,
-          }}
+          className="walk-hub earth"
+          style={{ left: map.spawn.x, top: map.spawn.y }}
         >
-          <span className="walk-floor-label">THE LOBBY</span>
+          <span />
+          <span />
+          <span />
         </div>
-        {districts.map((d) => (
-          <div
-            key={d.id}
-            className={
-              'walk-area walk-district district-' +
-              d.id +
-              (zone === d.id ? ' current' : '')
-            }
-            style={{ left: d.x, top: d.y, width: d.w, height: d.h }}
-          >
-            <span className="walk-floor-label">
-              {zoneName(d.id).toUpperCase()}
-            </span>
-          </div>
-        ))}
-        <div className="walk-path path-a" />
-        <div className="walk-path path-b" />
-        <div className="walk-path path-c" />
+        {map.places.map((p) =>
+          p.portal ? (
+            <MovieVersePortal key={p.id} place={p} current={zone === p.id} />
+          ) : (
+            <div
+              key={p.id}
+              className={'walk-place' + (zone === p.id ? ' current' : '')}
+              style={{ left: p.x, top: p.y }}
+            >
+              <span className="walk-place-ring" />
+              <span className="walk-place-icon">{p.icon}</span>
+              <b>{p.label}</b>
+            </div>
+          ),
+        )}
 
-        {/* movie stands (Fragment, not a div: a wrapper div would flatten them) */}
-        {stands.map((s) => {
-          const enabled = visibleIds.has(s.movie.id)
-          const isNear = current?.id === 'movie-' + s.movie.id
-          return (
-            <Fragment key={s.movie.id}>
-              <div
-                className={'walk-pad' + (isNear ? ' near' : '')}
-                style={{ left: s.x, top: s.y }}
-              />
-              <button
-                className={
-                  'billboard walk-stand' +
-                  (enabled ? '' : ' dimmed') +
-                  (isNear ? ' near' : '')
-                }
-                style={{ left: s.x, top: s.y, zIndex: s.y }}
-                disabled={!enabled}
-                onClick={() => onOpenMovie(s.movie)}
-              >
-                <div className={'poster poster-' + s.movie.color}>
-                  <MoviePosterImage
-                    src={s.movie.poster}
-                    title={s.movie.title}
-                  />
-                  <span className="poster-tag">{s.movie.tag}</span>
-                  <span className="poster-emoji">{s.movie.emoji}</span>
-                  <b>{s.movie.title}</b>
-                  <small>
-                    {s.movie.year} · {s.movie.genre}
-                  </small>
-                  <span className="poster-rating">
-                    <Star size={12} fill="currentColor" />
-                    {formatRating(s.movie.rating)}
-                  </span>
-                </div>
-              </button>
-            </Fragment>
-          )
-        })}
-
-        {/* lobby */}
         <div
           className="billboard walk-sign"
-          style={{
-            left: lobbySpots.sign.x,
-            top: lobbySpots.sign.y,
-            zIndex: lobbySpots.sign.y,
-          }}
+          style={{ left: map.sign.x, top: map.sign.y, zIndex: map.sign.y }}
         >
-          <span className="eyebrow">YOUR PERSONAL CINEMA DIMENSION</span>
-          <b>
-            Explore beyond <em>the screen.</em>
-          </b>
-          <small>Walk up to a movie and press F to open it</small>
+          <span className="eyebrow">{map.sign.eyebrow}</span>
+          <b>{map.sign.title}</b>
+          <small>{map.sign.sub}</small>
         </div>
-        <Booth
-          spot={lobbySpots.studio}
-          near={current?.id === 'studio'}
-          icon="✦"
-          title="Avatar studio"
-          sub="Change your look"
-          onUse={onOpenProfile}
-        />
-        <Booth
-          spot={lobbySpots.room}
-          near={current?.id === 'room'}
-          className={'room' + (joined ? ' joined' : '')}
-          icon="◎"
-          title="Friday Film Club"
-          sub={joined ? 'You are inside' : 'Friend room · join'}
-          onUse={onToggleRoom}
-        />
-        <Booth
-          spot={lobbySpots.shelf}
-          near={current?.id === 'shelf'}
-          className="shelf"
-          icon="♥"
-          title="Watchlist"
-          sub={watchlistCount + ' saved'}
-          onUse={onOpenWatchlist}
-        />
-        <Booth
-          spot={lobbySpots.board}
-          near={current?.id === 'board'}
-          className="board"
-          icon="☰"
-          title="Communities"
-          sub="Find your people"
-          onUse={onOpenCommunities}
-        />
 
-        {/* friends (simulated): walk up and talk, invited friends go to the room */}
-        {friends.map((f, i) => {
-          const spot = friendPosition(i, invited.has(f.name))
+        {friendsHere.map((f) => {
           const isNear = current?.id === 'friend-' + f.name
           return (
             <button
               key={f.name}
               className={'billboard walk-friend' + (isNear ? ' near' : '')}
-              style={{ left: spot.x, top: spot.y, zIndex: spot.y }}
+              style={{ left: f.spot.x, top: f.spot.y, zIndex: f.spot.y }}
               onClick={() => onOpenFriend(f)}
             >
               <div className="player-bubble">
                 {f.name} ·{' '}
-                {invited.has(f.name) ? 'In Friday Film Club' : f.status}
+                {mapId === 'clubs' ? 'In Friday Film Club' : f.status}
               </div>
               <div className={'friend-avatar ' + f.color}>{f.initial}</div>
               <span className="player-shadow" />
@@ -508,7 +313,6 @@ export default function MovieVerseWorld({
           )
         })}
 
-        {/* you */}
         <div ref={playerRef} className="billboard walk-player">
           <div className="player-bubble">{name}</div>
           <div className={'player-avatar skin-' + skin}>
@@ -518,72 +322,11 @@ export default function MovieVerseWorld({
         </div>
       </div>
 
-      {/* HUD */}
-      <svg
-        className="walk-minimap"
-        viewBox={`0 0 ${WORLD.width} ${WORLD.height}`}
-        aria-hidden="true"
-      >
-        <rect
-          width={WORLD.width}
-          height={WORLD.height}
-          rx="60"
-          className="mm-bg"
-        />
-        <rect
-          x={lobby.x}
-          y={lobby.y}
-          width={lobby.w}
-          height={lobby.h}
-          rx="40"
-          className="mm-area"
-        />
-        {districts.map((d) => (
-          <rect
-            key={d.id}
-            x={d.x}
-            y={d.y}
-            width={d.w}
-            height={d.h}
-            rx="40"
-            className={'mm-area mm-' + d.id + (zone === d.id ? ' current' : '')}
-          />
-        ))}
-        {stands.map((s) => (
-          <rect
-            key={s.movie.id}
-            x={s.x - 30}
-            y={s.y - 30}
-            width="60"
-            height="60"
-            rx="12"
-            className={
-              'mm-stand' + (visibleIds.has(s.movie.id) ? '' : ' dimmed')
-            }
-          />
-        ))}
-        <circle
-          ref={minimapDotRef}
-          cx={SPAWN.x}
-          cy={SPAWN.y}
-          r="45"
-          className="mm-you"
-        />
-      </svg>
-
-      <div className="walk-help">
-        <b>MOVE AROUND</b>
-        <span>
-          <kbd>W</kbd>
-          <kbd>A</kbd>
-          <kbd>S</kbd>
-          <kbd>D</kbd> walk · <kbd>Shift</kbd> run
-        </span>
-        <span>
-          <kbd>F</kbd> / <kbd>Enter</kbd> use · or click
-        </span>
-        <span>or click the floor to walk there</span>
-      </div>
+      <MovieVerseMinimap map={map} zone={zone} dotRef={minimapDotRef} />
+      <MovieVerseControls
+        onPress={(direction) => game.current.keys.add(direction)}
+        onRelease={(direction) => game.current.keys.delete(direction)}
+      />
 
       {current && !paused && (
         <button className="walk-prompt" onClick={() => current.use()}>
@@ -594,52 +337,60 @@ export default function MovieVerseWorld({
           </span>
         </button>
       )}
-
-      <div className="walk-pad-controls">
-        {[
-          ['up', '▲'],
-          ['left', '◀'],
-          ['down', '▼'],
-          ['right', '▶'],
-        ].map(([action, icon]) => (
-          <button
-            key={action}
-            aria-label={action}
-            className={'pad-' + action}
-            onPointerDown={(e) => {
-              e.stopPropagation()
-              game.current.keys.add(action)
-            }}
-            onPointerUp={() => game.current.keys.delete(action)}
-            onPointerLeave={() => game.current.keys.delete(action)}
-            onPointerCancel={() => game.current.keys.delete(action)}
-          >
-            {icon}
-          </button>
-        ))}
-      </div>
     </div>
   )
 }
 
-function friendPosition(index, inRoom) {
-  const list = inRoom ? roomFriendSpots : friendSpots
-  return list[index % list.length]
+// keys win over click. {1,0} = right, {0,0} = stand
+function moveDirection(g) {
+  const keyX = (g.keys.has('right') ? 1 : 0) - (g.keys.has('left') ? 1 : 0)
+  const keyY = (g.keys.has('down') ? 1 : 0) - (g.keys.has('up') ? 1 : 0)
+  if (keyX !== 0 || keyY !== 0) {
+    g.target = null
+    return { x: keyX, y: keyY }
+  }
+  if (!g.target) return { x: 0, y: 0 }
+
+  const toTarget = { x: g.target.x - g.x, y: g.target.y - g.y }
+  if (Math.hypot(toTarget.x, toTarget.y) < 8) {
+    g.target = null
+    return { x: 0, y: 0 }
+  }
+  return toTarget
 }
 
-function Booth({ spot, near, className = '', icon, title, sub, onUse }) {
-  return (
-    <>
-      <div className={'walk-pad big' + (near ? ' near' : '')} style={spot} />
-      <button
-        className={'billboard walk-booth ' + className + (near ? ' near' : '')}
-        style={{ left: spot.x, top: spot.y, zIndex: spot.y }}
-        onClick={onUse}
-      >
-        <span className="booth-icon">{icon}</span>
-        <b>{title}</b>
-        <small>{sub}</small>
-      </button>
-    </>
-  )
+// divide by length → diagonal is not faster
+function movePlayer(g, direction, dt) {
+  const length = Math.hypot(direction.x, direction.y)
+  const speed = g.keys.has('run') ? RUN_SPEED : SPEED
+  g.x += (direction.x / length) * speed * dt
+  g.y += (direction.y / length) * speed * dt
+  if (direction.x !== 0) g.facingLeft = direction.x < 0
+}
+
+// pattern repeats every tile px → % tile = endless stars
+function starShift(g, speed, tile) {
+  const x = -(g.x * speed) % tile
+  const y = -(g.y * speed) % tile
+  return `translate(${x}px, ${y}px)`
+}
+
+function stayInsideMap(g, map) {
+  g.x = Math.max(40, Math.min(map.width - 40, g.x))
+  g.y = Math.max(60, Math.min(map.height - 40, g.y))
+}
+
+// closest spot within REACH (s.y + 40 = in front of it)
+function nearestSpot(g, spots) {
+  let best = null
+  let bestDistance = REACH
+  for (const s of spots) {
+    if (!s.enabled) continue
+    const distance = Math.hypot(g.x - s.x, g.y - (s.y + 40)) - s.radius / 2
+    if (distance < bestDistance) {
+      bestDistance = distance
+      best = s
+    }
+  }
+  return best
 }

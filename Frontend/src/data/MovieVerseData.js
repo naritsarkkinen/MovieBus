@@ -20,7 +20,14 @@ export const zones = [
     icon: '◎',
     genre: 'Community',
   },
+  {
+    id: 'clubs',
+    name: 'Clubs & you',
+    sub: 'Communities, your watchlist and your avatar',
+    icon: '♥',
+  },
 ]
+// fake friends: no backend endpoint yet
 export const friends = [
   { name: 'Mila', status: 'Exploring Sci-Fi', initial: 'M', color: 'lavender' },
   { name: 'Alex', status: 'In the lobby', initial: 'A', color: 'mint' },
@@ -29,21 +36,5 @@ export const friends = [
     status: 'Watching the trending list',
     initial: 'N',
     color: 'peach',
-  },
-]
-
-// Same communities as the seed data in the database schema (server/schema.sql)
-export const communities = [
-  {
-    id: 1,
-    name: 'Friday Film Club',
-    description: 'Weekly movie picks and discussions.',
-    members: 2,
-  },
-  {
-    id: 2,
-    name: 'Sci-Fi Explorers',
-    description: 'For stories beyond our universe.',
-    members: 5,
   },
 ]

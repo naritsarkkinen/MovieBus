@@ -1,73 +1,120 @@
-// Layout of the walkable MovieVerse world, in world pixels.
-export const WORLD = { width: 2400, height: 1500 }
-
-export const SPAWN = { x: 1200, y: 1260 }
-
-export const districts = [
-  { id: 'trending', x: 80, y: 80, w: 720, h: 640 },
-  { id: 'discover', x: 840, y: 80, w: 720, h: 640 },
-  { id: 'community', x: 1600, y: 80, w: 720, h: 640 },
-]
-
-export const lobby = { x: 420, y: 780, w: 1560, h: 660 }
-
-// Spots in the lobby you can walk up to.
-export const lobbySpots = {
-  sign: { x: 1200, y: 960 },
-  studio: { x: 760, y: 1200 },
-  room: { x: 1640, y: 1200 },
-  shelf: { x: 600, y: 960 },
-  board: { x: 1800, y: 960 },
+// pixels, (0,0) = top-left. hub = shared space with 4 portals,
+// clubs = your own map. place with `portal` = door, without = floor station
+export const maps = {
+  hub: {
+    id: 'hub',
+    width: 2800,
+    height: 2000,
+    spawn: { x: 1400, y: 1000 },
+    sign: {
+      x: 1400,
+      y: 700,
+      eyebrow: 'THE MOVIEVERSE HUB',
+      title: 'Pick a dimension.',
+      sub: 'Walk into a portal to travel',
+    },
+    places: [
+      {
+        id: 'discover',
+        x: 1400,
+        y: 380,
+        label: 'Discover',
+        icon: '◈',
+        portal: 'glitch',
+      },
+      {
+        id: 'trending',
+        x: 760,
+        y: 1000,
+        label: 'Trending',
+        icon: '✦',
+        portal: 'hex',
+      },
+      {
+        id: 'community',
+        x: 2040,
+        y: 1000,
+        label: 'Community',
+        icon: '◎',
+        portal: 'galaxy',
+      },
+      {
+        id: 'clubs',
+        x: 1400,
+        y: 1620,
+        label: 'Clubs & you',
+        icon: '♥',
+        portal: 'earth',
+      },
+    ],
+    friendSpots: [
+      { x: 1180, y: 1180 },
+      { x: 1630, y: 1180 },
+      { x: 1220, y: 760 },
+    ],
+  },
+  clubs: {
+    id: 'clubs',
+    width: 1800,
+    height: 1400,
+    spawn: { x: 900, y: 660 },
+    sign: {
+      x: 900,
+      y: 380,
+      eyebrow: 'CLUBS & YOU',
+      title: 'Your dimension.',
+      sub: 'Only your own stuff lives here',
+    },
+    places: [
+      { id: 'watchlist', x: 480, y: 420, label: 'Watchlist', icon: '♥' },
+      { id: 'communities', x: 1320, y: 420, label: 'Communities', icon: '☰' },
+      { id: 'studio', x: 480, y: 920, label: 'Avatar studio', icon: '✦' },
+      { id: 'room', x: 1320, y: 920, label: 'Friday Film Club', icon: '◎' },
+      {
+        id: 'hub',
+        x: 900,
+        y: 1200,
+        label: 'Back to the hub',
+        icon: '⬡',
+        portal: 'galaxy',
+      },
+    ],
+    friendSpots: [
+      { x: 1160, y: 1040 },
+      { x: 1480, y: 1040 },
+      { x: 1320, y: 1090 },
+    ],
+  },
 }
 
-export const friendSpots = [
-  { x: 330, y: 670 },
-  { x: 980, y: 1110 },
-  { x: 1340, y: 650 },
-]
+export const PLACE_SIZE = { rx: 170, ry: 85 }
 
-// where friends go after you invite them to Friday Film Club
-export const roomFriendSpots = [
-  { x: 1520, y: 1300 },
-  { x: 1760, y: 1300 },
-  { x: 1640, y: 1350 },
-]
-
-export function districtAt(x, y) {
-  return districts.find(
-    (d) => x >= d.x && x <= d.x + d.w && y >= d.y && y <= d.y + d.h,
-  )
+// inside oval if (dx/rx)² + (dy/ry)² < 1
+export function isOnPlace(p, x, y) {
+  const dx = (x - p.x) / PLACE_SIZE.rx
+  const dy = (y - p.y) / PLACE_SIZE.ry
+  return dx * dx + dy * dy < 1
 }
 
-export function districtSpawn(id) {
-  const d = districts.find((item) => item.id === id) || districts[0]
-  return { x: d.x + d.w / 2, y: d.y + d.h - 80 }
+export function placeAt(map, x, y) {
+  return map.places.find((p) => isOnPlace(p, x, y)) || null
 }
 
-// Every movie gets exactly one stand: the best rated go to Community,
-// the first of the rest to Trending, everything else to Discover.
-export function placeMovies(movies) {
-  const perDistrict = Math.max(1, Math.ceil(movies.length / 3))
+export function placeSpawn(map, id) {
+  const place = map.places.find((p) => p.id === id)
+  return place ? { x: place.x, y: place.y } : null
+}
+
+// best rated third → Community, next third → Trending, rest → Discover
+export function splitMovies(movies) {
+  const perPlace = Math.max(1, Math.ceil(movies.length / 3))
   const community = [...movies]
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-    .slice(0, perDistrict)
+    .slice(0, perPlace)
   const rest = movies.filter((m) => !community.includes(m))
-  const groups = {
-    trending: rest.slice(0, perDistrict),
-    discover: rest.slice(perDistrict),
+  return {
+    trending: rest.slice(0, perPlace),
+    discover: rest.slice(perPlace),
     community,
   }
-
-  return districts.flatMap((d) =>
-    groups[d.id].map((movie, i) => {
-      const col = i % 3
-      const row = Math.floor(i / 3)
-      return {
-        movie,
-        district: d.id,
-        x: d.x + 180 + col * 180,
-        y: d.y + 400 + row * 190 - (col === 1 ? 70 : 0),
-      }
-    }),
-  )
 }
