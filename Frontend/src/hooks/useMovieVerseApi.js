@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ensureUser, saveAvatar } from '../api/users'
+import { saveAvatar } from '../api/users'
 import { fetchReviews, postRating, postReview, toReview } from '../api/reviews'
 
-export default function useMovieVerseApi({ name, selectedId, notify }) {
+export default function useMovieVerseApi({ session, selectedId, notify, onExpired }) {
   const [reviewsByMovie, setReviewsByMovie] = useState({})
 
   useEffect(() => {
@@ -14,13 +14,15 @@ export default function useMovieVerseApi({ name, selectedId, notify }) {
       .catch((error) => notify('Could not load reviews: ' + error.message))
   }, [selectedId, notify])
 
-  async function save(nameForGuest, action, success) {
+  async function save(action, success) {
     try {
-      const user = await ensureUser(nameForGuest)
+      if (!session) throw new Error('Open Avatar Studio to sign in first.')
+      const user = session.profile
       const result = await action(user)
       notify(success)
       return result
     } catch (error) {
+      if (error.status === 401) onExpired()
       notify('Save failed: ' + error.message)
       return null
     }
@@ -28,15 +30,14 @@ export default function useMovieVerseApi({ name, selectedId, notify }) {
 
   function sendRating(movie, score) {
     return save(
-      name,
-      async (user) => (await postRating(movie.id, user.id, score)).score,
+      async (user) => (await postRating(movie.id, user.id, score, { token: session.token })).score,
       'Rating saved',
     )
   }
 
   function sendReview(movie, body) {
-    return save(name, async (user) => {
-      const row = await postReview(movie.id, user.id, body)
+    return save(async (user) => {
+      const row = await postReview(movie.id, user.id, body, { token: session.token })
       const review = toReview({ ...row, display_name: user.name })
       setReviewsByMovie((all) => ({
         ...all,
@@ -53,8 +54,7 @@ export default function useMovieVerseApi({ name, selectedId, notify }) {
       return null
     }
     return save(
-      updated.name,
-      (user) => saveAvatar(user.id, updated),
+      () => saveAvatar(session, updated),
       'Your explorer profile was saved',
     )
   }
