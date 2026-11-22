@@ -3,7 +3,7 @@ import { Sparkles } from 'lucide-react'
 import './MovieVersePage.css'
 import { fetchMovie, loadMovies } from '../api/movies'
 import { fetchCommunities } from '../api/communities'
-import { savedUser } from '../api/users'
+import { authenticate } from '../api/users'
 import { zones, friends } from '../data/MovieVerseData'
 import useMovieVerseApi from '../hooks/useMovieVerseApi'
 import MovieVerseMovieCard from '../components/MovieVerseMovieCard'
@@ -36,14 +36,8 @@ export default function MovieVersePage() {
   const [search, setSearch] = useState('')
   const [activeGenre, setActiveGenre] = useState('All')
 
-  const [profile, setProfile] = useState(() => {
-    const guest = savedUser()
-    return {
-      name: guest?.name || 'Hämi',
-      skin: guest?.skin || 'violet',
-      avatar: guest?.avatar || '🧑🏽‍🚀',
-    }
-  })
+  const [session, setSession] = useState(null)
+  const profile = session?.profile ?? { name: 'Hämi', skin: 'violet', avatar: '🧑🏽‍🚀' }
 
   const { name, avatar, skin } = profile
 
@@ -69,7 +63,8 @@ export default function MovieVersePage() {
 
   const live = dataSource === 'live'
   const api = useMovieVerseApi({
-    name,
+    session,
+    onExpired: () => setSession(null),
     selectedId: live ? selectedId : null,
     notify: setToast,
   })
@@ -209,7 +204,7 @@ export default function MovieVersePage() {
     try {
       const saved = await api.sendProfile(profileDraft)
       if (saved) {
-        setProfile(saved)
+        setSession({ ...session, profile: saved })
         setProfileDraft(null)
       }
     } finally {
@@ -506,6 +501,17 @@ export default function MovieVersePage() {
       {profileDraft && (
         <MovieVerseProfileModal
           {...profileDraft}
+          signedIn={Boolean(session)}
+          onAuthenticate={async (mode, credentials) => {
+            setProfilePending(true)
+            try {
+              const account = await authenticate(mode, credentials)
+              setSession(account)
+              setProfileDraft(account.profile)
+            } finally {
+              setProfilePending(false)
+            }
+          }}
           onName={(value) =>
             setProfileDraft((draft) => ({ ...draft, name: value }))
           }

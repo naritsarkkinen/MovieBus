@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Sparkles, X } from 'lucide-react'
 
 const avatars = ['🧑🏽‍🚀', '👩🏻‍🚀', '🧑🏿‍🎤', '🧑🏼‍🎨', '🦊', '🤖']
@@ -10,6 +11,8 @@ export default function MovieVerseProfileModal({
   onName,
   onAvatar,
   onSkin,
+  signedIn,
+  onAuthenticate,
   onSave,
   pending,
   onClose,
@@ -28,47 +31,92 @@ export default function MovieVerseProfileModal({
         </button>
         <div className="eyebrow">YOUR IDENTITY</div>
         <h2>Make it yours.</h2>
-        <div className="avatar-preview">
-          <div className={'player-avatar skin-' + skin}>{avatar}</div>
-          <span>{name}</span>
-        </div>
-        <label htmlFor="mv-display-name">DISPLAY NAME</label>
-        <input
-          id="mv-display-name"
-          className="profile-input"
-          value={name}
-          disabled={pending}
-          onChange={(e) => onName(e.target.value.slice(0, 18))}
-        />
-        <label>CHOOSE YOUR AVATAR</label>
-        <div className="avatar-options">
-          {avatars.map((a) => (
-            <button
-              key={a}
-              className={avatar === a ? 'chosen' : ''}
-              onClick={() => onAvatar(a)}
-              disabled={pending}
-            >
-              {a}
-            </button>
-          ))}
-        </div>
-        <label>SKIN / GLOW</label>
-        <div className="skin-options">
-          {skins.map((s) => (
-            <button
-              key={s}
-              aria-label={s}
-              className={'skin-dot skin-' + s + (skin === s ? ' chosen' : '')}
-              onClick={() => onSkin(s)}
-              disabled={pending}
-            />
-          ))}
-        </div>
-        <button className="primary-button save-profile" onClick={onSave} disabled={pending}>
-          Save appearance <Sparkles size={15} />
-        </button>
+        {signedIn ? <>
+          <div className="avatar-preview">
+            <div className={'player-avatar skin-' + skin}>{avatar}</div>
+            <span>{name}</span>
+          </div>
+          <label htmlFor="mv-display-name">DISPLAY NAME</label>
+          <input
+            id="mv-display-name"
+            className="profile-input"
+            value={name}
+            disabled={pending}
+            maxLength={40}
+           onChange={(e) => onName(e.target.value)}  
+          />
+          <label>CHOOSE YOUR AVATAR</label>
+          <div className="avatar-options">
+            {avatars.map((a) => (
+              <button
+                key={a}
+                className={avatar === a ? 'chosen' : ''}
+                onClick={() => onAvatar(a)}
+                disabled={pending}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+          <label>SKIN / GLOW</label>
+          <div className="skin-options">
+            {skins.map((s) => (
+              <button
+                key={s}
+                aria-label={s}
+                className={'skin-dot skin-' + s + (skin === s ? ' chosen' : '')}
+                onClick={() => onSkin(s)}
+                disabled={pending}
+              />
+            ))}
+          </div>
+          <button className="primary-button save-profile" onClick={onSave} disabled={pending}>
+            Save appearance <Sparkles size={15} />
+          </button>
+        </> : <AccountForm pending={pending} onAuthenticate={onAuthenticate} />}
       </div>
     </div>
+  )
+}
+
+function AccountForm({ pending, onAuthenticate }) {
+  const [signup, setSignup] = useState(false)
+  const [error, setError] = useState('')
+
+  async function submit(event) {
+    event.preventDefault()
+    const credentials = Object.fromEntries(new FormData(event.currentTarget))
+    setError('')
+    try {
+      await onAuthenticate(signup ? 'signup' : 'login', credentials)
+    } catch (problem) {
+      setError(problem.message)
+    }
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <p>Sign in to edit your explorer profile.</p>
+      <fieldset disabled={pending}>
+        {signup && <label>Display name
+          <input className="profile-input" name="display_name" required minLength={2} maxLength={40} />
+        </label>}
+        <label>Email
+          <input className="profile-input" type="email" name="email" autoComplete="username" required />
+        </label>
+        <label>Password
+          <input className="profile-input" type="password" name="password" required
+            autoComplete={signup ? 'new-password' : 'current-password'} />
+        </label>
+        {error && <p role="alert">{error}</p>}
+        <button className="primary-button">{signup ? 'Create account' : 'Sign in'}</button>
+        <button type="button" onClick={() => {
+          setSignup(!signup)
+          setError('')
+        }}>
+          {signup ? 'Use existing account' : 'Create an account'}
+        </button>
+      </fieldset>
+    </form>
   )
 }

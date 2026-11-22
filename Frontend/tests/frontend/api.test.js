@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiRequest } from '../../src/api/client.js'
-import { ensureUser, savedUser, saveAvatar } from '../../src/api/users.js'
+import { authenticate, saveAvatar } from '../../src/api/users.js'
 import { fetchReviews, postRating, postReview } from '../../src/api/reviews.js'
 
 const api = { baseUrl: 'http://localhost:4000/api' }
@@ -33,38 +33,33 @@ describe('API client', () => {
   })
 })
 
-describe('guests', () => {
-  it('creates one guest for concurrent writes and stores the saved profile', async () => {
-    const baseUrl = 'http://localhost:4001/api'
-    const options = { baseUrl }
-    const store = new Map()
-    vi.stubGlobal('localStorage', {
-      getItem: (key) => store.get(key) ?? null,
-      setItem: (key, value) => store.set(key, value),
-    })
+describe('account profile', () => {
+  it.each(['login', 'signup'])('uses the %s account for an authenticated profile save', async (mode) => {
+    const credentials = { email: 'mila@example.test', password: 'example-password' }
+    if (mode === 'signup') credentials.display_name = 'Explorer'
+    const row = { id: 9, display_name: 'Explorer', avatar_emoji: 'A', skin: 'blue' }
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(response({ id: 9, display_name: 'Explorer' }, 201))
-      .mockResolvedValueOnce(response({
-        id: 9, display_name: 'Mila', avatar_emoji: '🦊', skin: 'mint',
-      }))
+      .mockResolvedValueOnce(response({ user: row, token: 'account-token' }))
+      .mockResolvedValueOnce(response({ ...row, display_name: 'Mila', skin: 'mint' }))
     vi.stubGlobal('fetch', fetchMock)
-
-    const [first, second] = await Promise.all([
-      ensureUser('Explorer', options), ensureUser('Explorer', options),
-    ])
-    expect(first).toBe(second)
-    expect(sent(fetchMock)).toEqual([baseUrl + '/users', 'POST', { display_name: 'Explorer' }])
-
-    const profile = await saveAvatar(9, { name: ' Mila ', avatar: '🦊', skin: 'mint' }, options)
+    const session = await authenticate(mode, credentials, api)
+    const saved = await saveAvatar(session, { name: ' Mila ', avatar: 'A', skin: 'mint' }, api)
+    expect(sent(fetchMock)).toEqual([api.baseUrl + '/auth/' + mode, 'POST', credentials])
     expect(sent(fetchMock, 1)).toEqual([
-      baseUrl + '/users/9/avatar', 'PATCH',
-      { display_name: 'Mila', avatar_emoji: '🦊', skin: 'mint' },
+      api.baseUrl + '/users/9/avatar', 'PATCH',
+      { display_name: 'Mila', avatar_emoji: 'A', skin: 'mint' },
     ])
-    expect(profile).toEqual({ id: 9, name: 'Mila', avatar: '🦊', skin: 'mint' })
-    expect(JSON.parse(store.get('mv-guest'))).toEqual(profile)
-    expect(savedUser()).toEqual(profile)
-    expect(await ensureUser('Mila', options)).toEqual(profile)
+    expect(fetchMock.mock.calls[1][1].headers.Authorization).toBe('Bearer account-token')
+    expect(saved).toEqual({ id: 9, name: 'Mila', avatar: 'A', skin: 'mint' })
     expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('reports an expired session without retrying as a guest', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(response({ error: 'Expired' }, 401))
+    vi.stubGlobal('fetch', fetchMock)
+    const session = { profile: { id: 9 }, token: 'expired' }
+    await expect(saveAvatar(session, { name: 'Mila' }, api)).rejects.toMatchObject({ status: 401 })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
 
