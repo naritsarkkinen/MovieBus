@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchMovie, formatRating, loadMovies, toMovie } from '../../src/api/movies.js'
+import {
+  fetchMovie,
+  formatRating,
+  loadMovies,
+  toMovie,
+} from '../../src/api/movies.js'
 
 const baseUrl = 'http://localhost:4000/api'
 
@@ -35,32 +40,59 @@ describe('movies', () => {
       color: 'violet',
       tag: 'TOP RATED',
     })
-    const unrated = toMovie({ ...movieRow, average_rating: null, rating_count: 0 })
+    const unrated = toMovie({
+      ...movieRow,
+      average_rating: null,
+      rating_count: 0,
+    })
     expect(formatRating(unrated.rating)).toBe('New')
   })
 
-
   it('reads the catalogue and the latest rating from the detail route', async () => {
-    const fetchMock = vi.fn()
+    const fetchMock = vi
+      .fn()
       .mockResolvedValueOnce(Response.json([movieRow]))
-      .mockResolvedValueOnce(Response.json({ ...movieRow, average_rating: '4.5', rating_count: 4 }))
+      .mockResolvedValueOnce(
+        Response.json({ ...movieRow, average_rating: '4.5', rating_count: 4 }),
+      )
     vi.stubGlobal('fetch', fetchMock)
-    await expect(loadMovies(baseUrl + '/')).resolves.toEqual({ source: 'live', movies: [toMovie(movieRow)] })
-    expect(fetchMock).toHaveBeenCalledWith(baseUrl + '/movies', expect.any(Object))
-    await expect(fetchMovie(42, { baseUrl })).resolves.toMatchObject({ rating: 9, votes: '4' })
-    expect(fetchMock).toHaveBeenCalledWith(baseUrl + '/movies/42', expect.any(Object))
+    await expect(loadMovies(baseUrl + '/')).resolves.toEqual({
+      source: 'live',
+      movies: [toMovie(movieRow)],
+    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      baseUrl + '/movies',
+      expect.any(Object),
+    )
+    await expect(fetchMovie(42, { baseUrl })).resolves.toMatchObject({
+      rating: 9,
+      votes: '4',
+    })
+    expect(fetchMock).toHaveBeenCalledWith(
+      baseUrl + '/movies/42',
+      expect.any(Object),
+    )
   })
 
   it('keeps a successful empty catalogue live', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([])))
-    await expect(loadMovies(baseUrl)).resolves.toEqual({ movies: [], source: 'live' })
+    await expect(loadMovies(baseUrl)).resolves.toEqual({
+      movies: [],
+      source: 'live',
+    })
   })
 
   it('reports an error with no movies when the API fails or is not configured', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const fetchMock = vi.fn().mockResolvedValue(Response.json({ error: 'Offline' }, { status: 503 }))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(Response.json({ error: 'Offline' }, { status: 503 }))
     vi.stubGlobal('fetch', fetchMock)
-    await expect(loadMovies(baseUrl)).resolves.toEqual({ movies: [], source: 'error', error: 'Offline' })
+    await expect(loadMovies(baseUrl)).resolves.toEqual({
+      movies: [],
+      source: 'error',
+      error: 'Offline',
+    })
     await expect(loadMovies('')).resolves.toEqual({
       movies: [],
       source: 'error',
@@ -72,7 +104,11 @@ describe('movies', () => {
 
 describe('movie images', () => {
   it('builds TMDB image addresses from stored paths', () => {
-    const movie = toMovie({ ...movieRow, poster_path: '/abc.jpg', backdrop_path: '/wide.jpg' })
+    const movie = toMovie({
+      ...movieRow,
+      poster_path: '/abc.jpg',
+      backdrop_path: '/wide.jpg',
+    })
     expect(movie.poster).toBe('https://image.tmdb.org/t/p/w500/abc.jpg')
     expect(movie.backdrop).toBe('https://image.tmdb.org/t/p/w1280/wide.jpg')
   })

@@ -92,6 +92,8 @@ export default function MovieVersePage() {
         onZone={world.switchZone}
         search={filters.search}
         onSearch={filters.setSearch}
+        searchResults={filters.filtered}
+        onPickMovie={(movie) => setSelectedId(movie.id)}
         activeGenre={filters.activeGenre}
         onGenre={filters.setActiveGenre}
         onCatalogue={() => setOverlay('catalogue')}

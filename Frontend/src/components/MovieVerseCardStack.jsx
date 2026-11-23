@@ -2,20 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import MoviePosterImage from './MoviePosterImage'
 import { clampIndex } from '../utils/clampIndex'
+import { coverFlow } from '../utils/coverFlow'
 
 const SIDE_CARDS = 3
-
-// COVER FLOW: offset 0 = middle card. Side cards: move aside (x),
-// go back (z), turn 50° to the middle (rotateY) → like an open book
-function coverFlow(offset) {
-  if (offset === 0) return 'translateX(0) translateZ(0) rotateY(0deg)'
-  const side = offset < 0 ? -1 : 1 // -1 left, 1 right
-  const distance = Math.abs(offset)
-  const x = side * (60 + (distance - 1) * 22) // %
-  const z = -150 - (distance - 1) * 60 // px, minus = further
-  const turn = -side * 50
-  return `translateX(${x}%) translateZ(${z}px) rotateY(${turn}deg)`
-}
+const STEP_KEYS = { arrowleft: -1, a: -1, arrowright: 1, d: 1 }
+const OPEN_KEYS = ['e', 'f', 'enter'] // open the middle card
 
 // active = false → popup on top, keys do nothing
 export default function MovieVerseCardStack({
@@ -38,9 +29,16 @@ export default function MovieVerseCardStack({
   useEffect(() => {
     if (!active) return undefined
     function handleKey(e) {
+      if (e.target.matches?.('input, textarea')) return // typing in search
       const key = e.key.toLowerCase()
-      if (key === 'arrowleft' || key === 'a') go(-1)
-      if (key === 'arrowright' || key === 'd') go(1)
+      // Enter on a card = that card's own click, not this
+      const onCard = key === 'enter' && e.target.closest?.('.card-stack button')
+      if (key in STEP_KEYS) {
+        go(STEP_KEYS[key])
+      } else if (OPEN_KEYS.includes(key) && !onCard && cards[current]) {
+        e.preventDefault()
+        onOpen(cards[current])
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
@@ -118,7 +116,7 @@ export default function MovieVerseCardStack({
       </div>
 
       <p className="card-stack-hint">
-        ← → · scroll · swipe to browse · click to open
+        ← → · scroll · swipe to browse · E / F / Enter or click to open
       </p>
     </div>
   )

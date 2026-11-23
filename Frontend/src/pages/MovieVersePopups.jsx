@@ -25,8 +25,13 @@ function ListOverlay({ overlay, onCloseOverlay, onSelectMovie, ...props }) {
     return (
       <MovieVerseCatalogue
         movies={props.filteredMovies}
-        apiFailed={props.catalogue.dataSource === 'error'}
-        onSelect={onSelectMovie}
+        emptyText={
+          props.catalogue.dataSource === 'error'
+            ? 'Could not load movies from the API. Check that the backend is running.'
+            : 'No movies found. Try another search or genre.'
+        }
+        active={!props.selected && !props.friends.openFriend && !props.profile.draft}
+        onOpen={onSelectMovie}
         onClose={onCloseOverlay}
       />
     )

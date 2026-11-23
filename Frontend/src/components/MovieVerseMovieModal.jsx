@@ -81,7 +81,11 @@ export default function MovieVerseMovieModal({
               maxLength={1500}
               placeholder="What did you think of this movie?"
             />
-            <button className="primary-button" onClick={onSaveReview} disabled={reviewPending || !review.trim()}>
+            <button
+              className="primary-button"
+              onClick={onSaveReview}
+              disabled={reviewPending || !review.trim()}
+            >
               Post review <MessageCircle size={14} />
             </button>
           </div>
