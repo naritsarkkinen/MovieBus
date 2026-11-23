@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { movieHasGenre } from '../data/MovieVerseGenres'
 
 // search box + genre buttons → list of movies that match both
 export default function useMovieFilters(movies) {
@@ -12,7 +13,7 @@ export default function useMovieFilters(movies) {
         const matches = (m.title + ' ' + m.genre)
           .toLowerCase()
           .includes(search.toLowerCase())
-        const genre = activeGenre === 'All' || m.genre === activeGenre
+        const genre = activeGenre === 'All' || movieHasGenre(m, activeGenre)
         return matches && genre
       }),
     [movies, search, activeGenre],

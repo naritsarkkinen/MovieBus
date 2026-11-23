@@ -8,6 +8,13 @@ export function movieGenres(movie) {
     .map((g) => (g === 'Sci-Fi' ? 'Science Fiction' : g))
 }
 
+// genre button → does this movie have that genre?
+// button name goes through movieGenres too, so Sci-Fi = Science Fiction
+export function movieHasGenre(movie, genre) {
+  const [wanted] = movieGenres({ genre })
+  return movieGenres(movie).includes(wanted)
+}
+
 // one row per genre, a movie goes to EVERY genre it has
 // biggest genre first, same size → A to Z
 export function genreRows(movies) {
