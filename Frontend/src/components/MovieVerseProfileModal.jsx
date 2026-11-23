@@ -43,7 +43,7 @@ export default function MovieVerseProfileModal({
             value={name}
             disabled={pending}
             maxLength={40}
-           onChange={(e) => onName(e.target.value)}  
+            onChange={(e) => onName(e.target.value)}
           />
           <label>CHOOSE YOUR AVATAR</label>
           <div className="avatar-options">
