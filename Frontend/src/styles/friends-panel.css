@@ -41,6 +41,30 @@
   margin-right: 6px;
 }
 
+.add-friend {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.add-friend label, .add-friend small {
+  grid-column: 1 / -1;
+  font-size: 12px;
+}
+.add-friend input, .add-friend button, .remove-friend {
+  border: 1px solid #a78bfa55;
+  border-radius: 6px;
+  background: #211a3b;
+  color: #e2d9ff;
+  padding: 6px;
+}
+.friend-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
 .friend-list {
   display: grid;
   gap: 15px;

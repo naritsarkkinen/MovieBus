@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import './MovieVersePage.css'
-import { zones, friends as friendList } from '../data/MovieVerseData'
+import { zones } from '../data/MovieVerseData'
 import { splitMovies } from '../data/MovieVerseWorldLayout'
 import useMovieVerseApi from '../hooks/useMovieVerseApi'
 import useToast from '../hooks/useToast'
@@ -80,7 +80,7 @@ export default function MovieVersePage() {
         name={name}
         avatar={avatar}
         skin={skin}
-        friends={friendList}
+        friends={friends.list}
         invited={friends.invited}
         paused={paused}
         onOpenFriend={friends.showFriend}
@@ -100,7 +100,7 @@ export default function MovieVersePage() {
         dataSource={catalogue.dataSource}
         loadError={catalogue.loadError}
         onFriends={friends.togglePanel}
-        friendCount={friendList.length}
+        friendCount={friends.list.length}
         name={name}
         avatar={avatar}
         onProfile={profile.open}
@@ -108,7 +108,9 @@ export default function MovieVersePage() {
 
       {friends.panelOpen && (
         <MovieVerseFriendsPanel
-          friends={friendList}
+          friends={friends.list}
+          onAddFriend={friends.addFriend}
+          onRemoveFriend={friends.removeFriend}
           invited={friends.invited}
           joined={membership.joined}
           onClose={friends.closePanel}

@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { MoveUpRight, Radio, X } from 'lucide-react'
 
 export default function MovieVerseFriendsPanel({
   friends,
+  onAddFriend,
+  onRemoveFriend,
   invited,
   joined,
   onClose,
@@ -9,6 +12,16 @@ export default function MovieVerseFriendsPanel({
   onOpenFriend,
   onToggleRoom,
 }) {
+  const [nameError, setNameError] = useState('')
+
+  function submitFriend(event) {
+    event.preventDefault()
+    const input = event.currentTarget.elements.friendName
+    const error = onAddFriend(input.value)
+    setNameError(error)
+    if (!error) event.currentTarget.reset()
+  }
+
   return (
     <aside className="friends-panel">
       <div className="friends-head">
@@ -25,23 +38,42 @@ export default function MovieVerseFriendsPanel({
       <button className="invite-button" onClick={onInviteLink}>
         <span>＋</span> Invite friends
       </button>
+      <form className="add-friend" onSubmit={submitFriend}>
+        <label htmlFor="friend-name">Friend name</label>
+        <input
+          id="friend-name"
+          name="friendName"
+          required
+          maxLength={40}
+          aria-invalid={Boolean(nameError)}
+          aria-describedby={nameError ? 'friend-name-error' : undefined}
+          onInput={() => setNameError('')}
+        />
+        <button type="submit">Add friend</button>
+        {nameError && <small id="friend-name-error" role="alert">{nameError}</small>}
+      </form>
       <div className="friend-list">
         {friends.length === 0 && <p>No friends yet.</p>}
         {friends.map((f) => (
-          <button
-            className="friend"
-            key={f.name}
-            onClick={() => onOpenFriend(f)}
-          >
-            <div className={'friend-avatar ' + f.color}>{f.initial}</div>
-            <div>
-              <b>{f.name}</b>
-              <small>
-                {invited.has(f.name) ? 'In Friday Film Club' : f.status}
-              </small>
-            </div>
-            <i />
-          </button>
+          <div className="friend-row" key={f.name}>
+            <button className="friend" onClick={() => onOpenFriend(f)}>
+              <div className={'friend-avatar ' + f.color}>{f.initial}</div>
+              <div>
+                <b>{f.name}</b>
+                <small>
+                  {invited.has(f.name) ? 'In Friday Film Club' : f.status}
+                </small>
+              </div>
+              <i />
+            </button>
+            <button
+              className="remove-friend"
+              aria-label={'Remove ' + f.name}
+              onClick={() => onRemoveFriend(f)}
+            >
+              Remove
+            </button>
+          </div>
         ))}
       </div>
       <div className="room-card">
