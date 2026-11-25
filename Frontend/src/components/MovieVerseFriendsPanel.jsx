@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { MoveUpRight, Radio, X } from 'lucide-react'
 import { ROOM_CAPACITY, roomGuests, roomOccupancy } from '../data/MovieVerseData'
+import MovieVersePartyReviews from './MovieVersePartyReviews'
 
 function RecipientInvitation({ friend, full, onRespond }) {
   const [expanded, setExpanded] = useState(false)
@@ -37,6 +38,7 @@ export default function MovieVerseFriendsPanel({
   declined,
   joined,
   playerName,
+  userReviews,
   onClose,
   onInvite,
   onRespondToInvite,
@@ -153,6 +155,13 @@ export default function MovieVerseFriendsPanel({
           {joined ? 'Leave' : 'Join'} <MoveUpRight size={12} />
         </button>
       </div>
+      <MovieVersePartyReviews
+        friends={friends}
+        accepted={accepted}
+        joined={joined}
+        playerName={playerName}
+        userReviews={userReviews}
+      />
       <div className="activity">
         <div className="eyebrow">RECENT ACTIVITY</div>
         <p>

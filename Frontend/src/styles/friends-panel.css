@@ -182,6 +182,34 @@
   gap: 5px;
 }
 
+.party-reviews {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.party-reviews h4,
+.party-reviews p {
+  margin: 0;
+}
+.party-reviews ul {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+.party-reviews li {
+  display: grid;
+  gap: 3px;
+}
+.party-reviews li span {
+  color: #bfb1df;
+}
+.party-reviews p {
+  margin-top: 4px;
+  white-space: pre-wrap;
+}
+
 .activity {
   margin-top: 29px;
 }

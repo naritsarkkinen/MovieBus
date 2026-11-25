@@ -16,6 +16,23 @@ async function getMovieReviews(req, res, next) {
   }
 }
 
+async function getUserReviews(req, res, next) {
+  try {
+    const result = await pool.query(
+      `SELECT r.id, r.user_id, r.movie_id, m.title, r.body, r.created_at
+       FROM reviews r
+       JOIN movies m ON m.id = r.movie_id
+       WHERE r.user_id = $1
+       ORDER BY r.created_at DESC, r.id DESC
+       LIMIT 30`,
+      [req.user.id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function createMovieReview(req, res, next) {
   const body = String(req.body.body || '').trim();
   if (body.length < 1 || body.length > 1500) {
@@ -38,4 +55,4 @@ async function createMovieReview(req, res, next) {
   }
 }
 
-module.exports = { getMovieReviews, createMovieReview };
+module.exports = { getMovieReviews, getUserReviews, createMovieReview };

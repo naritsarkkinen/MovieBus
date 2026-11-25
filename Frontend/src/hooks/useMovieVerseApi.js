@@ -5,6 +5,7 @@ import { fetchReviews, postRating, postReview, toReview } from '../api/reviews'
 // Sending needs a logged-in session (token), 401 = token expired → onExpired
 export default function useMovieVerseApi({ session, selectedId, notify, onExpired }) {
   const [reviewsByMovie, setReviewsByMovie] = useState({})
+  const [lastPostedReviewId, setLastPostedReviewId] = useState(null)
 
   useEffect(() => {
     if (selectedId === null) return
@@ -40,6 +41,7 @@ export default function useMovieVerseApi({ session, selectedId, notify, onExpire
     return save(async (user) => {
       const row = await postReview(movie.id, user.id, body, { token: session.token })
       const review = toReview({ ...row, display_name: user.name })
+      setLastPostedReviewId(review.id)
       setReviewsByMovie((all) => ({
         ...all,
         [movie.id]: [review, ...(all[movie.id] || [])],
@@ -49,6 +51,7 @@ export default function useMovieVerseApi({ session, selectedId, notify, onExpire
   }
 
   return {
+    lastPostedReviewId,
     reviewsFor: (movieId) => reviewsByMovie[movieId] || [],
     sendRating,
     sendReview,

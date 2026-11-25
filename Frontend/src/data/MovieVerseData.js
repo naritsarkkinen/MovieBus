@@ -36,7 +36,17 @@ export function roomOccupancy(acceptedCount, joined) {
 
 // fake friends: no backend endpoint yet
 export const friends = [
-  { name: 'Mila', status: 'Exploring Sci-Fi', initial: 'M', color: 'lavender' },
+  {
+    name: 'Mila',
+    status: 'Exploring Sci-Fi',
+    initial: 'M',
+    color: 'lavender',
+    demoReviews: [{
+      id: 'dune-2',
+      title: 'Dune: Part Two',
+      text: 'The first sandworm ride made the whole desert feel alive.',
+    }],
+  },
   { name: 'Alex', status: 'In the lobby', initial: 'A', color: 'mint' },
   {
     name: 'Noah',

@@ -3,6 +3,7 @@ import './MovieVersePage.css'
 import { zones } from '../data/MovieVerseData'
 import { splitMovies } from '../data/MovieVerseWorldLayout'
 import useMovieVerseApi from '../hooks/useMovieVerseApi'
+import usePartyUserReviews from '../hooks/usePartyUserReviews'
 import useToast from '../hooks/useToast'
 import useEscapeKey from '../hooks/useEscapeKey'
 import useMovieCatalogue from '../hooks/useMovieCatalogue'
@@ -40,6 +41,11 @@ export default function MovieVersePage() {
     notify,
   })
   const feedback = useMovieFeedback({ api, refreshMovie: catalogue.refreshMovie })
+  const userReviews = usePartyUserReviews({
+    session: profile.session,
+    active: friends.panelOpen && membership.joined,
+    revision: api.lastPostedReviewId,
+  })
   const world = useWorldNavigation({
     onStudio: profile.open,
     onRoom: friends.openPanel,
@@ -116,6 +122,7 @@ export default function MovieVersePage() {
           declined={friends.declined}
           joined={membership.joined}
           playerName={name}
+          userReviews={userReviews}
           onClose={friends.closePanel}
           onInvite={friends.invite}
           onRespondToInvite={friends.respondToInvite}
