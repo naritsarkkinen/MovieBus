@@ -39,6 +39,7 @@ export default function MovieVerseFriendsPanel({
   joined,
   playerName,
   userReviews,
+  children,
   onClose,
   onInvite,
   onRespondToInvite,
@@ -155,6 +156,7 @@ export default function MovieVerseFriendsPanel({
           {joined ? 'Leave' : 'Join'} <MoveUpRight size={12} />
         </button>
       </div>
+      {joined && children}
       <MovieVersePartyReviews
         friends={friends}
         accepted={accepted}

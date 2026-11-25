@@ -4,6 +4,7 @@ import { zones } from '../data/MovieVerseData'
 import { splitMovies } from '../data/MovieVerseWorldLayout'
 import useMovieVerseApi from '../hooks/useMovieVerseApi'
 import usePartyUserReviews from '../hooks/usePartyUserReviews'
+import useSharedMovieThread from '../hooks/useSharedMovieThread'
 import useToast from '../hooks/useToast'
 import useEscapeKey from '../hooks/useEscapeKey'
 import useMovieCatalogue from '../hooks/useMovieCatalogue'
@@ -17,6 +18,7 @@ import useWorldNavigation from '../hooks/useWorldNavigation'
 import MovieVerseWorld from '../components/MovieVerseWorld'
 import MovieVerseHud from '../components/MovieVerseHud'
 import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
+import MovieVerseSharedReview from '../components/MovieVerseSharedReview'
 import MovieVersePlaceStack from '../components/MovieVersePlaceStack'
 import MovieVerseToast from '../components/MovieVerseToast'
 import MovieVersePopups from './MovieVersePopups'
@@ -27,9 +29,12 @@ export default function MovieVersePage() {
   const [toast, notify] = useToast()
   const [selectedId, setSelectedId] = useState(null)
   const [catalogueOpen, setCatalogueOpen] = useState(false)
+  const [clubMovieId, setClubMovieId] = useState(() =>
+    new URLSearchParams(window.location.search).get('clubMovie') || '',
+  )
 
   const profile = useProfileEditor(notify)
-  const friends = useFriends(notify)
+  const friends = useFriends(notify, Boolean(clubMovieId))
   const catalogue = useMovieCatalogue({ selectedId, notify })
   const filters = useMovieFilters(catalogue.movies)
   const watchlist = useWatchlist(notify)
@@ -53,6 +58,11 @@ export default function MovieVersePage() {
   })
 
   const { movies } = catalogue
+  const clubMovie = movies.find((movie) => String(movie.id) === clubMovieId)
+  const thread = useSharedMovieThread(
+    friends.panelOpen && membership.joined && clubMovie ? clubMovie.id : null,
+    api.lastPostedReviewId,
+  )
   const selected = movies.find((movie) => movie.id === selectedId)
   const groups = useMemo(() => splitMovies(movies), [movies])
   const stackMovies = (groups[world.zone] || []).filter((m) => filters.visibleIds.has(m.id))
@@ -75,6 +85,18 @@ export default function MovieVersePage() {
   function openCard(card) {
     if (card.community) membership.toggleCommunity(card.community)
     else setSelectedId(card.movie.id)
+  }
+
+  async function copyReviewLink(movieId) {
+    const url = new URL(window.location.pathname, window.location.origin)
+    url.searchParams.set('clubMovie', movieId)
+    try {
+      await navigator.clipboard.writeText(url.href)
+      notify('Review link copied')
+    } catch {
+      window.history.replaceState(window.history.state, '', url.href)
+      notify('Copy the review link from the address bar')
+    }
   }
 
   return (
@@ -128,7 +150,19 @@ export default function MovieVersePage() {
           onRespondToInvite={friends.respondToInvite}
           onOpenFriend={friends.showFriend}
           onToggleRoom={membership.toggleRoom}
-        />
+        >
+          <MovieVerseSharedReview
+            movies={movies}
+            dataSource={catalogue.dataSource}
+            movieId={clubMovieId}
+            onSelectMovie={setClubMovieId}
+            signedIn={Boolean(profile.session)}
+            onSignIn={profile.open}
+            feedback={feedback}
+            thread={thread}
+            onCopyLink={copyReviewLink}
+          />
+        </MovieVerseFriendsPanel>
       )}
 
       {world.placeOpen && (

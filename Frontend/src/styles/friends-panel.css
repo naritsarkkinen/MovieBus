@@ -210,6 +210,48 @@
   white-space: pre-wrap;
 }
 
+.shared-review {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px 0;
+  border-block: 1px solid #ffffff20;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.shared-review h4, .shared-review p, .shared-review ul {
+  margin: 0;
+}
+.shared-review form, .shared-review-thread, .shared-review ul {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.shared-review select, .shared-review textarea, .shared-review button {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #a78bfa55;
+  border-radius: 6px;
+  background: #211a3b;
+  color: #e2d9ff;
+  font: inherit;
+}
+.shared-review textarea {
+  resize: vertical;
+}
+.shared-review button:disabled {
+  opacity: 0.6;
+}
+.shared-review ul {
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0;
+  list-style: none;
+}
+.shared-review li p {
+  white-space: pre-wrap;
+}
+
 .activity {
   margin-top: 29px;
 }

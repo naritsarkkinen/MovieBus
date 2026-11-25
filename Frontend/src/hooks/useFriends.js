@@ -8,9 +8,9 @@ function groupInvitations(invitations) {
 }
 
 // friends side panel, the friend popup and who you invited (demo)
-export default function useFriends(notify) {
+export default function useFriends(notify, initiallyOpen = false) {
   const [list, setList] = useState(demoFriends)
-  const [panelOpen, setPanelOpen] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(initiallyOpen)
   const [openFriend, setOpenFriend] = useState(null)
   const [invitations, setInvitations] = useState(() => new Map())
   const { pending: invited, accepted, declined } = useMemo(
