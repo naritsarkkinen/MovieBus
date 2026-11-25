@@ -38,11 +38,6 @@
   font: 600 24px 'Space Grotesk';
   margin: 6px 0 14px;
 }
-.mv-panel-sub {
-  font-size: 12px;
-  color: #8c87a2;
-  margin: -6px 0 16px;
-}
 .mv-panel-actions {
   display: flex;
   gap: 10px;

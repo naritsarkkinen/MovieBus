@@ -21,9 +21,6 @@
 }
 
 /* poster colours when there is no image (movie.color in the data) */
-.poster-sand {
-  background: radial-gradient(circle at 50% 30%, #f4c77b, #8c4c37 60%, #24152c);
-}
 .poster-pink {
   background: radial-gradient(circle at 50% 30%, #ffb1d0, #a02d83 58%, #191b4c);
 }
