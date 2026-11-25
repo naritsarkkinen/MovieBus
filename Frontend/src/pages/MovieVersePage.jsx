@@ -115,6 +115,7 @@ export default function MovieVersePage() {
           accepted={friends.accepted}
           declined={friends.declined}
           joined={membership.joined}
+          playerName={name}
           onClose={friends.closePanel}
           onInvite={friends.invite}
           onRespondToInvite={friends.respondToInvite}

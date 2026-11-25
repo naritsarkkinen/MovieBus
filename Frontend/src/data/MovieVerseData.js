@@ -28,9 +28,10 @@ export const zones = [
   },
 ]
 export const ROOM_CAPACITY = 6
+export const roomGuests = ['Guest 1', 'Guest 2']
 
 export function roomOccupancy(acceptedCount, joined) {
-  return 2 + acceptedCount + (joined ? 1 : 0)
+  return roomGuests.length + acceptedCount + (joined ? 1 : 0)
 }
 
 // fake friends: no backend endpoint yet
