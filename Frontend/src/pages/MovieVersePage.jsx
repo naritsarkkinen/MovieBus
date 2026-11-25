@@ -32,7 +32,7 @@ export default function MovieVersePage() {
   const catalogue = useMovieCatalogue({ selectedId, notify })
   const filters = useMovieFilters(catalogue.movies)
   const watchlist = useWatchlist(notify)
-  const membership = useCommunityMembership(notify)
+  const membership = useCommunityMembership(notify, friends.accepted.size)
   const api = useMovieVerseApi({
     session: profile.session,
     onExpired: profile.expire,
@@ -81,6 +81,7 @@ export default function MovieVersePage() {
         avatar={avatar}
         skin={skin}
         friends={friends.list}
+        accepted={friends.accepted}
         paused={paused}
         onOpenFriend={friends.showFriend}
       />
@@ -111,9 +112,12 @@ export default function MovieVersePage() {
           onAddFriend={friends.addFriend}
           onRemoveFriend={friends.removeFriend}
           invited={friends.invited}
+          accepted={friends.accepted}
+          declined={friends.declined}
           joined={membership.joined}
           onClose={friends.closePanel}
           onInvite={friends.invite}
+          onRespondToInvite={friends.respondToInvite}
           onOpenFriend={friends.showFriend}
           onToggleRoom={membership.toggleRoom}
         />

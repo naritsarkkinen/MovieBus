@@ -27,6 +27,12 @@ export const zones = [
     icon: '♥',
   },
 ]
+export const ROOM_CAPACITY = 6
+
+export function roomOccupancy(acceptedCount, joined) {
+  return 2 + acceptedCount + (joined ? 1 : 0)
+}
+
 // fake friends: no backend endpoint yet
 export const friends = [
   { name: 'Mila', status: 'Exploring Sci-Fi', initial: 'M', color: 'lavender' },

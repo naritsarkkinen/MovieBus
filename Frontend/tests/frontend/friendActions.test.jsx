@@ -11,7 +11,10 @@ function FriendsDemo() {
     <MovieVerseFriendsPanel
       friends={friends.list}
       invited={friends.invited}
+      accepted={friends.accepted}
+      declined={friends.declined}
       onInvite={friends.invite}
+      onRespondToInvite={friends.respondToInvite}
       onAddFriend={friends.addFriend}
       onRemoveFriend={friends.removeFriend}
     />
@@ -50,6 +53,37 @@ it('sends a party invitation once and leaves room occupancy unchanged', () => {
   expect(container.querySelector('.friend-list').textContent).toContain('Invitation pending')
   expect(container.querySelector('.room-card small').textContent).toBe(occupancy)
   expect(container.querySelector('[aria-label="Invite Alex to Friday Film Club"]').disabled).toBe(false)
+})
+
+function recipientButton() {
+  return [...container.querySelectorAll('button')]
+    .find((button) => button.textContent === 'View invitation as Mila')
+}
+
+function inviteMilaAndRespond(response) {
+  act(() => container.querySelector('.invite-button').click())
+  act(() => container.querySelector('[aria-label="Invite Mila to Friday Film Club"]').click())
+  act(() => recipientButton().click())
+  const responseButton = [...container.querySelectorAll('button')]
+    .find((button) => button.textContent.trim() === response)
+  act(() => responseButton.click())
+}
+
+it('adds the recipient to the room when she accepts and prevents a second invitation', () => {
+  inviteMilaAndRespond('Accept')
+  expect(container.querySelector('.room-card small').textContent).toBe('3 / 6 explorers inside')
+  expect(container.querySelector('[aria-label="Invite Mila to Friday Film Club"]').disabled).toBe(true)
+  expect(recipientButton()).toBeUndefined()
+})
+
+it('keeps room occupancy unchanged after declining and lets the sender invite again', () => {
+  inviteMilaAndRespond('Decline')
+  expect(container.querySelector('.room-card small').textContent).toBe('2 / 6 explorers inside')
+  expect(recipientButton()).toBeUndefined()
+  const send = container.querySelector('[aria-label="Invite Mila to Friday Film Club"]')
+  expect(send.disabled).toBe(false)
+  act(() => send.click())
+  expect(recipientButton()).toBeDefined()
 })
 
 it('adds and removes a friend starting from an empty list', () => {

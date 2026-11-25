@@ -39,6 +39,7 @@ export default function MovieVerseWorld({
   avatar,
   skin,
   friends,
+  accepted,
   paused,
   onOpenFriend,
 }) {
@@ -51,7 +52,9 @@ export default function MovieVerseWorld({
   const [nearest, setNearest] = useState(null)
   const map = maps[mapId]
 
-  const friendsHere = (mapId === 'clubs' ? [] : friends)
+  const inClub = mapId === 'clubs'
+  const friendsHere = friends
+    .filter((friend) => accepted.has(friend.name) === inClub)
     .map((f, i) => ({
       ...f,
       spot: map.friendSpots[i % map.friendSpots.length],
@@ -303,7 +306,7 @@ export default function MovieVerseWorld({
             >
               <div className="player-bubble">
                 {f.name} ·{' '}
-                {f.status}
+                {inClub ? 'In Friday Film Club' : f.status}
               </div>
               <div className={'friend-avatar ' + f.color}>{f.initial}</div>
               <span className="player-shadow" />

@@ -36,7 +36,9 @@ function FriendPopup({ friends }) {
   return (
     <MovieVerseFriendModal
       friend={friends.openFriend}
-      invited={friends.isInvited(friends.openFriend)}
+      invited={friends.invited.has(friends.openFriend.name)}
+      accepted={friends.accepted.has(friends.openFriend.name)}
+      declined={friends.declined.has(friends.openFriend.name)}
       onInvite={friends.invite}
       onWave={friends.wave}
       onClose={friends.closeFriend}

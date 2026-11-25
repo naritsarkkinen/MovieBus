@@ -1,12 +1,21 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { friends as demoFriends } from '../data/MovieVerseData'
+
+function groupInvitations(invitations) {
+  const groups = { pending: new Set(), accepted: new Set(), declined: new Set() }
+  for (const [name, status] of invitations) groups[status].add(name)
+  return groups
+}
 
 // friends side panel, the friend popup and who you invited (demo)
 export default function useFriends(notify) {
   const [list, setList] = useState(demoFriends)
   const [panelOpen, setPanelOpen] = useState(false)
   const [openFriend, setOpenFriend] = useState(null)
-  const [invited, setInvited] = useState(() => new Set())
+  const [invitations, setInvitations] = useState(() => new Map())
+  const { pending: invited, accepted, declined } = useMemo(
+    () => groupInvitations(invitations), [invitations],
+  )
 
   function addFriend(value) {
     const name = value.trim()
@@ -26,8 +35,9 @@ export default function useFriends(notify) {
 
   function removeFriend(friend) {
     setList((current) => current.filter((item) => item.name !== friend.name))
-    setInvited((current) => {
-      const next = new Set(current)
+    setInvitations((current) => {
+      if (!current.has(friend.name)) return current
+      const next = new Map(current)
       next.delete(friend.name)
       return next
     })
@@ -36,9 +46,21 @@ export default function useFriends(notify) {
   }
 
   function invite(friend) {
-    setInvited((set) => new Set(set).add(friend.name))
+    if (invited.has(friend.name) || accepted.has(friend.name)) return
+    setInvitations((current) => {
+      const status = current.get(friend.name)
+      if (status === 'pending' || status === 'accepted') return current
+      return new Map(current).set(friend.name, 'pending')
+    })
     notify('Friday Film Club invitation sent to ' + friend.name)
     setOpenFriend(null)
+  }
+
+  function respondToInvite(friend, accept) {
+    setInvitations((current) => {
+      if (current.get(friend.name) !== 'pending') return current
+      return new Map(current).set(friend.name, accept ? 'accepted' : 'declined')
+    })
   }
 
   function wave(friend) {
@@ -58,8 +80,11 @@ export default function useFriends(notify) {
     showFriend: setOpenFriend,
     closeFriend: () => setOpenFriend(null),
     invited,
+    accepted,
+    declined,
     isInvited: (friend) => Boolean(friend) && invited.has(friend.name),
     invite,
+    respondToInvite,
     wave,
   }
 }

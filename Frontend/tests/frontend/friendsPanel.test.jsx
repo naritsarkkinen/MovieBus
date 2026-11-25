@@ -4,7 +4,7 @@ import MovieVerseFriendsPanel from '../../src/components/MovieVerseFriendsPanel'
 
 function renderPanel(friends) {
   return renderToStaticMarkup(
-    <MovieVerseFriendsPanel friends={friends} invited={new Set()} />,
+    <MovieVerseFriendsPanel friends={friends} invited={new Set()} accepted={new Set()} declined={new Set()} />,
   )
 }
 

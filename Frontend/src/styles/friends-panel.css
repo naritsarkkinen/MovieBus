@@ -52,6 +52,15 @@
 .party-invites button:disabled {
   opacity: 0.65;
 }
+.recipient-invite {
+  grid-column: 1 / -1;
+}
+.recipient-invite p {
+  font-size: 12px;
+}
+.recipient-invite button + button {
+  margin-left: 6px;
+}
 .add-friend {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
