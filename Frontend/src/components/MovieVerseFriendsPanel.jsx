@@ -26,6 +26,7 @@ export default function MovieVerseFriendsPanel({
         <span>＋</span> Invite friends
       </button>
       <div className="friend-list">
+        {friends.length === 0 && <p>No friends yet.</p>}
         {friends.map((f) => (
           <button
             className="friend"
