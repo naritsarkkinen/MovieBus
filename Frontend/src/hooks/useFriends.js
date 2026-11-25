@@ -37,7 +37,7 @@ export default function useFriends(notify) {
 
   function invite(friend) {
     setInvited((set) => new Set(set).add(friend.name))
-    notify(friend.name + ' is heading to Friday Film Club')
+    notify('Friday Film Club invitation sent to ' + friend.name)
     setOpenFriend(null)
   }
 

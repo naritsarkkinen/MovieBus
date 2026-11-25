@@ -6,7 +6,7 @@ export default function MovieVerseFriendModal({ friend, invited, onInvite, onWav
     <MovieVersePanel eyebrow="FRIEND" title={friend.name} onClose={onClose}>
       <div className="mv-friend-card">
         <div className={'friend-avatar ' + friend.color}>{friend.initial}</div>
-        <p>{invited ? 'Hanging out in Friday Film Club' : friend.status}</p>
+        <p>{invited ? 'Invitation pending' : friend.status}</p>
       </div>
       <div className="mv-panel-actions">
         <button
@@ -14,7 +14,7 @@ export default function MovieVerseFriendModal({ friend, invited, onInvite, onWav
           disabled={invited}
           onClick={() => onInvite(friend)}
         >
-          {invited ? 'Already in Friday Film Club' : 'Invite to Friday Film Club'}
+          {invited ? 'Invitation sent' : 'Invite to Friday Film Club'}
         </button>
         <button className="mv-secondary-button" onClick={() => onWave(friend)}>
           Say hi 👋

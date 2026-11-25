@@ -81,7 +81,6 @@ export default function MovieVersePage() {
         avatar={avatar}
         skin={skin}
         friends={friends.list}
-        invited={friends.invited}
         paused={paused}
         onOpenFriend={friends.showFriend}
       />
@@ -114,7 +113,7 @@ export default function MovieVersePage() {
           invited={friends.invited}
           joined={membership.joined}
           onClose={friends.closePanel}
-          onInviteLink={() => notify('Invite link copied (demo)')}
+          onInvite={friends.invite}
           onOpenFriend={friends.showFriend}
           onToggleRoom={membership.toggleRoom}
         />

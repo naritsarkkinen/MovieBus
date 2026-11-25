@@ -41,6 +41,17 @@
   margin-right: 6px;
 }
 
+.party-invites {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.party-invites h4 {
+  margin: 0;
+}
+.party-invites button:disabled {
+  opacity: 0.65;
+}
 .add-friend {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -51,7 +62,7 @@
   grid-column: 1 / -1;
   font-size: 12px;
 }
-.add-friend input, .add-friend button, .remove-friend {
+.add-friend input, .add-friend button, .remove-friend, .party-invites button {
   border: 1px solid #a78bfa55;
   border-radius: 6px;
   background: #211a3b;

@@ -8,11 +8,12 @@ export default function MovieVerseFriendsPanel({
   invited,
   joined,
   onClose,
-  onInviteLink,
+  onInvite,
   onOpenFriend,
   onToggleRoom,
 }) {
   const [nameError, setNameError] = useState('')
+  const [invitesOpen, setInvitesOpen] = useState(false)
 
   function submitFriend(event) {
     event.preventDefault()
@@ -35,9 +36,28 @@ export default function MovieVerseFriendsPanel({
           <X size={16} />
         </button>
       </div>
-      <button className="invite-button" onClick={onInviteLink}>
+      <button className="invite-button" aria-expanded={invitesOpen}
+        onClick={() => setInvitesOpen((open) => !open)}>
         <span>＋</span> Invite friends
       </button>
+      {invitesOpen && (
+        <section className="party-invites" aria-label="Invite to Friday Film Club">
+          <h4>Invite to Friday Film Club</h4>
+          {friends.length === 0 && <p>Add a friend to send an invitation.</p>}
+          {friends.map((friend) => (
+            <div className="friend-row" key={friend.name}>
+              <span>{friend.name}</span>
+              <button
+                disabled={invited.has(friend.name)}
+                aria-label={'Invite ' + friend.name + ' to Friday Film Club'}
+                onClick={() => onInvite(friend)}
+              >
+                {invited.has(friend.name) ? 'Invitation sent' : 'Send invite'}
+              </button>
+            </div>
+          ))}
+        </section>
+      )}
       <form className="add-friend" onSubmit={submitFriend}>
         <label htmlFor="friend-name">Friend name</label>
         <input
@@ -61,7 +81,7 @@ export default function MovieVerseFriendsPanel({
               <div>
                 <b>{f.name}</b>
                 <small>
-                  {invited.has(f.name) ? 'In Friday Film Club' : f.status}
+                  {invited.has(f.name) ? 'Invitation pending' : f.status}
                 </small>
               </div>
               <i />
@@ -82,7 +102,7 @@ export default function MovieVerseFriendsPanel({
           <span className="eyebrow">FRIEND ROOM</span>
           <b>Friday Film Club</b>
           <small>
-            {2 + invited.size + (joined ? 1 : 0)} / 6 explorers inside
+            {2 + (joined ? 1 : 0)} / 6 explorers inside
           </small>
         </div>
         <button onClick={onToggleRoom}>
