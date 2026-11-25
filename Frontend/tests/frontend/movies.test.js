@@ -48,6 +48,17 @@ describe('movies', () => {
     expect(formatRating(unrated.rating)).toBe('New')
   })
 
+  it('uses the first genre of a genre list for colour and tag', () => {
+    const movie = toMovie({
+      ...movieRow,
+      genre: 'Adventure, Action, Fantasy',
+      average_rating: '3',
+    })
+    expect(movie.genre).toBe('Adventure, Action, Fantasy')
+    expect(movie.color).toBe('orange')
+    expect(movie.tag).toBe('ADVENTURE')
+  })
+
   it('reads the catalogue and the latest rating from the detail route', async () => {
     const fetchMock = vi
       .fn()

@@ -1,0 +1,101 @@
+/* ---------- card stack (like the phone app switcher) ---------- */
+.card-stack {
+  position: fixed;
+  inset: 0;
+  z-index: 9; /* under the top bar (10), over the world */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 150px 16px 40px;
+  background: #05040be6; /* dark, no blur: blurring the moving world is slow */
+  animation: stack-in 0.25s ease-out;
+}
+/* every dimension tints the space behind its cards */
+.card-stack.theme-trending {
+  background: radial-gradient(circle at 50% 45%, #f9731640, #05040bdd 65%);
+}
+.card-stack.theme-discover {
+  background:
+    radial-gradient(circle at 40% 40%, #a855f733, transparent 50%),
+    radial-gradient(circle at 60% 60%, #2dd4bf33, #05040bdd 65%);
+}
+.card-stack.theme-community {
+  background: radial-gradient(circle at 50% 45%, #3b82f640, #05040bdd 65%);
+}
+.card-stack.theme-watchlist {
+  background: radial-gradient(circle at 50% 45%, #f43f5e33, #070310dd 65%);
+}
+.card-stack.theme-communities {
+  background: radial-gradient(circle at 50% 45%, #ec489933, #070310dd 65%);
+}
+.card-stack-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.card-stack-head h2 {
+  margin: 0;
+  font: 600 26px 'Space Grotesk';
+}
+.card-stack-head span {
+  font: 13px 'DM Mono';
+  color: #a69bc9;
+}
+.card-stack-head .modal-close {
+  position: static;
+}
+.card-stack-track {
+  position: relative;
+  width: min(280px, 62vw);
+  height: min(420px, 52vh);
+  /* 3D: how far away the "camera" is. Smaller = stronger 3D effect */
+  perspective: 1100px;
+  transform-style: preserve-3d;
+}
+.stack-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 14px;
+  border: 1px solid #ffffff22;
+  border-radius: 22px;
+  background: #151326;
+  text-align: left;
+  box-shadow: 0 20px 50px #000a;
+  transition: transform 0.4s ease;
+  backface-visibility: hidden;
+}
+.stack-card.center {
+  border-color: #a78bfa;
+  box-shadow:
+    0 0 40px #8b5cf666,
+    0 30px 60px #000c;
+}
+/* a light shine on the side cards, so the 3D turn is easy to see */
+.stack-card:not(.center) {
+  filter: brightness(0.75);
+}
+.stack-poster {
+  position: relative;
+  flex: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.stack-card b {
+  font: 600 17px 'Space Grotesk';
+}
+.stack-card small {
+  font-size: 12px;
+  color: #a69bc9;
+}
+.card-stack-hint {
+  margin: 0;
+  font: 12px 'DM Mono';
+  color: #8c87a2;
+}

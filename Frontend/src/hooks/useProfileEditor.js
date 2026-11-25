@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { authenticate } from '../api/users'
+import { authenticate, saveAvatar } from '../api/users'
 
-const GUEST = { name: 'Hämi', skin: 'violet', avatar: '🧑🏽‍🚀' }
+const GUEST = { name: 'Guest', skin: 'violet', avatar: '🧑🏽‍🚀' }
 
 // login session + Avatar Studio draft.
 // draft = null → studio closed
-export default function useProfileEditor() {
+export default function useProfileEditor(notify) {
   const [session, setSession] = useState(null)
   const [draft, setDraft] = useState(null)
   const [pending, setPending] = useState(false)
@@ -15,6 +15,7 @@ export default function useProfileEditor() {
     setDraft((d) => ({ ...d, [field]: value }))
   }
 
+  // pending = true while waiting for the API → buttons are disabled
   async function withPending(action) {
     if (pending) return
     setPending(true)
@@ -33,13 +34,20 @@ export default function useProfileEditor() {
     })
   }
 
-  // api = useMovieVerseApi (needs the session, so it is passed in later)
-  function save(api) {
+  function save() {
+    if (draft.name.trim().length < 2) {
+      notify('Display name must be at least 2 characters')
+      return
+    }
     return withPending(async () => {
-      const saved = await api.sendProfile(draft)
-      if (saved) {
+      try {
+        const saved = await saveAvatar(session, draft)
         setSession((s) => ({ ...s, profile: saved }))
         setDraft(null)
+        notify('Your explorer profile was saved')
+      } catch (error) {
+        if (error.status === 401) setSession(null) // token expired → log out
+        notify('Save failed: ' + error.message)
       }
     })
   }

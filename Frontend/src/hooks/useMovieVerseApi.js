@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { saveAvatar } from '../api/users'
 import { fetchReviews, postRating, postReview, toReview } from '../api/reviews'
 
+// reviews of the open movie + sending ratings and reviews.
+// Sending needs a logged-in session (token), 401 = token expired → onExpired
 export default function useMovieVerseApi({ session, selectedId, notify, onExpired }) {
   const [reviewsByMovie, setReviewsByMovie] = useState({})
 
@@ -47,22 +48,9 @@ export default function useMovieVerseApi({ session, selectedId, notify, onExpire
     }, 'Review posted')
   }
 
-  function sendProfile(profile) {
-    const updated = { ...profile, name: profile.name.trim() }
-    if (updated.name.length < 2) {
-      notify('Display name must be at least 2 characters')
-      return null
-    }
-    return save(
-      () => saveAvatar(session, updated),
-      'Your explorer profile was saved',
-    )
-  }
-
   return {
     reviewsFor: (movieId) => reviewsByMovie[movieId] || [],
     sendRating,
     sendReview,
-    sendProfile,
   }
 }

@@ -1,7 +1,10 @@
 import { communityCard, movieCard } from './MovieVerseCards'
 
-export const EMPTY_WATCHLIST =
+const EMPTY_WATCHLIST =
   'Nothing saved yet. Open a movie and press “Save to watchlist”.'
+
+export const API_FAILED_TEXT =
+  'Could not load movies from the API. Check that the backend is running.'
 
 export const STACK_TITLES = {
   trending: 'Trending dimension',
@@ -23,8 +26,6 @@ export function placeCards({ zone, stackMovies, watchlistMovies, communities, is
 export function placeEmptyText(zone, apiFailed) {
   if (zone === 'watchlist') return EMPTY_WATCHLIST
   if (zone === 'communities') return 'No communities yet.'
-  if (apiFailed) {
-    return 'Could not load movies from the API. Check that the backend is running.'
-  }
+  if (apiFailed) return API_FAILED_TEXT
   return 'No movies here. Try another search or genre.'
 }

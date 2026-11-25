@@ -25,9 +25,9 @@ import MovieVersePopups from './MovieVersePopups'
 export default function MovieVersePage() {
   const [toast, notify] = useToast()
   const [selectedId, setSelectedId] = useState(null)
-  const [overlay, setOverlay] = useState(null) // catalogue | communities | watchlist
+  const [catalogueOpen, setCatalogueOpen] = useState(false)
 
-  const profile = useProfileEditor()
+  const profile = useProfileEditor(notify)
   const friends = useFriends(notify)
   const catalogue = useMovieCatalogue({ selectedId, notify })
   const filters = useMovieFilters(catalogue.movies)
@@ -51,7 +51,7 @@ export default function MovieVersePage() {
   const groups = useMemo(() => splitMovies(movies), [movies])
   const stackMovies = (groups[world.zone] || []).filter((m) => filters.visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.isSaved(m.id))
-  const popupOpen = Boolean(selected || friends.openFriend || profile.draft || overlay)
+  const popupOpen = Boolean(selected || friends.openFriend || profile.draft || catalogueOpen)
   // paused = no walking while something covers the world
   const paused = popupOpen || world.placeOpen
   const { name, avatar, skin } = profile.profile
@@ -61,7 +61,7 @@ export default function MovieVersePage() {
     [selectedId !== null, () => setSelectedId(null)],
     [friends.openFriend, friends.closeFriend],
     [profile.draft, profile.close],
-    [overlay, () => setOverlay(null)],
+    [catalogueOpen, () => setCatalogueOpen(false)],
     [world.placeOpen, world.closePlace],
     [true, friends.closePanel],
   ])
@@ -96,7 +96,7 @@ export default function MovieVersePage() {
         onPickMovie={(movie) => setSelectedId(movie.id)}
         activeGenre={filters.activeGenre}
         onGenre={filters.setActiveGenre}
-        onCatalogue={() => setOverlay('catalogue')}
+        onCatalogue={() => setCatalogueOpen(true)}
         dataSource={catalogue.dataSource}
         loadError={catalogue.loadError}
         onFriends={friends.togglePanel}
@@ -133,12 +133,10 @@ export default function MovieVersePage() {
       )}
 
       <MovieVersePopups
-        overlay={overlay}
-        onCloseOverlay={() => setOverlay(null)}
+        catalogueOpen={catalogueOpen}
+        onCloseCatalogue={() => setCatalogueOpen(false)}
         catalogue={catalogue}
         filteredMovies={filters.filtered}
-        watchlistMovies={watchlistMovies}
-        membership={membership}
         friends={friends}
         selected={selected}
         onSelectMovie={(movie) => setSelectedId(movie.id)}
@@ -147,7 +145,6 @@ export default function MovieVersePage() {
         watchlist={watchlist}
         reviewsFor={api.reviewsFor}
         profile={profile}
-        onSaveProfile={() => profile.save(api)}
       />
 
       <MovieVerseToast message={toast} />

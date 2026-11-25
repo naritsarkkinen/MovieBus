@@ -1,0 +1,79 @@
+/* catalogue: all movies + one cover-flow row per genre */
+.catalogue {
+  position: fixed;
+  inset: 0;
+  z-index: 9; /* under the top bar, so search still works */
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 210px 16px 60px; /* start under the top bar */
+  background:
+    radial-gradient(circle at 50% 25%, #8b5cf626, transparent 60%), #05040bf5;
+  animation: stack-in 0.25s ease-out;
+}
+.catalogue .modal-close {
+  position: static;
+}
+.catalogue-grid {
+  width: min(1200px, 100%);
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 genres side by side */
+  gap: 14px;
+}
+.catalogue-row.all {
+  grid-column: 1 / -1; /* All movies takes the whole line */
+}
+.catalogue-row {
+  min-width: 0;
+  overflow: hidden; /* side cards stay inside their own box */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 22px;
+  border-radius: 18px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+.catalogue-row.active {
+  opacity: 1;
+  background: #ffffff06;
+  box-shadow: inset 0 0 0 1px #ffffff14; /* picked genre */
+}
+.catalogue-row.inside {
+  background: #8b5cf614;
+  box-shadow: inset 0 0 0 2px #a78bfa77; /* browsing this genre */
+}
+.catalogue-row h3 {
+  align-self: flex-start;
+  margin: 0 0 0 20px;
+  font: 600 18px 'Space Grotesk';
+}
+.catalogue-row h3 span {
+  font: 12px 'DM Mono';
+  color: #a69bc9;
+}
+.catalogue-track {
+  width: 170px;
+  height: 250px;
+}
+.catalogue-track .stack-card b {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* only the row you are on gets the glowing middle card */
+.catalogue-row:not(.active) .stack-card.center {
+  border-color: #ffffff22;
+  box-shadow: 0 20px 50px #000a;
+}
+@keyframes stack-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}

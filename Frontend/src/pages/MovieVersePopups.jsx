@@ -1,61 +1,35 @@
 import MovieVerseCatalogue from '../components/MovieVerseCatalogue'
-import MovieVerseWatchlist from '../components/MovieVerseWatchlist'
-import MovieVerseCommunities from '../components/MovieVerseCommunities'
 import MovieVerseFriendModal from '../components/MovieVerseFriendModal'
 import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
 import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
+import { API_FAILED_TEXT } from '../data/MovieVersePlaces'
 
-// the big overlay panels: catalogue/watchlist/communities list,
-// one friend, one movie, and Avatar Studio
+// the big popups on top of the world:
+// catalogue, one friend, one movie, and Avatar Studio
 export default function MovieVersePopups(props) {
   return (
     <>
-      <ListOverlay {...props} />
+      {props.catalogueOpen && <CataloguePopup {...props} />}
       {props.friends.openFriend && <FriendPopup friends={props.friends} />}
       {props.selected && <MoviePopup {...props} />}
-      {props.profile.draft && (
-        <ProfilePopup profile={props.profile} onSave={props.onSaveProfile} />
-      )}
+      {props.profile.draft && <ProfilePopup profile={props.profile} />}
     </>
   )
 }
 
-function ListOverlay({ overlay, onCloseOverlay, onSelectMovie, ...props }) {
-  if (overlay === 'catalogue') {
-    return (
-      <MovieVerseCatalogue
-        movies={props.filteredMovies}
-        emptyText={
-          props.catalogue.dataSource === 'error'
-            ? 'Could not load movies from the API. Check that the backend is running.'
-            : 'No movies found. Try another search or genre.'
-        }
-        active={!props.selected && !props.friends.openFriend && !props.profile.draft}
-        onOpen={onSelectMovie}
-        onClose={onCloseOverlay}
-      />
-    )
-  }
-  if (overlay === 'watchlist') {
-    return (
-      <MovieVerseWatchlist
-        movies={props.watchlistMovies}
-        onSelect={onSelectMovie}
-        onClose={onCloseOverlay}
-      />
-    )
-  }
-  if (overlay === 'communities') {
-    return (
-      <MovieVerseCommunities
-        communities={props.catalogue.communities}
-        isMember={props.membership.isMember}
-        onToggle={props.membership.toggleCommunity}
-        onClose={onCloseOverlay}
-      />
-    )
-  }
-  return null
+function CataloguePopup({ catalogue, filteredMovies, selected, friends, profile, onSelectMovie, onCloseCatalogue }) {
+  const apiFailed = catalogue.dataSource === 'error'
+  // another popup on top → catalogue keys do nothing
+  const onTop = !selected && !friends.openFriend && !profile.draft
+  return (
+    <MovieVerseCatalogue
+      movies={filteredMovies}
+      emptyText={apiFailed ? API_FAILED_TEXT : 'No movies found. Try another search or genre.'}
+      active={onTop}
+      onOpen={onSelectMovie}
+      onClose={onCloseCatalogue}
+    />
+  )
 }
 
 function FriendPopup({ friends }) {
@@ -89,7 +63,7 @@ function MoviePopup({ selected, feedback, watchlist, reviewsFor, onCloseMovie })
   )
 }
 
-function ProfilePopup({ profile, onSave }) {
+function ProfilePopup({ profile }) {
   return (
     <MovieVerseProfileModal
       {...profile.draft}
@@ -98,7 +72,7 @@ function ProfilePopup({ profile, onSave }) {
       onName={(value) => profile.change('name', value)}
       onAvatar={(value) => profile.change('avatar', value)}
       onSkin={(value) => profile.change('skin', value)}
-      onSave={onSave}
+      onSave={profile.save}
       pending={profile.pending}
       onClose={profile.close}
     />

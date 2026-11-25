@@ -98,12 +98,6 @@ export default function MovieVerseMovieModal({
               <div className="mv-review" key={r.id}>
                 <div>
                   <b>{r.author}</b>
-                  {r.stars && (
-                    <span>
-                      {'★'.repeat(r.stars)}
-                      {'☆'.repeat(Math.max(0, 5 - r.stars))}
-                    </span>
-                  )}
                 </div>
                 <p>{r.text}</p>
               </div>
