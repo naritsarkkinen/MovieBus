@@ -1,4 +1,4 @@
-import { Film, LayoutGrid, Users } from 'lucide-react'
+import { Film, LayoutGrid, Trophy, Users } from 'lucide-react'
 import MovieVerseGenreFilter from './MovieVerseGenreFilter'
 import MovieVerseSearch from './MovieVerseSearch'
 
@@ -13,6 +13,7 @@ export default function MovieVerseHud({
   activeGenre,
   onGenre,
   onCatalogue,
+  onLeaderboard,
   dataSource,
   loadError,
   onFriends,
@@ -76,6 +77,15 @@ export default function MovieVerseHud({
         </span>
         <button className="mv-hud-button" onClick={onCatalogue}>
           <LayoutGrid size={16} /> Catalogue
+        </button>
+        <button
+          className="icon-button"
+          onClick={onLeaderboard}
+          aria-haspopup="dialog"
+          aria-label="XP leaderboard"
+          title="XP leaderboard"
+        >
+          <Trophy size={18} aria-hidden="true" />
         </button>
         <button
           className="icon-button"

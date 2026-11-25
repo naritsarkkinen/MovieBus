@@ -17,6 +17,7 @@ import useFriends from '../hooks/useFriends'
 import useWorldNavigation from '../hooks/useWorldNavigation'
 import MovieVerseWorld from '../components/MovieVerseWorld'
 import MovieVerseHud from '../components/MovieVerseHud'
+import MovieVerseXpLeaderboard from '../components/MovieVerseXpLeaderboard'
 import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
 import MovieVerseSharedReview from '../components/MovieVerseSharedReview'
 import MovieVersePlaceStack from '../components/MovieVersePlaceStack'
@@ -29,6 +30,7 @@ export default function MovieVersePage() {
   const [toast, notify] = useToast()
   const [selectedId, setSelectedId] = useState(null)
   const [catalogueOpen, setCatalogueOpen] = useState(false)
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false)
   const [clubMovieId, setClubMovieId] = useState(() =>
     new URLSearchParams(window.location.search).get('clubMovie') || '',
   )
@@ -67,13 +69,14 @@ export default function MovieVersePage() {
   const groups = useMemo(() => splitMovies(movies), [movies])
   const stackMovies = (groups[world.zone] || []).filter((m) => filters.visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.isSaved(m.id))
-  const popupOpen = Boolean(selected || friends.openFriend || profile.draft || catalogueOpen)
+  const popupOpen = Boolean(selected || friends.openFriend || profile.draft || catalogueOpen || leaderboardOpen)
   // paused = no walking while something covers the world
   const paused = popupOpen || world.placeOpen
   const { name, avatar, skin } = profile.profile
 
   // top-most first
   useEscapeKey([
+    [leaderboardOpen, () => setLeaderboardOpen(false)],
     [selectedId !== null, () => setSelectedId(null)],
     [friends.openFriend, friends.closeFriend],
     [profile.draft, profile.close],
@@ -125,6 +128,7 @@ export default function MovieVersePage() {
         activeGenre={filters.activeGenre}
         onGenre={filters.setActiveGenre}
         onCatalogue={() => setCatalogueOpen(true)}
+        onLeaderboard={() => setLeaderboardOpen(true)}
         dataSource={catalogue.dataSource}
         loadError={catalogue.loadError}
         onFriends={friends.togglePanel}
@@ -165,6 +169,8 @@ export default function MovieVersePage() {
         </MovieVerseFriendsPanel>
       )}
 
+      {leaderboardOpen && <MovieVerseXpLeaderboard onClose={() => setLeaderboardOpen(false)} />}
+
       {world.placeOpen && (
         <MovieVersePlaceStack
           zone={world.zone}
@@ -181,6 +187,7 @@ export default function MovieVersePage() {
 
       <MovieVersePopups
         catalogueOpen={catalogueOpen}
+        leaderboardOpen={leaderboardOpen}
         onCloseCatalogue={() => setCatalogueOpen(false)}
         catalogue={catalogue}
         filteredMovies={filters.filtered}

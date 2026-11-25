@@ -17,10 +17,10 @@ export default function MovieVersePopups(props) {
   )
 }
 
-function CataloguePopup({ catalogue, filteredMovies, selected, friends, profile, onSelectMovie, onCloseCatalogue }) {
+function CataloguePopup({ catalogue, filteredMovies, selected, friends, profile, leaderboardOpen, onSelectMovie, onCloseCatalogue }) {
   const apiFailed = catalogue.dataSource === 'error'
   // another popup on top → catalogue keys do nothing
-  const onTop = !selected && !friends.openFriend && !profile.draft
+  const onTop = !selected && !friends.openFriend && !profile.draft && !leaderboardOpen
   return (
     <MovieVerseCatalogue
       movies={filteredMovies}

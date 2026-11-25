@@ -60,6 +60,8 @@ tests/frontend/       tests for the api/ code and the hub layout
 
 ## API used
 
+The trophy button in the top bar opens the XP leaderboard. It shows labelled demo scores by default. When the XP service is available, set `VITE_XP_LEADERBOARD_PATH` to its path relative to the API base and restart Vite. The reader expects an array of rows with `user_id`, `display_name` and `total_xp`. Equal scores share a rank.
+
 | Method | Path                        | Used for                                  |
 | ------ | --------------------------- | ----------------------------------------- |
 | GET    | `/api/movies`               | movies in the world                       |

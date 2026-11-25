@@ -1,0 +1,51 @@
+.xp-leaderboard {
+  width: min(30rem, calc(100% - 2rem));
+  max-height: 85dvh;
+  margin: auto;
+  padding: 0;
+  color: #ede8fa;
+  background: #120f24;
+  border: 1px solid #ffffff24;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px #000a;
+}
+.xp-leaderboard::backdrop {
+  background: #05040bd9;
+  backdrop-filter: blur(9px);
+}
+.xp-leaderboard-content {
+  position: relative;
+  padding: clamp(18px, 5vw, 28px);
+}
+.xp-leaderboard h2 {
+  margin: 0 36px 14px 0;
+  font: 600 24px 'Space Grotesk', sans-serif;
+}
+.xp-leaderboard p {
+  color: #c0b6d6;
+  font-size: 14px;
+}
+.xp-leaderboard table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+.xp-leaderboard th, .xp-leaderboard td {
+  padding: 10px 4px;
+  border-bottom: 1px solid #ffffff18;
+}
+.xp-leaderboard thead th {
+  color: #b3a8c9;
+  font-size: 12px;
+}
+.xp-leaderboard tbody th {
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+.xp-leaderboard tr > :last-child {
+  text-align: right;
+}
+.xp-leaderboard tr[data-rank="1"] {
+  color: #d4baff;
+}
