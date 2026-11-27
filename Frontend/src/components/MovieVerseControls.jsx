@@ -18,7 +18,7 @@ export default function MovieVerseControls({ onPress, onRelease }) {
           <kbd>D</kbd> walk · <kbd>Shift</kbd> run
         </span>
         <span>
-          <kbd>F</kbd> / <kbd>Enter</kbd> use · or click
+          <kbd>E</kbd> / <kbd>F</kbd> / <kbd>Enter</kbd> use · or click
         </span>
         <span>or click the floor to walk there</span>
       </div>

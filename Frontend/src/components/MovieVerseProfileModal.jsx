@@ -44,7 +44,7 @@ export default function MovieVerseProfileModal({
             value={name}
             disabled={pending}
             maxLength={40}
-           onChange={(e) => onName(e.target.value)}  
+            onChange={(e) => onName(e.target.value)}
           />
           <label>CHOOSE YOUR AVATAR</label>
           <div className="avatar-options">
@@ -77,7 +77,7 @@ export default function MovieVerseProfileModal({
 
         </> : <AccountForm pending={pending} onAuthenticate={onAuthenticate} />}
 
-    {import.meta.env.DEV && signedIn && onOpenAdmin && (
+        {import.meta.env.DEV &&  signedIn && onOpenAdmin && (
           <button
             type="button"
             className="primary-button"

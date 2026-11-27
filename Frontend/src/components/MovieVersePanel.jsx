@@ -1,16 +1,11 @@
 import { X } from 'lucide-react'
 
-export default function MovieVersePanel({
-  eyebrow,
-  title,
-  onClose,
-  wide,
-  children,
-}) {
+// popup box with a dark backdrop: click outside or X = close
+export default function MovieVersePanel({ eyebrow, title, onClose, children }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className={'mv-panel' + (wide ? ' wide' : '')}
+        className="mv-panel"
         role="dialog"
         aria-modal="true"
         aria-label={title}

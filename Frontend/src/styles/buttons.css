@@ -1,0 +1,39 @@
+/* ---------- 8. Buttons and toast ---------- */
+.primary-button {
+  border: 0;
+  background: linear-gradient(100deg, #8762e8, #5c4ac2);
+  border-radius: 7px;
+  padding: 10px 13px;
+  color: white;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.mv-secondary-button {
+  border: 1px solid #a78bfa77;
+  background: #8b5cf622;
+  color: #ede6ff;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+.toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  background: #211a39;
+  border: 1px solid #a78bfa66;
+  border-radius: 30px;
+  padding: 11px 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e3d9ff;
+  font-size: 10px;
+  box-shadow: 0 10px 40px #0009;
+  white-space: nowrap;
+}

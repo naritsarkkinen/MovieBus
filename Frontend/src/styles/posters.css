@@ -1,0 +1,128 @@
+/* ---------- 3. Posters and avatars ---------- */
+.eyebrow {
+  font: 500 9px 'DM Mono';
+  letter-spacing: 1.6px;
+  color: #827d9c;
+}
+
+/* dark fade at the bottom of every poster */
+.stack-poster:after,
+.modal-art:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, #080713d9 100%);
+}
+.poster-emoji {
+  font-size: 42px;
+  filter: drop-shadow(0 5px 6px #0008);
+  z-index: 1;
+  margin-top: 10px;
+}
+
+/* poster colours when there is no image (movie.color in the data) */
+.poster-pink {
+  background: radial-gradient(circle at 50% 30%, #ffb1d0, #a02d83 58%, #191b4c);
+}
+.poster-blue {
+  background: radial-gradient(circle at 50% 30%, #7cb7e6, #244d78 55%, #10172b);
+}
+.poster-violet {
+  background: radial-gradient(circle at 50% 30%, #d1b6ff, #573a9b 58%, #12132c);
+}
+.poster-orange {
+  background: radial-gradient(circle at 50% 30%, #ffcc72, #c55d31 58%, #251332);
+}
+.poster-rose {
+  background: radial-gradient(circle at 50% 30%, #ffb2b7, #a33e70 58%, #241638);
+}
+.poster-green {
+  background: radial-gradient(circle at 50% 30%, #a7d18c, #386b4e 58%, #111b25);
+}
+.poster-gold {
+  background: radial-gradient(circle at 50% 30%, #ffe28b, #b76c3e 58%, #25162e);
+}
+.poster-steel {
+  background: radial-gradient(circle at 50% 30%, #b9d8e6, #496d88 58%, #101a2b);
+}
+
+/* real poster image: it hides the emoji */
+.poster-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+.poster-img ~ .poster-emoji,
+.poster-img ~ .art-emoji {
+  display: none;
+}
+
+/* player avatar and skin colours */
+.player-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  border: 1px solid #c4b5fd88;
+  background: radial-gradient(circle at 30% 20%, #6f57a7, #211a3a);
+  box-shadow: 0 0 22px #a78bfa77;
+  position: relative;
+  z-index: 1;
+}
+.skin-blue {
+  background: radial-gradient(circle at 30% 20%, #55a7bd, #17314d);
+}
+.skin-mint {
+  background: radial-gradient(circle at 30% 20%, #63bd9e, #173d37);
+}
+.skin-rose {
+  background: radial-gradient(circle at 30% 20%, #d778a7, #51253f);
+}
+.skin-gold {
+  background: radial-gradient(circle at 30% 20%, #d7ad57, #4a351d);
+}
+.player-shadow {
+  width: 34px;
+  height: 7px;
+  background: #0009;
+  filter: blur(4px);
+  border-radius: 50%;
+  margin-top: -1px;
+}
+.player-bubble {
+  font: 8px 'DM Mono';
+  background: #171329;
+  border: 1px solid #a78bfa66;
+  padding: 3px 7px;
+  border-radius: 9px;
+  margin-bottom: 4px;
+  color: #ddd0ff;
+  white-space: nowrap;
+}
+
+/* friend avatar and colours */
+.friend-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 600 12px 'Space Grotesk';
+}
+.lavender {
+  background: #493b6d;
+  color: #d9c7ff;
+}
+.mint {
+  background: #28584f;
+  color: #a4f0d4;
+}
+.peach {
+  background: #754d46;
+  color: #ffd0b8;
+}

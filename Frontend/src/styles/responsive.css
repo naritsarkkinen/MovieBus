@@ -1,0 +1,138 @@
+/* ---------- 9. Small screens ---------- */
+@media (max-width: 1150px) {
+  .friends-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .mv-hud {
+    flex-wrap: wrap;
+  }
+  .mv-hud-center {
+    order: 3;
+    max-width: none;
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  /* top bar */
+  .mv-hud {
+    padding: 10px 12px 18px;
+    gap: 8px;
+  }
+  .mv-hud .brand span,
+  .mv-hud-zones span,
+  .mv-hud .user-chip,
+  .mv-hud-button,
+  .mv-data-badge {
+    display: none;
+  }
+  .mv-hud-zones button {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .card-stack {
+    padding-top: 170px;
+  }
+  .catalogue {
+    padding-top: 230px;
+  }
+  .catalogue-grid {
+    grid-template-columns: 1fr; /* phone: one genre per line */
+  }
+  .mv-hud-center .genre-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .friends-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    top: 150px;
+  }
+
+  /* panels and popups */
+  .movie-modal {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow: auto;
+  }
+  .modal-art {
+    min-height: 150px;
+  }
+  .modal-art span {
+    font-size: 50px;
+  }
+  .modal-content {
+    padding: 22px;
+  }
+  .modal-content h2 {
+    font-size: 22px;
+  }
+  .poster-emoji {
+    font-size: 32px;
+  }
+}
+
+/* touch screens: arrow buttons instead of the keyboard help */
+@media (pointer: coarse), (max-width: 720px) {
+  .walk-help {
+    display: none;
+  }
+  .walk-pad-controls {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 52px);
+    grid-template-areas:
+      '. up .'
+      'left down right';
+    gap: 6px;
+    z-index: 5000;
+  }
+  .walk-pad-controls .pad-up {
+    grid-area: up;
+  }
+  .walk-pad-controls .pad-left {
+    grid-area: left;
+  }
+  .walk-pad-controls .pad-down {
+    grid-area: down;
+  }
+  .walk-pad-controls .pad-right {
+    grid-area: right;
+  }
+  .walk-pad-controls button {
+    height: 52px;
+    border: 1px solid #a78bfa55;
+    border-radius: 11px;
+    background: #1b1533cc;
+    color: #ede6ff;
+    font-size: 16px;
+    touch-action: none;
+  }
+  .walk-prompt {
+    bottom: 132px;
+  }
+  .walk-minimap {
+    width: 110px;
+    right: auto;
+    left: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walk-player.walking .player-avatar,
+  .walk-friend .friend-avatar,
+  .walk-place-ring,
+  .walk-stars.near,
+  .portal-door,
+  .portal-door span,
+  .earth span {
+    animation: none;
+  }
+}
