@@ -10,6 +10,46 @@
 .profile-modal h2 {
   margin: 7px 0 20px;
 }
+.account-form {
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
+}
+.account-form fieldset, .account-form label {
+  display: grid;
+  gap: 6px;
+}
+.account-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  gap: 14px;
+}
+.account-form label {
+  font-size: 13px;
+}
+.account-form .profile-input {
+  box-sizing: border-box;
+  font-size: 16px;
+}
+.account-form .profile-input:focus-visible {
+  border-color: #b7a2ff;
+}
+.account-form .primary-button {
+  justify-content: center;
+}
+.account-switch {
+  justify-self: center;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #d3c5ff;
+  text-decoration: underline;
+}
+.account-form [role="alert"] {
+  margin: 0;
+  color: #ffb4c3;
+}
 .profile-modal > label {
   display: block;
   margin: 15px 0 8px;

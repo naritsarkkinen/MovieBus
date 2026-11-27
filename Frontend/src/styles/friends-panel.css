@@ -4,13 +4,19 @@
   top: 120px;
   right: 16px;
   z-index: 12;
-  width: 270px;
+  width: 320px;
   max-height: calc(100vh - 140px);
   overflow: auto;
-  border: 1px solid #ffffff14;
-  border-radius: 14px;
-  background: #0e0b1ef0;
-  padding: 18px 15px;
+  border: 1px solid #a78bfa55;
+  border-radius: 16px;
+  background: radial-gradient(ellipse 100% 190px at top left, #34244e, transparent), #110f20;
+  box-shadow: 0 12px 40px #09091499;
+  padding: 18px;
+  scrollbar-color: #61507e #110f20;
+}
+.friends-panel :focus-visible {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 2px;
 }
 .friends-head {
   display: flex;
@@ -18,27 +24,30 @@
   align-items: center;
 }
 .friends-head h3 {
-  font: 600 17px 'Space Grotesk';
+  font: 600 22px 'Space Grotesk', sans-serif;
   margin: 5px 0 0;
 }
 .friends-head h3 span {
-  font: 9px 'DM Mono';
-  color: #9d8af0;
+  font: 12px 'DM Mono', monospace;
+  color: #d3c5ff;
   margin-left: 4px;
 }
 .invite-button {
   width: 100%;
-  margin: 23px 0 20px;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: #8b5cf61c;
   border: 1px solid #a78bfa55;
   color: #d3c5ff;
   border-radius: 8px;
   padding: 10px;
-  font-size: 10px;
+  font-size: 13px;
 }
-.invite-button span {
-  font-size: 15px;
-  margin-right: 6px;
+.invite-button:hover, .invite-button[aria-expanded="true"] {
+  background: #8b5cf63a;
 }
 
 .party-invites {
@@ -85,9 +94,31 @@
   gap: 6px;
   overflow-wrap: anywhere;
 }
+.remove-friend {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
 .friend-list {
   display: grid;
-  gap: 15px;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: #ffffff06;
+}
+.friend-list .friend-row + .friend-row {
+  border-top: 1px solid #ffffff12;
+}
+.remove-friend {
+  border-color: transparent;
+  background: transparent;
+  color: #b7abc9;
+}
+.remove-friend:hover, .remove-friend:focus-visible {
+  background: #fb718522;
+  color: #fda4af;
 }
 .friend {
   display: flex;
@@ -97,6 +128,7 @@
   border: 0;
   background: none;
   text-align: left;
+  padding: 8px 4px;
   border-radius: 10px;
 }
 .friend:hover {
@@ -108,11 +140,11 @@
   flex: 1;
 }
 .friend b {
-  font-size: 10px;
+  font-size: 14px;
 }
 .friend small {
-  font-size: 8px;
-  color: #88829a;
+  font-size: 12px;
+  color: #bbb2ce;
 }
 .friend > i {
   width: 6px;
@@ -122,7 +154,7 @@
 }
 
 .room-card {
-  margin-top: 28px;
+  margin: 18px 0;
   border: 1px solid #ffffff14;
   background: linear-gradient(135deg, #211a3b, #131323);
   border-radius: 10px;
@@ -146,11 +178,11 @@
   gap: 4px;
 }
 .room-card b {
-  font: 600 10px 'Space Grotesk';
+  font: 600 15px 'Space Grotesk', sans-serif;
 }
 .room-card small {
-  font-size: 8px;
-  color: #928ba6;
+  font-size: 12px;
+  color: #bbb2ce;
 }
 .room-roster {
   grid-column: 1 / -1;

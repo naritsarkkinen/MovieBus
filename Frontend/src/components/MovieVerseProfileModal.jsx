@@ -23,15 +23,15 @@ export default function MovieVerseProfileModal({
         className="profile-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Avatar studio"
+        aria-labelledby="mv-profile-heading"
         onClick={(e) => e.stopPropagation()}
       >
         <button className="modal-close" onClick={onClose} aria-label="Close">
           <X size={18} />
         </button>
-        <div className="eyebrow">YOUR IDENTITY</div>
-        <h2>Make it yours.</h2>
         {signedIn ? <>
+          <div className="eyebrow">YOUR IDENTITY</div>
+          <h2 id="mv-profile-heading">Make it yours.</h2>
           <div className="avatar-preview">
             <div className={'player-avatar skin-' + skin}>{avatar}</div>
             <span>{name}</span>
@@ -95,8 +95,8 @@ function AccountForm({ pending, onAuthenticate }) {
   }
 
   return (
-    <form onSubmit={submit}>
-      <p>Sign in to edit your explorer profile.</p>
+    <form className="account-form" onSubmit={submit}>
+      <h2 id="mv-profile-heading">{signup ? 'Create an account' : 'Sign in'}</h2>
       <fieldset disabled={pending}>
         {signup && <label>Display name
           <input className="profile-input" name="display_name" required minLength={2} maxLength={40} />
@@ -110,7 +110,7 @@ function AccountForm({ pending, onAuthenticate }) {
         </label>
         {error && <p role="alert">{error}</p>}
         <button className="primary-button">{signup ? 'Create account' : 'Sign in'}</button>
-        <button type="button" onClick={() => {
+        <button className="account-switch" type="button" onClick={() => {
           setSignup(!signup)
           setError('')
         }}>

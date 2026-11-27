@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MoveUpRight, Radio, X } from 'lucide-react'
+import { MoveUpRight, Radio, UserMinus, UserPlus, X } from 'lucide-react'
 import { ROOM_CAPACITY, roomGuests, roomOccupancy } from '../data/MovieVerseData'
 import MovieVersePartyReviews from './MovieVersePartyReviews'
 
@@ -74,7 +74,7 @@ export default function MovieVerseFriendsPanel({
       </div>
       <button className="invite-button" aria-expanded={invitesOpen}
         onClick={() => setInvitesOpen((open) => !open)}>
-        <span>＋</span> Invite friends
+        <UserPlus size={16} aria-hidden="true" /> Invite friends
       </button>
       {invitesOpen && (
         <section className="party-invites" aria-label="Invite to Friday Film Club">
@@ -128,9 +128,10 @@ export default function MovieVerseFriendsPanel({
             <button
               className="remove-friend"
               aria-label={'Remove ' + f.name}
+              title={'Remove ' + f.name}
               onClick={() => onRemoveFriend(f)}
             >
-              Remove
+              <UserMinus size={14} aria-hidden="true" />
             </button>
           </div>
         ))}
