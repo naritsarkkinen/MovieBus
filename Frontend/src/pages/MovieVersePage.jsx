@@ -13,6 +13,7 @@ import MovieVersePanel from '../components/MovieVersePanel'
 import MovieVerseFriendsPanel from '../components/MovieVerseFriendsPanel'
 import MovieVerseMovieModal from '../components/MovieVerseMovieModal'
 import MovieVerseProfileModal from '../components/MovieVerseProfileModal'
+import AdminDashboard from './AdminDashboard'
 import MovieVerseCardStack from '../components/MovieVerseCardStack'
 import { splitMovies } from '../data/MovieVerseWorldLayout'
 import { communityCard, movieCard } from '../data/MovieVerseCards'
@@ -44,6 +45,7 @@ export default function MovieVersePage() {
   const [selectedId, setSelectedId] = useState(null)
   const selected = movies.find((movie) => movie.id === selectedId)
   const [profileDraft, setProfileDraft] = useState(null)
+  const [adminOpen, setAdminOpen] = useState(false)
   const [profilePending, setProfilePending] = useState(false)
   const [friendOpen, setFriendOpen] = useState(null)
   const [overlay, setOverlay] = useState(null) // catalogue | communities | watchlist
@@ -157,7 +159,7 @@ export default function MovieVersePage() {
   const groups = useMemo(() => splitMovies(movies), [movies])
   const stackMovies = (groups[zone] || []).filter((m) => visibleIds.has(m.id))
   const watchlistMovies = movies.filter((m) => watchlist.includes(m.id))
-  const popupOpen = Boolean(selected || friendOpen || profileDraft || overlay)
+  const popupOpen = Boolean(selected || friendOpen || profileDraft || overlay || adminOpen)
   // paused = no walking while something covers the world
   const paused = popupOpen || placeOpen
 
@@ -502,6 +504,10 @@ export default function MovieVersePage() {
         <MovieVerseProfileModal
           {...profileDraft}
           signedIn={Boolean(session)}
+          onOpenAdmin={() => {
+  setProfileDraft(null)
+  setAdminOpen(true)
+}}
           onAuthenticate={async (mode, credentials) => {
             setProfilePending(true)
             try {
@@ -528,7 +534,12 @@ export default function MovieVersePage() {
           }}
         />
       )}
-
+      {adminOpen && (
+        <AdminDashboard
+          open={adminOpen}
+          onClose={() => setAdminOpen(false)}
+        />
+      )}
       {toast && (
         <div className="toast" role="status">
           <Sparkles size={15} />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, X } from 'lucide-react'
+import { Shield, Sparkles, X } from 'lucide-react'
 
 const avatars = ['🧑🏽‍🚀', '👩🏻‍🚀', '🧑🏿‍🎤', '🧑🏼‍🎨', '🦊', '🤖']
 const skins = ['violet', 'blue', 'mint', 'rose', 'gold']
@@ -16,6 +16,7 @@ export default function MovieVerseProfileModal({
   onSave,
   pending,
   onClose,
+  onOpenAdmin,
 }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -73,7 +74,19 @@ export default function MovieVerseProfileModal({
           <button className="primary-button save-profile" onClick={onSave} disabled={pending}>
             Save appearance <Sparkles size={15} />
           </button>
+
         </> : <AccountForm pending={pending} onAuthenticate={onAuthenticate} />}
+
+    {import.meta.env.DEV && signedIn && onOpenAdmin && (
+          <button
+            type="button"
+            className="primary-button"
+            onClick={onOpenAdmin}
+            style={{ width: '100%', marginTop: 12 }}
+          >
+            <Shield size={16} /> Admin Control Center
+          </button>
+        )}
       </div>
     </div>
   )
