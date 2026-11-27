@@ -27,9 +27,26 @@ export const zones = [
     icon: '♥',
   },
 ]
+export const ROOM_CAPACITY = 6
+export const roomGuests = ['Guest 1', 'Guest 2']
+
+export function roomOccupancy(acceptedCount, joined) {
+  return roomGuests.length + acceptedCount + (joined ? 1 : 0)
+}
+
 // fake friends: no backend endpoint yet
 export const friends = [
-  { name: 'Mila', status: 'Exploring Sci-Fi', initial: 'M', color: 'lavender' },
+  {
+    name: 'Mila',
+    status: 'Exploring Sci-Fi',
+    initial: 'M',
+    color: 'lavender',
+    demoReviews: [{
+      id: 'dune-2',
+      title: 'Dune: Part Two',
+      text: 'The first sandworm ride made the whole desert feel alive.',
+    }],
+  },
   { name: 'Alex', status: 'In the lobby', initial: 'A', color: 'mint' },
   {
     name: 'Noah',

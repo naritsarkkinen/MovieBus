@@ -81,7 +81,11 @@ export default function MovieVerseMovieModal({
               maxLength={1500}
               placeholder="What did you think of this movie?"
             />
-            <button className="primary-button" onClick={onSaveReview} disabled={reviewPending || !review.trim()}>
+            <button
+              className="primary-button"
+              onClick={onSaveReview}
+              disabled={reviewPending || !review.trim()}
+            >
               Post review <MessageCircle size={14} />
             </button>
           </div>
@@ -94,12 +98,6 @@ export default function MovieVerseMovieModal({
               <div className="mv-review" key={r.id}>
                 <div>
                   <b>{r.author}</b>
-                  {r.stars && (
-                    <span>
-                      {'★'.repeat(r.stars)}
-                      {'☆'.repeat(Math.max(0, 5 - r.stars))}
-                    </span>
-                  )}
                 </div>
                 <p>{r.text}</p>
               </div>

@@ -1,0 +1,114 @@
+/* ---------- 7. Profile popup ---------- */
+.profile-modal {
+  width: min(390px, 100%);
+  background: #151326;
+  border: 1px solid #ffffff22;
+  border-radius: 15px;
+  padding: 30px;
+  position: relative;
+}
+.profile-modal h2 {
+  margin: 7px 0 20px;
+}
+.account-form {
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
+}
+.account-form fieldset, .account-form label {
+  display: grid;
+  gap: 6px;
+}
+.account-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  gap: 14px;
+}
+.account-form label {
+  font-size: 13px;
+}
+.account-form .profile-input {
+  box-sizing: border-box;
+  font-size: 16px;
+}
+.account-form .profile-input:focus-visible {
+  border-color: #b7a2ff;
+}
+.account-form .primary-button {
+  justify-content: center;
+}
+.account-switch {
+  justify-self: center;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #d3c5ff;
+  text-decoration: underline;
+}
+.account-form [role="alert"] {
+  margin: 0;
+  color: #ffb4c3;
+}
+.profile-modal > label {
+  display: block;
+  margin: 15px 0 8px;
+}
+.avatar-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #ffffff08;
+  border-radius: 9px;
+}
+.avatar-preview .player-avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 29px;
+}
+.avatar-preview span {
+  font-size: 11px;
+}
+.profile-input {
+  width: 100%;
+  background: #090914;
+  border: 1px solid #ffffff20;
+  border-radius: 7px;
+  padding: 10px;
+  color: white;
+  font-size: 11px;
+  outline: none;
+}
+.avatar-options,
+.skin-options {
+  display: flex;
+  gap: 8px;
+}
+.avatar-options button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ffffff18;
+  background: #ffffff08;
+  border-radius: 8px;
+  font-size: 21px;
+}
+.avatar-options button.chosen {
+  border-color: #a78bfa;
+  background: #8b5cf633;
+}
+.skin-dot {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 2px solid #ffffff20;
+}
+.skin-dot.chosen {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 3px;
+}
+.save-profile {
+  width: 100%;
+  margin-top: 25px;
+}

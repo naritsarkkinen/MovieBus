@@ -1,5 +1,6 @@
-import { Film, LayoutGrid, Search, Users } from 'lucide-react'
+import { Film, LayoutGrid, Trophy, Users } from 'lucide-react'
 import MovieVerseGenreFilter from './MovieVerseGenreFilter'
+import MovieVerseSearch from './MovieVerseSearch'
 
 export default function MovieVerseHud({
   zones,
@@ -7,9 +8,12 @@ export default function MovieVerseHud({
   onZone,
   search,
   onSearch,
+  searchResults,
+  onPickMovie,
   activeGenre,
   onGenre,
   onCatalogue,
+  onLeaderboard,
   dataSource,
   loadError,
   onFriends,
@@ -43,15 +47,13 @@ export default function MovieVerseHud({
       </div>
 
       <div className="mv-hud-center">
-        <div className="search-box">
-          <Search size={16} />
-          <input
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="Search movies, genres..."
-            aria-label="Search movies"
-          />
-        </div>
+        <MovieVerseSearch
+          search={search}
+          onSearch={onSearch}
+          results={searchResults}
+          onPick={onPickMovie}
+          onSeeAll={onCatalogue}
+        />
         <MovieVerseGenreFilter activeGenre={activeGenre} onSelect={onGenre} />
       </div>
 
@@ -75,6 +77,15 @@ export default function MovieVerseHud({
         </span>
         <button className="mv-hud-button" onClick={onCatalogue}>
           <LayoutGrid size={16} /> Catalogue
+        </button>
+        <button
+          className="icon-button"
+          onClick={onLeaderboard}
+          aria-haspopup="dialog"
+          aria-label="XP leaderboard"
+          title="XP leaderboard"
+        >
+          <Trophy size={18} aria-hidden="true" />
         </button>
         <button
           className="icon-button"

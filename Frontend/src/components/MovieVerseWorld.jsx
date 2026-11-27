@@ -21,7 +21,7 @@ const MOVE_KEYS = {
   arrowright: 'right',
   shift: 'run',
 }
-const ACTION_KEYS = ['enter', 'f', ' ']
+const ACTION_KEYS = ['enter', 'e', 'f', ' ']
 
 function isTyping(target) {
   return (
@@ -39,7 +39,7 @@ export default function MovieVerseWorld({
   avatar,
   skin,
   friends,
-  invited,
+  accepted,
   paused,
   onOpenFriend,
 }) {
@@ -52,9 +52,9 @@ export default function MovieVerseWorld({
   const [nearest, setNearest] = useState(null)
   const map = maps[mapId]
 
-  // hub = not invited friends, clubs = invited friends
+  const inClub = mapId === 'clubs'
   const friendsHere = friends
-    .filter((f) => invited.has(f.name) === (mapId === 'clubs'))
+    .filter((friend) => accepted.has(friend.name) === inClub)
     .map((f, i) => ({
       ...f,
       spot: map.friendSpots[i % map.friendSpots.length],
@@ -126,16 +126,17 @@ export default function MovieVerseWorld({
     const down = (e) => {
       if (isTyping(e.target)) return
       const key = e.key.toLowerCase()
-      // Enter/Space on a button = press the button, not F-action
+      // Enter/Space on a button = press the button, not E/F-action
       const onButton =
         e.target instanceof HTMLElement && e.target.closest('button')
+      const letterKey = key === 'e' || key === 'f'
       if (MOVE_KEYS[key]) {
         e.preventDefault()
         g.keys.add(MOVE_KEYS[key])
       } else if (
         ACTION_KEYS.includes(key) &&
         latest.current.nearest &&
-        (key === 'f' || !onButton)
+        (letterKey || !onButton)
       ) {
         e.preventDefault()
         latest.current.nearest.use()
@@ -305,7 +306,7 @@ export default function MovieVerseWorld({
             >
               <div className="player-bubble">
                 {f.name} ·{' '}
-                {mapId === 'clubs' ? 'In Friday Film Club' : f.status}
+                {inClub ? 'In Friday Film Club' : f.status}
               </div>
               <div className={'friend-avatar ' + f.color}>{f.initial}</div>
               <span className="player-shadow" />
@@ -330,7 +331,7 @@ export default function MovieVerseWorld({
 
       {current && !paused && (
         <button className="walk-prompt" onClick={() => current.use()}>
-          <span className="walk-prompt-key">F</span>
+          <span className="walk-prompt-key">E</span>
           <span>
             <small>{current.verb.toUpperCase()}</small>
             <b>{current.label}</b>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { saveAvatar } from '../api/users'
 import { fetchReviews, postRating, postReview, toReview } from '../api/reviews'
 
+// reviews of the open movie + sending ratings and reviews.
+// Sending needs a logged-in session (token), 401 = token expired → onExpired
 export default function useMovieVerseApi({ session, selectedId, notify, onExpired }) {
   const [reviewsByMovie, setReviewsByMovie] = useState({})
+  const [lastPostedReviewId, setLastPostedReviewId] = useState(null)
 
   useEffect(() => {
     if (selectedId === null) return
@@ -39,6 +41,7 @@ export default function useMovieVerseApi({ session, selectedId, notify, onExpire
     return save(async (user) => {
       const row = await postReview(movie.id, user.id, body, { token: session.token })
       const review = toReview({ ...row, display_name: user.name })
+      setLastPostedReviewId(review.id)
       setReviewsByMovie((all) => ({
         ...all,
         [movie.id]: [review, ...(all[movie.id] || [])],
@@ -47,22 +50,10 @@ export default function useMovieVerseApi({ session, selectedId, notify, onExpire
     }, 'Review posted')
   }
 
-  function sendProfile(profile) {
-    const updated = { ...profile, name: profile.name.trim() }
-    if (updated.name.length < 2) {
-      notify('Display name must be at least 2 characters')
-      return null
-    }
-    return save(
-      () => saveAvatar(session, updated),
-      'Your explorer profile was saved',
-    )
-  }
-
   return {
+    lastPostedReviewId,
     reviewsFor: (movieId) => reviewsByMovie[movieId] || [],
     sendRating,
     sendReview,
-    sendProfile,
   }
 }

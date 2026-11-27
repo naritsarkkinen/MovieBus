@@ -25,10 +25,14 @@ describe('API client', () => {
   })
 
   it('reports server errors and skips requests with no API address', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(response({ error: 'Rejected' }, 400))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(response({ error: 'Rejected' }, 400))
     vi.stubGlobal('fetch', fetchMock)
     await expect(apiRequest('/x', api)).rejects.toThrow('Rejected')
-    await expect(apiRequest('/x', { baseUrl: '' })).rejects.toThrow('No API address')
+    await expect(apiRequest('/x', { baseUrl: '' })).rejects.toThrow(
+      'No API address',
+    )
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
@@ -65,8 +69,14 @@ describe('account profile', () => {
 
 describe('movie feedback', () => {
   it('reads database reviews and sends the existing rating and review payloads', async () => {
-    const review = { id: 7, display_name: 'Mila', body: 'Great film', created_at: '2026-11-15' }
-    const fetchMock = vi.fn()
+    const review = {
+      id: 7,
+      display_name: 'Mila',
+      body: 'Great film',
+      created_at: '2026-11-15',
+    }
+    const fetchMock = vi
+      .fn()
       .mockResolvedValueOnce(response([review]))
       .mockResolvedValueOnce(response({ score: 4 }, 201))
       .mockResolvedValueOnce(response(review, 201))
@@ -80,12 +90,27 @@ describe('movie feedback', () => {
 
     const movie = api.baseUrl + '/movies/42'
     expect(sent(fetchMock)).toEqual([movie + '/reviews', 'GET', undefined])
-    expect(sent(fetchMock, 1)).toEqual([movie + '/ratings', 'POST', { user_id: 9, score: 4 }])
-    expect(sent(fetchMock, 2)).toEqual([movie + '/reviews', 'POST', { user_id: 9, body: 'Great film' }])
+    expect(sent(fetchMock, 1)).toEqual([
+      movie + '/ratings',
+      'POST',
+      { user_id: 9, score: 4 },
+    ])
+    expect(sent(fetchMock, 2)).toEqual([
+      movie + '/reviews',
+      'POST',
+      { user_id: 9, body: 'Great film' },
+    ])
   })
 
   it('surfaces a rejected review write to the caller', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({ error: 'Could not save review' }, 400)))
-    await expect(postReview(42, 9, 'Great film', api)).rejects.toThrow('Could not save review')
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(response({ error: 'Could not save review' }, 400)),
+    )
+    await expect(postReview(42, 9, 'Great film', api)).rejects.toThrow(
+      'Could not save review',
+    )
   })
 })

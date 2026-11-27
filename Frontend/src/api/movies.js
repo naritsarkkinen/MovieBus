@@ -2,6 +2,7 @@ import { API_URL, apiRequest } from './client'
 
 const genreColors = {
   'Sci-Fi': 'violet',
+  'Science Fiction': 'violet',
   Action: 'blue',
   Animation: 'pink',
   Horror: 'green',
@@ -18,8 +19,14 @@ export function tmdbImage(path, size = 'w500') {
   return path ? TMDB_IMAGE_URL + size + path : null
 }
 
+// DB genre is a list: "Adventure, Action" → first one decides colour and tag
+function firstGenre(genre) {
+  return genre.split(',')[0].trim()
+}
+
 export function toMovie(row) {
   const genre = row.genre || 'Other'
+  const main = firstGenre(genre)
   const count = Number(row.rating_count ?? 0)
   const rating = count > 0 && (row.average_rating ?? null) !== null
     ? Math.round(Number(row.average_rating) * 20) / 10
@@ -36,8 +43,8 @@ export function toMovie(row) {
     backdrop: tmdbImage(row.backdrop_path, 'w1280'),
     rating,
     votes: String(count),
-    color: genreColors[genre] || 'violet',
-    tag: rating === null ? 'NEW' : rating >= 7.5 ? 'TOP RATED' : genre.toUpperCase(),
+    color: genreColors[main] || 'violet',
+    tag: rating === null ? 'NEW' : rating >= 7.5 ? 'TOP RATED' : main.toUpperCase(),
   }
 }
 

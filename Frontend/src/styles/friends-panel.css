@@ -1,0 +1,321 @@
+/* ---------- 4. Friends panel ---------- */
+.friends-panel {
+  position: absolute;
+  top: 120px;
+  right: 16px;
+  z-index: 12;
+  width: 320px;
+  max-height: calc(100vh - 140px);
+  overflow: auto;
+  border: 1px solid #a78bfa55;
+  border-radius: 16px;
+  background: radial-gradient(ellipse 100% 190px at top left, #34244e, transparent), #110f20;
+  box-shadow: 0 12px 40px #09091499;
+  padding: 18px;
+  scrollbar-color: #61507e #110f20;
+}
+.friends-panel :focus-visible {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 2px;
+}
+.friends-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.friends-head h3 {
+  font: 600 22px 'Space Grotesk', sans-serif;
+  margin: 5px 0 0;
+}
+.friends-head h3 span {
+  font: 12px 'DM Mono', monospace;
+  color: #d3c5ff;
+  margin-left: 4px;
+}
+.invite-button {
+  width: 100%;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #8b5cf61c;
+  border: 1px solid #a78bfa55;
+  color: #d3c5ff;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+}
+.invite-button:hover, .invite-button[aria-expanded="true"] {
+  background: #8b5cf63a;
+}
+
+.party-invites {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.party-invites h4 {
+  margin: 0;
+}
+.party-invites button:disabled {
+  opacity: 0.65;
+}
+.recipient-invite {
+  grid-column: 1 / -1;
+}
+.recipient-invite p {
+  font-size: 12px;
+}
+.recipient-invite button + button {
+  margin-left: 6px;
+}
+.add-friend {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.add-friend label, .add-friend small {
+  grid-column: 1 / -1;
+  font-size: 12px;
+}
+.add-friend input, .add-friend button, .remove-friend, .party-invites button {
+  border: 1px solid #a78bfa55;
+  border-radius: 6px;
+  background: #211a3b;
+  color: #e2d9ff;
+  padding: 6px;
+}
+.friend-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+.remove-friend {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+.friend-list {
+  display: grid;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: #ffffff06;
+}
+.friend-list .friend-row + .friend-row {
+  border-top: 1px solid #ffffff12;
+}
+.remove-friend {
+  border-color: transparent;
+  background: transparent;
+  color: #b7abc9;
+}
+.remove-friend:hover, .remove-friend:focus-visible {
+  background: #fb718522;
+  color: #fda4af;
+}
+.friend {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 8px 4px;
+  border-radius: 10px;
+}
+.friend:hover {
+  background: #ffffff0a;
+}
+.friend > div:nth-child(2) {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+}
+.friend b {
+  font-size: 14px;
+}
+.friend small {
+  font-size: 12px;
+  color: #bbb2ce;
+}
+.friend > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6ee7b7;
+}
+
+.room-card {
+  margin: 18px 0;
+  border: 1px solid #ffffff14;
+  background: linear-gradient(135deg, #211a3b, #131323);
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.room-art {
+  width: 40px;
+  height: 44px;
+  border-radius: 7px;
+  background: radial-gradient(circle at 50% 30%, #c5b3ff, #6741b7 70%);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+.room-card > div:nth-child(2) {
+  display: grid;
+  gap: 4px;
+}
+.room-card b {
+  font: 600 15px 'Space Grotesk', sans-serif;
+}
+.room-card small {
+  font-size: 12px;
+  color: #bbb2ce;
+}
+.room-roster {
+  grid-column: 1 / -1;
+}
+.room-roster h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+}
+.room-roster ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  color: #d5cee4;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.room-card button {
+  grid-column: 1/3;
+  border: 0;
+  background: #ffffff0b;
+  border-radius: 6px;
+  padding: 7px;
+  color: #c6b7ff;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.party-reviews {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.party-reviews h4,
+.party-reviews p {
+  margin: 0;
+}
+.party-reviews ul {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+.party-reviews li {
+  display: grid;
+  gap: 3px;
+}
+.party-reviews li span {
+  color: #bfb1df;
+}
+.party-reviews p {
+  margin-top: 4px;
+  white-space: pre-wrap;
+}
+
+.shared-review {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px 0;
+  border-block: 1px solid #ffffff20;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.shared-review h4, .shared-review p, .shared-review ul {
+  margin: 0;
+}
+.shared-review form, .shared-review-thread, .shared-review ul {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.shared-review select, .shared-review textarea, .shared-review button {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #a78bfa55;
+  border-radius: 6px;
+  background: #211a3b;
+  color: #e2d9ff;
+  font: inherit;
+}
+.shared-review textarea {
+  resize: vertical;
+}
+.shared-review button:disabled {
+  opacity: 0.6;
+}
+.shared-review ul {
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0;
+  list-style: none;
+}
+.shared-review li p {
+  white-space: pre-wrap;
+}
+
+.activity {
+  margin-top: 29px;
+}
+.activity p {
+  font-size: 9px;
+  color: #a39db5;
+  margin: 15px 0 4px;
+}
+.activity p b {
+  color: #d5cee4;
+}
+.activity > small {
+  font-size: 8px;
+  color: #716b85;
+  margin-left: 13px;
+}
+.activity-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: #6ee7b7;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.activity-dot.purple {
+  background: #a78bfa;
+}
+.friends-note {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #706a84;
+  font-size: 8px;
+}
