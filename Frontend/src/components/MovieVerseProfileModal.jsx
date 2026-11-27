@@ -77,7 +77,7 @@ export default function MovieVerseProfileModal({
 
         </> : <AccountForm pending={pending} onAuthenticate={onAuthenticate} />}
 
-        {import.meta.env.DEV &&  signedIn && onOpenAdmin && (
+        {signedIn && onOpenAdmin && (
           <button
             type="button"
             className="primary-button"
